@@ -1,0 +1,42 @@
+[
+  { 
+    "id": "r-001", 
+    "date": "2025-09-28", 
+    "distanceKm": 8.2, 
+    "durationSec": 2400, 
+    "notes": "Tempo run along the canal",
+    "pace": "4:52"
+  },
+  { 
+    "id": "r-002", 
+    "date": "2025-10-01", 
+    "distanceKm": 5.0, 
+    "durationSec": 1530,
+    "notes": "Easy recovery",
+    "pace": "5:06"
+  },
+  { 
+    "id": "r-003", 
+    "date": "2025-09-25", 
+    "distanceKm": 12.0, 
+    "durationSec": 3600,
+    "notes": "Long run - felt strong",
+    "pace": "5:00"
+  },
+  { 
+    "id": "r-004", 
+    "date": "2025-09-22", 
+    "distanceKm": 6.5, 
+    "durationSec": 1950,
+    "notes": "Threshold intervals",
+    "pace": "5:00"
+  },
+  { 
+    "id": "r-005", 
+    "date": "2025-09-20", 
+    "distanceKm": 4.0, 
+    "durationSec": 1200,
+    "notes": "Easy shakeout",
+    "pace": "5:00"
+  }
+]

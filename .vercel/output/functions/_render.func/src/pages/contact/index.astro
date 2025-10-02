@@ -1,0 +1,153 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Nav from '../../components/global/Nav';
+import { getRecentBlogPosts } from '../../utils/blog';
+
+const recentPosts = await getRecentBlogPosts();
+---
+
+<Layout
+  title='Contact - Ronniel Gandhe'
+  description='Get in touch with Ronniel Gandhe - software engineer and quant developer'
+  canonical='https://ronnielgandhe.com/contact'
+>
+  <Nav currentPath="/contact" recentPosts={recentPosts} />
+  
+  <main class="min-h-screen bg-bg pt-12">
+    <div class="max-w-4xl mx-auto px-4 py-12">
+      <!-- Header -->
+      <div class="mb-12">
+        <h1 class="text-3xl font-bold text-ink mb-4">Contact</h1>
+        <p class="text-ink-mute">
+          Interested in collaborating on systematic trading strategies or infrastructure projects? Let's connect.
+        </p>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-12">
+        <!-- Contact Information -->
+        <div class="space-y-8">
+          <div>
+            <h2 class="text-xl font-semibold text-ink mb-6">Get in Touch</h2>
+            
+            <div class="space-y-4">
+              <!-- Email -->
+              <a 
+                href="mailto:ronnielgandhe@gmail.com"
+                class="flex items-center gap-4 p-4 bg-bg-soft border border-border rounded-xl hover:border-accent/30 transition-apple group"
+              >
+                <div class="p-3 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-apple">
+                  <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 7.89a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="font-medium text-ink">Email</div>
+                  <div class="text-ink-mute">ronnielgandhe@gmail.com</div>
+                </div>
+              </a>
+
+              <!-- GitHub -->
+              <a 
+                href="https://github.com/ronnielgandhe"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex items-center gap-4 p-4 bg-bg-soft border border-border rounded-xl hover:border-accent/30 transition-apple group"
+              >
+                <div class="p-3 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-apple">
+                  <svg class="w-5 h-5 text-accent" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0C5.374 0 0 5.373 0 12 0 17.302 3.438 21.8 8.207 23.387c.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="font-medium text-ink">GitHub</div>
+                  <div class="text-ink-mute">@ronnielgandhe</div>
+                </div>
+              </a>
+
+              <!-- Location -->
+              <div class="flex items-center gap-4 p-4 bg-bg-soft border border-border rounded-xl">
+                <div class="p-3 bg-accent/10 rounded-lg">
+                  <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="font-medium text-ink">Location</div>
+                  <div class="text-ink-mute">Waterloo, ON, Canada</div>
+                </div>
+              </div>
+
+              <!-- Resume -->
+              <a 
+                href="/Ronniel_Gandhe_Resume.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex items-center gap-4 p-4 bg-bg-soft border border-border rounded-xl hover:border-accent/30 transition-apple group"
+              >
+                <div class="p-3 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-apple">
+                  <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="font-medium text-ink">Résumé</div>
+                  <div class="text-ink-mute">Download PDF</div>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <!-- Availability -->
+          <div class="p-6 bg-bg-soft border border-border rounded-xl">
+            <h3 class="font-semibold text-ink mb-3">Current Focus</h3>
+            <p class="text-ink-mute leading-relaxed">
+              Building systematic trading strategies and scalable infrastructure. 
+              Always interested in discussing quantitative finance, cloud architecture, 
+              and developer tooling.
+            </p>
+          </div>
+        </div>
+
+        <!-- What I'm Working On -->
+        <div class="space-y-6">
+          <h2 class="text-xl font-semibold text-ink">What I'm Working On</h2>
+          
+          <div class="space-y-4">
+            <div class="p-4 bg-bg-soft border border-border rounded-xl">
+              <h3 class="font-medium text-ink mb-2">QuantTerminal</h3>
+              <p class="text-ink-mute text-sm leading-relaxed">
+                A terminal-style trading dashboard for systematic strategy development. 
+                Python + React + FastAPI stack with real-time market data integration.
+              </p>
+            </div>
+            
+            <div class="p-4 bg-bg-soft border border-border rounded-xl">
+              <h3 class="font-medium text-ink mb-2">Infrastructure Optimization</h3>
+              <p class="text-ink-mute text-sm leading-relaxed">
+                Building resilient, low-latency systems on AWS. Focus on Lambda, 
+                API Gateway, and event-driven architectures for financial applications.
+              </p>
+            </div>
+            
+            <div class="p-4 bg-bg-soft border border-border rounded-xl">
+              <h3 class="font-medium text-ink mb-2">Trading Research</h3>
+              <p class="text-ink-mute text-sm leading-relaxed">
+                Researching factor models, risk management systems, and portfolio 
+                optimization techniques. Always learning from the latest academic papers.
+              </p>
+            </div>
+          </div>
+
+          <!-- Response Time -->
+          <div class="p-4 bg-accent/5 border border-accent/20 rounded-xl">
+            <p class="text-accent text-sm">
+              <strong>Response Time:</strong> I typically respond to emails within 24 hours. 
+              For urgent inquiries, please mention it in the subject line.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout>

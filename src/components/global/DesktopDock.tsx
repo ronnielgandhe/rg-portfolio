@@ -8,15 +8,15 @@ export default function DesktopDock() {
   const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
 
   const handleEmailClick = () => {
-    window.location.href = 'mailto:john@johndoe.com';
+    window.location.href = 'mailto:ronnielgandhe@gmail.com';
   };
 
   const handleGithubClick = () => {
-    window.open('https://github.com/johndoe', '_blank');
+    window.open('https://github.com/ronnielgandhe', '_blank');
   };
 
   const handleCalendarClick = () => {
-    window.open('https://calendly.com/', '_blank');
+    window.location.href = '/contact';
   };
 
   const handleSpotifyClick = () => {

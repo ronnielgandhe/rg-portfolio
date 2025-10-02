@@ -1,0 +1,100 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import Nav from '../../components/global/Nav';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: { slug: post.data.slug },
+    props: { post },
+  }));
+}
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+const { Content } = await post.render();
+
+function formatDate(dateString: string) {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+}
+---
+
+<Layout
+  title={`${post.data.title} - Ronniel Gandhe`}
+  description={post.data.summary}
+  canonical={`https://ronnielgandhe.com/blog/${post.data.slug}`}
+>
+  <Nav currentPath="/blog" />
+  
+  <main class="min-h-screen bg-bg pt-12">
+    <div class="max-w-4xl mx-auto px-4 py-12">
+      <!-- Back Navigation -->
+      <div class="mb-8">
+        <a 
+          href="/blog" 
+          class="text-ink-mute hover:text-accent transition-apple text-sm"
+        >
+          ← Back to Blog
+        </a>
+      </div>
+
+      <!-- Article Header -->
+      <header class="mb-12">
+        <h1 class="text-3xl font-bold text-ink mb-4 leading-tight">
+          {post.data.title}
+        </h1>
+        
+        <div class="flex items-center gap-4 text-ink-mute text-sm mb-6">
+          <time>{formatDate(post.data.publishedAt)}</time>
+          {post.data.readingTime && (
+            <>
+              <span>•</span>
+              <span>{post.data.readingTime} min read</span>
+            </>
+          )}
+        </div>
+        
+        <!-- Tags -->
+        {post.data.tags.length > 0 && (
+          <div class="flex flex-wrap gap-2">
+            {post.data.tags.map((tag) => (
+              <span class="px-3 py-1 bg-accent/10 text-accent border border-accent/20 rounded-lg text-sm">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </header>
+
+      <!-- Article Content -->
+      <article class="prose prose-invert prose-lg max-w-none">
+        <div class="text-ink-mute leading-relaxed [&>h1]:text-ink [&>h2]:text-ink [&>h3]:text-ink [&>h4]:text-ink [&>h5]:text-ink [&>h6]:text-ink [&>strong]:text-ink [&>code]:text-accent [&>code]:bg-accent/10 [&>code]:px-1 [&>code]:py-0.5 [&>code]:rounded [&>pre]:bg-bg-soft [&>pre]:border [&>pre]:border-border [&>pre]:p-4 [&>pre]:rounded-lg [&>blockquote]:border-l-4 [&>blockquote]:border-accent [&>blockquote]:pl-4 [&>blockquote]:italic">
+          <Content />
+        </div>
+      </article>
+
+      <!-- Footer -->
+      <footer class="mt-12 pt-8 border-t border-border">
+        <div class="text-center">
+          <p class="text-ink-mute mb-4">
+            Thanks for reading! Have thoughts or questions?
+          </p>
+          <a 
+            href="mailto:ronnielgandhe@gmail.com"
+            class="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-dim transition-apple"
+          >
+            Send me an email
+          </a>
+        </div>
+      </footer>
+    </div>
+  </main>
+</Layout>

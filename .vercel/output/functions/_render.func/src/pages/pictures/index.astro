@@ -1,0 +1,33 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Nav from '../../components/global/Nav';
+import PhotoGallery from '../../components/PhotoGallery';
+import { getRecentBlogPosts } from '../../utils/blog';
+
+import { photos } from '../../data/photos';
+
+const recentPosts = await getRecentBlogPosts();
+---
+
+<Layout
+  title='Pictures - Ronniel Gandhe'
+  description='Photo gallery showcasing life, work, and travel moments'
+  canonical='https://ronnielgandhe.com/pictures'
+>
+  <Nav currentPath="/pictures" recentPosts={recentPosts} />
+  
+  <main class="min-h-screen bg-bg pt-12">
+    <div class="max-w-6xl mx-auto px-4 py-12">
+      <!-- Header -->
+      <div class="mb-12">
+        <h1 class="text-3xl font-bold text-ink mb-4">Pictures</h1>
+        <p class="text-ink-mute">
+          Moments from life, work, and adventures around Waterloo and beyond.
+        </p>
+      </div>
+
+      <!-- Gallery Component -->
+      <PhotoGallery photos={photos} client:load />
+    </div>
+  </main>
+</Layout>
