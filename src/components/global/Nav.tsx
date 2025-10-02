@@ -172,9 +172,12 @@ export default function Nav({ currentPath, recentPosts = [] }: NavProps) {
         </a>
         
         {/* Name Block */}
-        <span className="text-white font-semibold text-sm cursor-default">
+        <a 
+          href="/" 
+          className="text-white hover:text-white/80 transition-colors text-sm font-semibold"
+        >
           Ronniel Gandhe
-        </span>
+        </a>
 
         {/* Projects Block */}
         <MenuBlock
