@@ -1,6 +1,5 @@
-import { BsGithub, BsSpotify, BsFolder } from 'react-icons/bs';
-import { IoIosMail, IoIosCall } from 'react-icons/io';
-import { HiOutlinePhotograph } from 'react-icons/hi';
+import { BsGithub, BsSpotify } from 'react-icons/bs';
+import { IoIosCall } from 'react-icons/io';
 
 export default function MobileDock() {
   const handleEmailClick = () => {
@@ -30,8 +29,13 @@ export default function MobileDock() {
           onClick={handleProjectsClick}
           className='flex flex-col items-center cursor-pointer'
         >
-          <div className='w-16 h-16 bg-gradient-to-t from-blue-600 to-blue-400 rounded-2xl flex items-center justify-center'>
-            <BsFolder size={32} className='text-white' />
+          <div className='w-16 h-16 rounded-2xl flex items-center justify-center'>
+            <img 
+              src='/icons/folder.png'
+              alt='Projects'
+              className='w-14 h-14 object-contain'
+              style={{width: '95px !important', height: '95px !important', minWidth: '95px', minHeight: '95px', maxWidth: 'none', maxHeight: 'none'}}
+            />
           </div>
         </button>
 
@@ -39,8 +43,13 @@ export default function MobileDock() {
           onClick={handlePicturesClick}
           className='flex flex-col items-center cursor-pointer'
         >
-          <div className='w-16 h-16 bg-gradient-to-t from-purple-600 to-pink-400 rounded-2xl flex items-center justify-center'>
-            <HiOutlinePhotograph size={32} className='text-white' />
+          <div className='w-16 h-16 rounded-2xl flex items-center justify-center'>
+            <img 
+              src='/icons/photos.png' 
+              alt='Pictures'
+              className='w-14 h-14 object-contain'
+              style={{width: '71px !important', height: '71px !important', minWidth: '71px', minHeight: '71px', maxWidth: 'none', maxHeight: 'none'}}
+            />
           </div>
         </button>
 
@@ -54,8 +63,13 @@ export default function MobileDock() {
           onClick={handleEmailClick}
           className='flex flex-col items-center cursor-pointer'
         >
-          <div className='w-16 h-16 bg-gradient-to-t from-blue-600 to-blue-400 rounded-2xl flex items-center justify-center'>
-            <IoIosMail size={35} className='text-white' />
+          <div className='w-16 h-16 rounded-2xl flex items-center justify-center'>
+            <img 
+              src='/icons/email.png'
+              alt='Email'
+              className='w-14 h-14 object-contain'
+              style={{width: '67px !important', height: '67px !important', minWidth: '67px', minHeight: '67px', maxWidth: 'none', maxHeight: 'none'}}
+            />
           </div>
         </button>
 

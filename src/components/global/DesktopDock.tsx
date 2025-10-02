@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { BsGithub, BsSpotify, BsTerminal, BsFolder } from 'react-icons/bs';
-import { IoIosMail } from 'react-icons/io';
+import { BsGithub, BsSpotify, BsTerminal } from 'react-icons/bs';
 import { VscVscode } from 'react-icons/vsc';
 import { RiTerminalFill } from 'react-icons/ri';
-import { HiOutlinePhotograph } from 'react-icons/hi';
 
 export default function DesktopDock() {
   const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
@@ -56,8 +54,13 @@ export default function DesktopDock() {
             onMouseLeave={() => setHoveredIcon(null)}
             className='relative transition-transform duration-200 ease-out hover:scale-110'
           >
-            <div className='w-14 h-14 bg-gradient-to-t from-blue-600 to-blue-400 rounded-xl flex items-center justify-center shadow-lg'>
-              <BsFolder size={40} className='text-white' />
+            <div className='w-14 h-14 rounded-xl shadow-lg flex items-center justify-center'>
+              <img 
+                src='/icons/folder.png'
+                alt='Projects'
+                className='w-12 h-12 object-contain'
+                style={{width: '81px !important', height: '81px !important', minWidth: '81px', minHeight: '81px', maxWidth: 'none', maxHeight: 'none'}}
+              />
             </div>
             {hoveredIcon === 'projects' && <Tooltip text='My Projects' />}
           </button>
@@ -69,8 +72,13 @@ export default function DesktopDock() {
             onMouseLeave={() => setHoveredIcon(null)}
             className='relative transition-transform duration-200 ease-out hover:scale-110'
           >
-            <div className='w-14 h-14 bg-gradient-to-t from-purple-600 to-pink-400 rounded-xl flex items-center justify-center shadow-lg'>
-              <HiOutlinePhotograph size={40} className='text-white' />
+            <div className='w-14 h-14 rounded-xl shadow-lg flex items-center justify-center'>
+              <img 
+                src='/icons/photos.png' 
+                alt='Pictures'
+                className='w-12 h-12 object-contain'
+                style={{width: '61px !important', height: '61px !important', minWidth: '61px', minHeight: '61px', maxWidth: 'none', maxHeight: 'none'}}
+              />
             </div>
             {hoveredIcon === 'pictures' && <Tooltip text='My Pictures' />}
           </button>
@@ -95,8 +103,13 @@ export default function DesktopDock() {
             onMouseLeave={() => setHoveredIcon(null)}
             className='relative transition-transform duration-200 ease-out hover:scale-110'
           >
-            <div className='w-14 h-14 bg-gradient-to-t from-blue-600 to-blue-400 rounded-xl flex items-center justify-center shadow-lg'>
-              <IoIosMail size={45} className='text-white' />
+            <div className='w-14 h-14 rounded-xl shadow-lg flex items-center justify-center'>
+              <img 
+                src='/icons/email.png'
+                alt='Email'
+                className='w-12 h-12 object-contain'
+                style={{width: '58px !important', height: '58px !important', minWidth: '58px', minHeight: '58px', maxWidth: 'none', maxHeight: 'none'}}
+              />
             </div>
             {hoveredIcon === 'email' && <Tooltip text='Email Me' />}
           </button>

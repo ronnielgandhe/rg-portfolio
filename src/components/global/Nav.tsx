@@ -24,16 +24,17 @@ interface MenuBlockProps {
 
 function MenuBlock({ trigger, items, isOpen, onToggle }: MenuBlockProps) {
   const menuRef = useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
-    if (isOpen && menuRef.current) {
+    if ((isOpen || isHovered) && menuRef.current) {
       const firstItem = menuRef.current.querySelector('a') as HTMLElement;
       firstItem?.focus();
     }
-  }, [isOpen]);
+  }, [isOpen, isHovered]);
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (!isOpen) return;
+    if (!isOpen && !isHovered) return;
 
     const menuItems = menuRef.current?.querySelectorAll('a') as NodeListOf<HTMLElement>;
     const currentIndex = Array.from(menuItems).findIndex(item => item === document.activeElement);
@@ -52,6 +53,7 @@ function MenuBlock({ trigger, items, isOpen, onToggle }: MenuBlockProps) {
       case 'Escape':
         event.preventDefault();
         onToggle();
+        setIsHovered(false);
         break;
       case 'Enter':
       case ' ':
@@ -61,19 +63,33 @@ function MenuBlock({ trigger, items, isOpen, onToggle }: MenuBlockProps) {
     }
   };
 
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
+
+  const shouldShowMenu = isOpen || isHovered;
+
   return (
-    <div className="relative">
+    <div 
+      className="relative"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <button
         className="text-white hover:text-white/80 transition-colors text-sm font-normal px-0"
         onClick={onToggle}
         onKeyDown={handleKeyDown}
-        aria-expanded={isOpen}
+        aria-expanded={shouldShowMenu}
         aria-haspopup="true"
       >
         {trigger}
       </button>
       
-      {isOpen && (
+      {shouldShowMenu && (
         <div
           ref={menuRef}
           className="absolute top-full left-0 mt-0 backdrop-blur-xl bg-slate-900/50 border border-white/10 shadow-2xl min-w-48"
@@ -150,6 +166,12 @@ export default function Nav({ currentPath, recentPosts = [] }: NavProps) {
         { label: 'All Posts', href: '/blog', sublabel: 'View all articles', divider: true },
       ];
 
+  const projectItems = [
+    { label: 'QuantTerminal', href: '/projects/quantterminal', sublabel: 'Financial Analysis Tool' },
+    { label: 'YourNews', href: '/projects/yournews', sublabel: 'News Aggregation Platform' },
+    { label: 'All Projects', href: '/projects', sublabel: 'View all projects', divider: true },
+  ];
+
   return (
     <nav 
       ref={navRef}
@@ -181,11 +203,15 @@ export default function Nav({ currentPath, recentPosts = [] }: NavProps) {
           onToggle={() => handleMenuToggle('blog')}
         />
 
+        {/* Projects Block */}
+        <MenuBlock
+          trigger="Projects"
+          items={projectItems}
+          isOpen={openMenu === 'projects'}
+          onToggle={() => handleMenuToggle('projects')}
+        />
+
         {/* Simple Link Blocks */}
-        <a href="/fitness" className="text-white hover:text-white/80 transition-colors text-sm font-normal">
-          Fitness
-        </a>
-        
         <a href="/contact" className="text-white hover:text-white/80 transition-colors text-sm font-normal">
           Contact
         </a>
