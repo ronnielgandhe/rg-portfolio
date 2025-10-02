@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { BsGithub, BsSpotify, BsTerminal } from 'react-icons/bs';
+import { BsGithub, BsSpotify, BsTerminal, BsFolder } from 'react-icons/bs';
 import { IoIosMail } from 'react-icons/io';
 import { VscVscode } from 'react-icons/vsc';
 import { RiTerminalFill } from 'react-icons/ri';
+import { HiOutlinePhotograph } from 'react-icons/hi';
 
 export default function DesktopDock() {
   const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
@@ -27,6 +28,14 @@ export default function DesktopDock() {
     window.location.href = 'vscode:/';
   };
 
+  const handleProjectsClick = () => {
+    window.location.href = '/projects';
+  };
+
+  const handlePicturesClick = () => {
+    window.location.href = '/pictures';
+  };
+
   const Tooltip = ({ text }: { text: string }) => (
     <div className='absolute -top-14 left-1/2 -translate-x-1/2'>
       <div className='relative px-3 py-1 bg-[#1d1d1f]/80 backdrop-blur-sm text-white text-sm rounded-lg whitespace-nowrap border border-px border-gray-600'>
@@ -40,12 +49,38 @@ export default function DesktopDock() {
     <div className='fixed bottom-0 left-1/2 -translate-x-1/2 hidden md:block z-50'>
       <div className='relative mb-2 p-3 bg-gradient-to-t from-gray-700 to-gray-800 backdrop-blur-2xl rounded-2xl'>
         <div className='flex items-end space-x-4'>
+          {/* Projects */}
+          <button
+            onClick={handleProjectsClick}
+            onMouseEnter={() => setHoveredIcon('projects')}
+            onMouseLeave={() => setHoveredIcon(null)}
+            className='relative transition-transform duration-200 ease-out hover:scale-110'
+          >
+            <div className='w-14 h-14 bg-gradient-to-t from-blue-600 to-blue-400 rounded-xl flex items-center justify-center shadow-lg'>
+              <BsFolder size={40} className='text-white' />
+            </div>
+            {hoveredIcon === 'projects' && <Tooltip text='My Projects' />}
+          </button>
+
+          {/* Pictures */}
+          <button
+            onClick={handlePicturesClick}
+            onMouseEnter={() => setHoveredIcon('pictures')}
+            onMouseLeave={() => setHoveredIcon(null)}
+            className='relative transition-transform duration-200 ease-out hover:scale-110'
+          >
+            <div className='w-14 h-14 bg-gradient-to-t from-purple-600 to-pink-400 rounded-xl flex items-center justify-center shadow-lg'>
+              <HiOutlinePhotograph size={40} className='text-white' />
+            </div>
+            {hoveredIcon === 'pictures' && <Tooltip text='My Pictures' />}
+          </button>
+
           {/* VSCode */}
           <button
             onClick={handleVSCodeClick}
             onMouseEnter={() => setHoveredIcon('vscode')}
             onMouseLeave={() => setHoveredIcon(null)}
-            className='relative'
+            className='relative transition-transform duration-200 ease-out hover:scale-110'
           >
             <div className='w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-lg'>
               <VscVscode size={45} className='text-blue-500' />
@@ -58,7 +93,7 @@ export default function DesktopDock() {
             onClick={handleEmailClick}
             onMouseEnter={() => setHoveredIcon('email')}
             onMouseLeave={() => setHoveredIcon(null)}
-            className='relative'
+            className='relative transition-transform duration-200 ease-out hover:scale-110'
           >
             <div className='w-14 h-14 bg-gradient-to-t from-blue-600 to-blue-400 rounded-xl flex items-center justify-center shadow-lg'>
               <IoIosMail size={45} className='text-white' />
@@ -71,7 +106,7 @@ export default function DesktopDock() {
             onClick={handleGithubClick}
             onMouseEnter={() => setHoveredIcon('github')}
             onMouseLeave={() => setHoveredIcon(null)}
-            className='relative'
+            className='relative transition-transform duration-200 ease-out hover:scale-110'
           >
             <div className='w-14 h-14  bg-gradient-to-t from-black to-black/60 rounded-xl flex items-center justify-center shadow-lg'>
               <BsGithub size={45} className='text-gray-100' />
@@ -84,7 +119,7 @@ export default function DesktopDock() {
             onClick={handleCalendarClick}
             onMouseEnter={() => setHoveredIcon('calendar')}
             onMouseLeave={() => setHoveredIcon(null)}
-            className='relative'
+            className='relative transition-transform duration-200 ease-out hover:scale-110'
           >
             <div className='w-14 h-14 overflow-hidden shadow-lg'>
               <div className='absolute inset-0 bg-gradient-to-b from-white to-gray-200 rounded-xl'></div>
@@ -109,7 +144,7 @@ export default function DesktopDock() {
             onClick={handleSpotifyClick}
             onMouseEnter={() => setHoveredIcon('spotify')}
             onMouseLeave={() => setHoveredIcon(null)}
-            className='relative'
+            className='relative transition-transform duration-200 ease-out hover:scale-110'
           >
             <div className='w-14 h-14 bg-gradient-to-t from-black to-black/60 rounded-xl flex items-center justify-center shadow-lg'>
               <BsSpotify size={45} className='text-[#1ED760]' />
@@ -126,7 +161,7 @@ export default function DesktopDock() {
           <button
             onMouseEnter={() => setHoveredIcon('terminal')}
             onMouseLeave={() => setHoveredIcon(null)}
-            className='relative'
+            className='relative transition-transform duration-200 ease-out hover:scale-110'
           >
             <div className='w-14 h-14 rounded-2xl overflow-hidden shadow-lg'>
               <div className='absolute inset-0 bg-gradient-to-b from-gray-300 to-gray-500 rounded-xl'></div>

@@ -135,12 +135,6 @@ export default function Nav({ currentPath, recentPosts = [] }: NavProps) {
   };
 
   // Menu block configurations
-  const projectItems = [
-    { label: 'QuantTerminal', href: '/projects/quantterminal', sublabel: 'Trading Terminal' },
-    { label: 'YourNews', href: '/projects/yournews', sublabel: 'News Aggregator' },
-    { label: 'All Projects', href: '/projects', sublabel: 'View complete portfolio', divider: true },
-  ];
-
   const blogItems = recentPosts.length > 0 
     ? [
         ...recentPosts.slice(0, 3).map(post => ({
@@ -179,14 +173,6 @@ export default function Nav({ currentPath, recentPosts = [] }: NavProps) {
           Ronniel Gandhe
         </a>
 
-        {/* Projects Block */}
-        <MenuBlock
-          trigger="Projects"
-          items={projectItems}
-          isOpen={openMenu === 'projects'}
-          onToggle={() => handleMenuToggle('projects')}
-        />
-
         {/* Blog Block */}
         <MenuBlock
           trigger="Blog"
@@ -198,10 +184,6 @@ export default function Nav({ currentPath, recentPosts = [] }: NavProps) {
         {/* Simple Link Blocks */}
         <a href="/fitness" className="text-white hover:text-white/80 transition-colors text-sm font-normal">
           Fitness
-        </a>
-        
-        <a href="/pictures" className="text-white hover:text-white/80 transition-colors text-sm font-normal">
-          Pictures
         </a>
         
         <a href="/contact" className="text-white hover:text-white/80 transition-colors text-sm font-normal">
