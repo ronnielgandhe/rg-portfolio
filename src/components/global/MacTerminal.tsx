@@ -2,9 +2,18 @@ import { useEffect, useRef, useState } from 'react';
 import { FaRegFolderClosed } from 'react-icons/fa6';
 
 export default function MacTerminal() {
-  const welcomeMessage = `Ronniel Gandhe — Software Engineer • Quant Developer\n\nLocation: Waterloo, ON\nEmail: ronnielgandhe@gmail.com\nGitHub: github.com/ronnielgandhe\n\nType /help for commands.`;
+  const welcomeMessage = `Ronniel Gandhe — Software Engineer • Quant Developer
 
-  const [lines, setLines] = useState<string[]>(() => welcomeMessage.split('\n'));
+Location: Waterloo, ON
+Email: ronnielgandhe@gmail.com
+GitHub: github.com/ronnielgandhe
+
+Type /help for commands.`;
+
+  const [lines, setLines] = useState<string[]>(() => {
+    const initial = welcomeMessage.split('\n');
+    return initial;
+  });
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -69,20 +78,43 @@ export default function MacTerminal() {
           ronnielgandhe.com — zsh
         </span>
       </div>
-      <div className='p-4 text-gray-200 font-mono text-xs h-[calc(500px-1.5rem)] flex flex-col'>
+      <div className='p-6 text-gray-100 font-mono text-sm h-[calc(500px-1.5rem)] flex flex-col'>
         <div className='flex-1 overflow-y-auto' ref={scrollRef}>
-          <pre className='whitespace-pre-wrap'>
-            {lines.map((l, i) => (
-              <div key={i} className={l.startsWith('>') ? 'text-green-400' : undefined}>
-                {l}
-              </div>
-            ))}
-          </pre>
+          <div className='space-y-1'>
+            {lines.map((l, i) => {
+              // First line is the name/title - make it bold and larger
+              if (i === 0) {
+                return (
+                  <div key={i} className='text-white font-bold text-base mb-2'>
+                    {l}
+                  </div>
+                );
+              }
+              // Second line is empty
+              if (i === 1 && l === '') {
+                return <div key={i} className='h-2' />;
+              }
+              // Lines starting with > are user input
+              if (l.startsWith('>')) {
+                return (
+                  <div key={i} className='text-green-400 font-semibold'>
+                    {l}
+                  </div>
+                );
+              }
+              // Regular lines
+              return (
+                <div key={i} className='text-gray-300'>
+                  {l}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        <div className='mt-2'>
+        <div className='mt-4 pt-4 border-t border-white/10'>
           <div className='flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2'>
-            <span className='whitespace-nowrap text-gray-400'>rg@ronnielgandhe.com root %</span>
+            <span className='whitespace-nowrap text-green-400 font-semibold'>rg@ronnielgandhe.com root %</span>
             <input
               type='text'
               value={input}
