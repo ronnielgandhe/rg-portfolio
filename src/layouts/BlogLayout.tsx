@@ -47,7 +47,7 @@ export default function BlogLayout({ posts, initialBg, backgroundMap, recentPost
           {/* Header */}
           <div className="mb-12 mt-8">
             <div className="glass rounded-lg p-6 inline-block">
-              <h1 className="text-3xl font-bold text-white mb-2 font-mono">
+              <h1 className="text-base font-bold text-white mb-2 font-mono">
                 <span className="text-green-400">$</span> cd ~/blog
               </h1>
               <p className="text-gray-300 font-mono text-sm">

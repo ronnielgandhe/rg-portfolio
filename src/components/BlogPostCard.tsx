@@ -42,7 +42,7 @@ export default function BlogPostCard({ post }: BlogPostCardProps) {
       <div className="p-6 text-gray-200 font-mono text-sm">
         {/* Title */}
         <div className="mb-3">
-          <h2 className="text-xl font-bold text-white group-hover:text-green-400 transition-colors">
+          <h2 className="text-base font-bold text-white group-hover:text-green-400 transition-colors">
             {post.title}
           </h2>
         </div>
