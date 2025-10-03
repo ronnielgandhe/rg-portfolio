@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import MobileDock from '../components/global/MobileDock';
 import DesktopDock from '../components/global/DesktopDock';
 import Nav from '../components/global/Nav';
@@ -26,21 +25,8 @@ interface BlogLayoutProps {
 }
 
 export default function BlogLayout({ posts, initialBg, backgroundMap, recentPosts }: BlogLayoutProps) {
-  const [currentBg, setCurrentBg] = useState<string>(initialBg);
-
-  useEffect(() => {
-    const lastBg = localStorage.getItem('lastBackground');
-
-    if (lastBg === initialBg) {
-      const bgKeys = Object.keys(backgroundMap);
-      const availableBgs = bgKeys.filter((bg) => bg !== lastBg);
-      const newBg =
-        availableBgs[Math.floor(Math.random() * availableBgs.length)];
-      setCurrentBg(newBg);
-    }
-
-    localStorage.setItem('lastBackground', currentBg);
-  }, [initialBg, backgroundMap]);
+  // Always use bg-1 (the sand/mountain background)
+  const currentBg = 'bg-1';
 
   return (
     <div className="relative w-screen min-h-screen overflow-x-hidden">

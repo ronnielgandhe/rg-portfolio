@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import MacTerminal from '../components/global/MacTerminal';
 import MobileDock from '../components/global/MobileDock';
 import DesktopDock from '../components/global/DesktopDock';
@@ -16,21 +15,8 @@ interface AppLayoutProps {
 }
 
 export default function Desktop({ initialBg, backgroundMap, recentPosts }: AppLayoutProps) {
-  const [currentBg, setCurrentBg] = useState<string>(initialBg);
-
-  useEffect(() => {
-    const lastBg = localStorage.getItem('lastBackground');
-
-    if (lastBg === initialBg) {
-      const bgKeys = Object.keys(backgroundMap);
-      const availableBgs = bgKeys.filter((bg) => bg !== lastBg);
-      const newBg =
-        availableBgs[Math.floor(Math.random() * availableBgs.length)];
-      setCurrentBg(newBg);
-    }
-
-    localStorage.setItem('lastBackground', currentBg);
-  }, [initialBg, backgroundMap]);
+  // Always use bg-1 (the sand/mountain background)
+  const currentBg = 'bg-1';
 
   return (
     <div className='relative w-screen h-screen overflow-hidden'>

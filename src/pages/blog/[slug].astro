@@ -5,7 +5,7 @@ import { getImage } from 'astro:assets';
 import Layout from '../../layouts/Layout.astro';
 import BlogPostLayout from '../../layouts/BlogPostLayout';
 import { getRecentBlogPosts } from '../../utils/blog';
-import { getRandomBackgroundKey, getOptimizedBackgrounds } from '../../utils/backgrounds';
+import { getFixedBackgroundKey, getOptimizedBackgrounds } from '../../utils/backgrounds';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
@@ -42,7 +42,7 @@ const recentPosts = await getRecentBlogPosts();
     readingTime={post.data.readingTime}
     tags={post.data.tags || []}
     slug={post.data.slug || ''}
-    initialBg={getRandomBackgroundKey()}
+    initialBg={getFixedBackgroundKey()}
     backgroundMap={backgroundMap}
     recentPosts={recentPosts}
   >

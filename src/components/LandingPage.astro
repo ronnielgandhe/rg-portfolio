@@ -3,7 +3,7 @@ export const prerender = false;
 import { getImage } from 'astro:assets';
 import AppLayout from '../layouts/AppLayout';
 import { getRecentBlogPosts } from '../utils/blog';
-import { getRandomBackgroundKey, getOptimizedBackgrounds } from '../utils/backgrounds';
+import { getFixedBackgroundKey, getOptimizedBackgrounds } from '../utils/backgrounds';
 
 // Get optimized backgrounds
 const backgroundMap = await getOptimizedBackgrounds(getImage);
@@ -14,7 +14,7 @@ const recentPosts = await getRecentBlogPosts();
 
 <AppLayout
   client:load
-  initialBg={getRandomBackgroundKey()}
+  initialBg={getFixedBackgroundKey()}
   backgroundMap={backgroundMap}
   recentPosts={recentPosts}
 />

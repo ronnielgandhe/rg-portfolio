@@ -5,7 +5,7 @@ import { getImage } from 'astro:assets';
 import Layout from '../../layouts/Layout.astro';
 import BlogLayout from '../../layouts/BlogLayout';
 import { getRecentBlogPosts } from '../../utils/blog';
-import { getRandomBackgroundKey, getOptimizedBackgrounds } from '../../utils/backgrounds';
+import { getFixedBackgroundKey, getOptimizedBackgrounds } from '../../utils/backgrounds';
 
 const posts = await getCollection('blog');
 const sortedPosts = posts.sort((a, b) => 
@@ -37,7 +37,7 @@ const recentPosts = await getRecentBlogPosts();
   <BlogLayout 
     client:load
     posts={formattedPosts}
-    initialBg={getRandomBackgroundKey()}
+    initialBg={getFixedBackgroundKey()}
     backgroundMap={backgroundMap}
     recentPosts={recentPosts}
   />
