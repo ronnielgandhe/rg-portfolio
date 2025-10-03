@@ -177,22 +177,18 @@ export default function Nav({ currentPath, recentPosts = [] }: NavProps) {
       ref={navRef}
       className="fixed top-0 left-0 right-0 z-50 h-6 backdrop-blur-xl bg-slate-900/50 border-b border-white/5"
     >
-      <div className="flex items-center h-full px-4 space-x-4">
-        {/* Apple Logo Block */}
+      <div className="flex items-center h-full px-4 space-x-6">
+        {/* RG Logo + Name Block */}
         <a 
           href="/" 
-          className="text-white hover:text-white/80 transition-colors text-sm"
-          aria-label="Home"
+          className="flex items-center space-x-2 text-white hover:text-white/80 transition-colors text-sm font-semibold"
         >
-          
-        </a>
-        
-        {/* Name Block */}
-        <a 
-          href="/" 
-          className="text-white hover:text-white/80 transition-colors text-sm font-semibold"
-        >
-          Ronniel Gandhe
+          <img 
+            src="/icons/rglogo.png" 
+            alt="RG Logo" 
+            className="h-7 w-auto object-contain"
+          />
+          <span>Ronniel Gandhe</span>
         </a>
 
         {/* Blog Block */}
