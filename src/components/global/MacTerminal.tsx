@@ -47,15 +47,25 @@ I build systems that think, design that feels, and code that connects ideas to i
         body: JSON.stringify({ messages: [{ role: 'user', content: trimmed }] }),
       });
 
-      const data = await res.json();
+      // Safely attempt JSON parse
+      let data: any = null;
+      const text = await res.text();
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch (parseErr) {
+        setLines((prev) => [
+          ...prev,
+          'Error: Response was not valid JSON',
+          text ? `Raw: ${text.substring(0, 200)}...` : 'Raw: <empty>',
+        ]);
+        return;
+      }
 
       if (!res.ok) {
         const errMsg = data?.details || data?.error || `HTTP ${res.status}`;
         setLines((prev) => [...prev, `Error: ${errMsg}`]);
       } else {
-        // show assistant response
-        const msg = data?.message ?? JSON.stringify(data);
-        // split into lines to preserve formatting
+        const msg = data?.message ?? data?.error ?? JSON.stringify(data);
         const msgLines = String(msg).split('\n');
         setLines((prev) => [...prev, ...msgLines]);
       }
