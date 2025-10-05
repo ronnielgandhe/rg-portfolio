@@ -64,7 +64,7 @@ export default function ProjectCarousel({ projects }: ProjectCarouselProps) {
   ];
 
   return (
-    <div className="relative w-full h-[600px] md:h-[700px] flex items-center justify-center">
+    <div className="relative w-full h-[650px] md:h-[800px] flex items-center justify-center -mt-12 md:-mt-16">
       {/* Carousel Container */}
       <div className="relative w-full max-w-7xl mx-auto flex items-center justify-center px-4">
         <div className="relative w-full flex items-center justify-center" style={{ perspective: '2000px' }}>
@@ -113,22 +113,6 @@ export default function ProjectCarousel({ projects }: ProjectCarouselProps) {
         </div>
       </div>
 
-      {/* Navigation Dots */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
-        {projects.map((project, idx) => (
-          <button
-            key={project.slug}
-            onClick={() => goToIndex(idx)}
-            className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-              idx === activeIndex
-                ? 'bg-green-400 w-8'
-                : 'bg-gray-500 hover:bg-gray-400'
-            }`}
-            aria-label={`Go to ${project.title}`}
-          />
-        ))}
-      </div>
-
       {/* Arrow Navigation - Desktop Only */}
       <button
         onClick={() => goToIndex((activeIndex - 1 + projects.length) % projects.length)}
@@ -148,14 +132,6 @@ export default function ProjectCarousel({ projects }: ProjectCarouselProps) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
       </button>
-
-      {/* Auto-rotate indicator */}
-      {autoRotate && (
-        <div className="absolute top-4 right-4 glass px-3 py-1.5 rounded-full flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-          <span className="text-xs text-gray-300 font-mono">auto-rotate</span>
-        </div>
-      )}
     </div>
   );
 }

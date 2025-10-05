@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import MobileDock from '../components/global/MobileDock';
 import DesktopDock from '../components/global/DesktopDock';
 import Nav from '../components/global/Nav';
@@ -27,6 +28,49 @@ interface BlogLayoutProps {
 export default function BlogLayout({ posts, initialBg, backgroundMap, recentPosts }: BlogLayoutProps) {
   // Always use bg-1 (the sand/mountain background)
   const currentBg = 'bg-1';
+  const [visiblePosts, setVisiblePosts] = useState<Set<string>>(new Set());
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  useEffect(() => {
+    // Set up intersection observer for scroll animations
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setVisiblePosts((prev) => new Set([...prev, entry.target.id]));
+          }
+        });
+      },
+      {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px',
+      }
+    );
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    // Observe all post elements
+    const postElements = document.querySelectorAll('[data-post-card]');
+    postElements.forEach((el) => {
+      if (observerRef.current) {
+        observerRef.current.observe(el);
+      }
+    });
+
+    return () => {
+      if (observerRef.current) {
+        postElements.forEach((el) => {
+          observerRef.current?.unobserve(el);
+        });
+      }
+    };
+  }, [posts]);
 
   return (
     <div className="relative w-screen min-h-screen overflow-x-hidden">
@@ -42,11 +86,11 @@ export default function BlogLayout({ posts, initialBg, backgroundMap, recentPost
       </div>
 
       {/* Main Content */}
-      <div className="relative z-0 pt-12 pb-32 px-4">
-        <div className="max-w-5xl mx-auto">
+      <div className="relative z-0 pt-12 pb-32 px-4 overflow-y-auto">
+        <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="mb-12 mt-8">
-            <div className="glass rounded-lg p-6 inline-block">
+          <div className="mb-12 mt-8 flex justify-center">
+            <div className="glass rounded-lg p-6">
               <h1 className="text-base font-bold text-white mb-2 font-mono">
                 <span className="text-green-400">$</span> cd ~/blog
               </h1>
@@ -56,10 +100,22 @@ export default function BlogLayout({ posts, initialBg, backgroundMap, recentPost
             </div>
           </div>
 
-          {/* Blog Posts Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {posts.map((post) => (
-              <BlogPostCard key={post.slug} post={post} />
+          {/* Blog Posts Feed - Single Column */}
+          <div className="flex flex-col gap-6">
+            {posts.map((post, index) => (
+              <div
+                key={post.slug}
+                id={`post-${post.slug}`}
+                data-post-card
+                className={`transition-all duration-700 ease-out ${
+                  visiblePosts.has(`post-${post.slug}`)
+                    ? 'opacity-100 translate-y-0'
+                    : 'opacity-0 translate-y-8'
+                }`}
+                style={{ transitionDelay: `${index * 100}ms` }}
+              >
+                <BlogPostCard post={post} />
+              </div>
             ))}
           </div>
 

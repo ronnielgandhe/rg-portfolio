@@ -32,9 +32,9 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       </div>
 
       {/* Terminal Content */}
-      <div className="p-6 text-gray-200 font-mono text-sm">
+      <div className="p-8 text-gray-200 font-mono text-sm">
         {/* Title and Status */}
-        <div className="flex items-start justify-between mb-3">
+        <div className="flex items-start justify-between mb-4">
           <h2 className="text-base font-bold text-white group-hover:text-green-400 transition-colors">
             {project.title}
           </h2>
@@ -51,12 +51,12 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         </div>
 
         {/* Summary */}
-        <p className="text-gray-300 leading-relaxed mb-4">
+        <p className="text-gray-300 leading-relaxed mb-5">
           {project.summary}
         </p>
 
         {/* Tech Stack Tags */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex flex-wrap gap-2 mb-5">
           {project.tech.map((tech, index) => (
             <span
               key={index}
@@ -68,7 +68,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         </div>
 
         {/* Links */}
-        <div className="flex items-center justify-between pt-3 border-t border-gray-700/50">
+        <div className="flex items-center justify-between pt-4 border-t border-gray-700/50">
           <div className="flex items-center space-x-2 text-xs text-gray-400">
             <span className="text-green-400">$</span>
             <span className="text-green-400 group-hover:text-green-300 transition-colors">
