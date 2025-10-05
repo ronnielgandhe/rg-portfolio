@@ -44,7 +44,7 @@ export default function ProjectsLayout({ projects, initialBg, backgroundMap, rec
 
       {/* Main Content */}
       <div className="relative z-0 pt-12 pb-24 md:pb-32 px-4 flex flex-col items-center justify-center min-h-screen">
-        <div className="w-full max-w-7xl mx-auto flex flex-col items-center justify-center">
+        <div className="w-full max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-12 mt-8 flex justify-center">
             <div className="glass rounded-lg p-6">
@@ -56,7 +56,10 @@ export default function ProjectsLayout({ projects, initialBg, backgroundMap, rec
               </p>
             </div>
           </div>
+        </div>
 
+        {/* Projects Carousel - Full Width */}
+        <div className="w-full max-w-7xl mx-auto flex flex-col items-center justify-center">
           {/* Projects Carousel */}
           {projects.length > 0 ? (
             <ProjectCarousel projects={projects} />
