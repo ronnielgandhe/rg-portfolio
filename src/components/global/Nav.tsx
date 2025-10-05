@@ -189,7 +189,7 @@ export default function Nav({ currentPath, recentPosts = [] }: NavProps) {
             className="h-6 w-auto object-contain"
           />
           <span className="whitespace-nowrap hidden md:inline">Ronniel Gandhe</span>
-          <span className="whitespace-nowrap md:hidden">Ronniel G</span>
+          <span className="whitespace-nowrap md:hidden">Ronniel</span>
         </a>
 
         {/* Blog Block */}
