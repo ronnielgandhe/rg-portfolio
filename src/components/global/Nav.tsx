@@ -177,18 +177,19 @@ export default function Nav({ currentPath, recentPosts = [] }: NavProps) {
       ref={navRef}
       className="fixed top-0 left-0 right-0 z-50 h-6 backdrop-blur-xl bg-slate-900/50 border-b border-white/5"
     >
-      <div className="flex items-center h-full px-4 space-x-6">
+      <div className="flex items-center h-full px-2 sm:px-4 space-x-2 sm:space-x-6">
         {/* RG Logo + Name Block */}
         <a 
           href="/" 
-          className="flex items-center space-x-2 text-white hover:text-white/80 transition-colors text-sm font-semibold"
+          className="flex items-center space-x-1 sm:space-x-2 text-white hover:text-white/80 transition-colors text-xs sm:text-sm font-semibold"
         >
           <img 
             src="/icons/rglogo.png" 
             alt="RG Logo" 
-            className="h-7 w-auto object-contain"
+            className="h-5 sm:h-7 w-auto object-contain"
           />
-          <span>Ronniel Gandhe</span>
+          <span className="hidden sm:inline">Ronniel Gandhe</span>
+          <span className="sm:hidden text-[10px]">RG</span>
         </a>
 
         {/* Blog Block */}
@@ -208,7 +209,7 @@ export default function Nav({ currentPath, recentPosts = [] }: NavProps) {
         />
 
         {/* Simple Link Blocks */}
-        <a href="/contact" className="text-white hover:text-white/80 transition-colors text-sm font-normal">
+        <a href="/contact" className="text-white hover:text-white/80 transition-colors text-xs sm:text-sm font-normal">
           Contact
         </a>
         
@@ -216,7 +217,7 @@ export default function Nav({ currentPath, recentPosts = [] }: NavProps) {
           href="/Ronniel_Gandhe_Resume.pdf" 
           target="_blank" 
           rel="noopener noreferrer"
-          className="text-white hover:text-white/80 transition-colors text-sm font-normal"
+          className="hidden sm:inline text-white hover:text-white/80 transition-colors text-xs sm:text-sm font-normal"
         >
           Résumé
         </a>
