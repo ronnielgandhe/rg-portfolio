@@ -1,7 +1,7 @@
 import MobileDock from '../components/global/MobileDock';
 import DesktopDock from '../components/global/DesktopDock';
 import Nav from '../components/global/Nav';
-import ProjectCard from '../components/ProjectCard';
+import ProjectCarousel from '../components/ProjectCarousel';
 
 interface Project {
   title: string;
@@ -57,15 +57,11 @@ export default function ProjectsLayout({ projects, initialBg, backgroundMap, rec
             </div>
           </div>
 
-          {/* Projects Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {projects.map((project) => (
-              <ProjectCard key={project.slug} project={project} />
-            ))}
-          </div>
-
-          {/* Empty State */}
-          {projects.length === 0 && (
+          {/* Projects Carousel */}
+          {projects.length > 0 ? (
+            <ProjectCarousel projects={projects} />
+          ) : (
+            /* Empty State */
             <div className="text-center py-12">
               <div className="glass rounded-lg p-8 inline-block">
                 <p className="text-gray-300 font-mono">
