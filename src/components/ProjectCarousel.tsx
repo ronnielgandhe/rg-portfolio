@@ -64,9 +64,9 @@ export default function ProjectCarousel({ projects }: ProjectCarouselProps) {
   ];
 
   return (
-    <div className="relative w-full h-[650px] md:h-[800px] flex items-center justify-center -mt-12 md:-mt-16">
-      {/* Carousel Container */}
-      <div className="relative w-full max-w-7xl mx-auto flex items-center justify-center px-4">
+    <div className="relative w-full min-h-[700px] md:min-h-[850px] flex items-center justify-center mb-24 md:mb-32">
+      {/* Carousel Container - moved up 80px and centered with flexbox */}
+      <div className="relative w-full max-w-7xl mx-auto flex items-center justify-center px-4" style={{ transform: 'translateY(-80px)' }}>
         <div className="relative w-full flex items-center justify-center" style={{ perspective: '2000px' }}>
           {visibleProjects.map((project, idx) => {
             const isCenter = projects.length <= 3 
@@ -81,12 +81,13 @@ export default function ProjectCarousel({ projects }: ProjectCarouselProps) {
             return (
               <motion.div
                 key={project.slug}
-                className="absolute w-full max-w-xl"
+                className="absolute w-full max-w-xl md:max-w-2xl"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{
-                  x: `${position * 100}%`,
-                  scale: isCenter ? 1.05 : 0.85,
-                  opacity: isCenter ? 1 : 0.4,
+                  x: `${position * 110}%`,
+                  scale: isCenter ? 1.15 : 0.85,
+                  opacity: isCenter ? 1 : 0.7,
+                  y: isCenter ? -10 : 0,
                   zIndex: isCenter ? 20 : 10,
                   rotateY: position * 10,
                 }}
@@ -104,7 +105,7 @@ export default function ProjectCarousel({ projects }: ProjectCarouselProps) {
                   cursor: isCenter ? 'grab' : 'pointer',
                   transformStyle: 'preserve-3d',
                 }}
-                whileTap={isCenter ? { cursor: 'grabbing', scale: 1.02 } : undefined}
+                whileTap={isCenter ? { cursor: 'grabbing', scale: 1.12 } : undefined}
               >
                 <ProjectCard project={project} />
               </motion.div>
