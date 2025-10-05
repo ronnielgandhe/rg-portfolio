@@ -1,11 +1,16 @@
 ---
+export const prerender = false;
+import { getImage } from 'astro:assets';
 import Layout from '../../layouts/Layout.astro';
-import Nav from '../../components/global/Nav';
-import PhotoGallery from '../../components/PhotoGallery';
+import PicturesLayout from '../../layouts/PicturesLayout';
 import { getRecentBlogPosts } from '../../utils/blog';
-
+import { getFixedBackgroundKey, getOptimizedBackgrounds } from '../../utils/backgrounds';
 import { photos } from '../../data/photos';
 
+// Get optimized backgrounds
+const backgroundMap = await getOptimizedBackgrounds(getImage);
+
+// Fetch recent blog posts for navigation
 const recentPosts = await getRecentBlogPosts();
 ---
 
@@ -14,20 +19,11 @@ const recentPosts = await getRecentBlogPosts();
   description='Photo gallery showcasing life, work, and travel moments'
   canonical='https://ronnielgandhe.com/pictures'
 >
-  <Nav currentPath="/pictures" recentPosts={recentPosts} />
-  
-  <main class="min-h-screen bg-bg pt-12">
-    <div class="max-w-6xl mx-auto px-4 py-12">
-      <!-- Header -->
-      <div class="mb-12">
-        <h1 class="text-3xl font-bold text-ink mb-4">Pictures</h1>
-        <p class="text-ink-mute">
-          Moments from life, work, and adventures around Waterloo and beyond.
-        </p>
-      </div>
-
-      <!-- Gallery Component -->
-      <PhotoGallery photos={photos} client:load />
-    </div>
-  </main>
+  <PicturesLayout
+    client:load
+    photos={photos}
+    initialBg={getFixedBackgroundKey()}
+    backgroundMap={backgroundMap}
+    recentPosts={recentPosts}
+  />
 </Layout>
