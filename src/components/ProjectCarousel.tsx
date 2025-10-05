@@ -65,8 +65,8 @@ export default function ProjectCarousel({ projects }: ProjectCarouselProps) {
 
   return (
     <div className="relative w-full min-h-[700px] md:min-h-[850px] flex items-center justify-center mb-24 md:mb-32">
-      {/* Carousel Container - moved up 80px and centered with flexbox */}
-      <div className="relative w-full max-w-7xl mx-auto flex items-center justify-center px-4" style={{ transform: 'translateY(-80px)' }}>
+      {/* Carousel Container - moved up 180px and centered with flexbox */}
+      <div className="relative w-full max-w-7xl mx-auto flex items-center justify-center px-4" style={{ transform: 'translateY(-180px)' }}>
         <div className="relative w-full flex items-center justify-center" style={{ perspective: '2000px' }}>
           {visibleProjects.map((project, idx) => {
             const isCenter = projects.length <= 3 
