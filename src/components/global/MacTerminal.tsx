@@ -2,13 +2,19 @@ import { useEffect, useRef, useState } from 'react';
 import { FaRegFolderClosed } from 'react-icons/fa6';
 
 export default function MacTerminal() {
-  const welcomeMessage = `Ronniel Gandhe — Software Engineer • Quant Developer
+  const welcomeMessage = `Ronniel Gandhe — Software Engineer
 
 Location: Waterloo, ON
 Email: ronnielgandhe@gmail.com
 GitHub: github.com/ronnielgandhe
 
-Type /help for commands.`;
+
+I build systems that think, design that feels, and code that connects ideas to impact.
+
+
+
+
+`;
 
   const [lines, setLines] = useState<string[]>(() => {
     const initial = welcomeMessage.split('\n');
@@ -102,6 +108,36 @@ Type /help for commands.`;
                   </div>
                 );
               }
+              // Info lines with colored labels (syntax highlighting)
+              if (l.startsWith('Location:')) {
+                return (
+                  <div key={i} className='text-gray-300'>
+                    <span style={{ color: '#ff79c6' }}>Location:</span> {l.substring(9)}
+                  </div>
+                );
+              }
+              if (l.startsWith('Email:')) {
+                return (
+                  <div key={i} className='text-gray-300'>
+                    <span style={{ color: '#f1fa8c' }}>Email:</span> {l.substring(6)}
+                  </div>
+                );
+              }
+              if (l.startsWith('GitHub:')) {
+                return (
+                  <div key={i} className='text-gray-300'>
+                    <span style={{ color: '#8be9fd' }}>GitHub:</span> {l.substring(7)}
+                  </div>
+                );
+              }
+              // Blurb line - positioned with spacing
+              if (l.includes('I build systems')) {
+                return (
+                  <div key={i} className='text-gray-300 mt-8'>
+                    {l}
+                  </div>
+                );
+              }
               // Regular lines
               return (
                 <div key={i} className='text-gray-300'>
@@ -114,7 +150,7 @@ Type /help for commands.`;
 
         <div className='mt-4 pt-4 border-t border-white/10'>
           <div className='flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2'>
-            <span className='whitespace-nowrap text-green-400 font-semibold'>rg@ronnielgandhe.com root %</span>
+            <span className='whitespace-nowrap text-green-400 font-semibold'>ronnielgandhe.tech root %</span>
             <input
               type='text'
               value={input}

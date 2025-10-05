@@ -14,7 +14,7 @@ export async function getRecentBlogPosts() {
     // Return most recent 3 posts
     return sortedPosts.slice(0, 3).map(post => ({
       title: post.data.title,
-      slug: post.slug,
+      slug: post.id,
       publishedAt: post.data.publishedAt,
       readingTime: post.data.readingTime || 5
     }));
