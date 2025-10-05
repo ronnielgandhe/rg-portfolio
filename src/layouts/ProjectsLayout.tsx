@@ -46,7 +46,7 @@ export default function ProjectsLayout({ projects, initialBg, backgroundMap, rec
       <div className="relative z-0 pt-12 pb-24 md:pb-32 px-4 flex flex-col items-center justify-center min-h-screen">
         <div className="w-full max-w-7xl mx-auto flex flex-col items-center justify-center">
           {/* Header */}
-          <div className="mb-16 mt-8">
+          <div className="mb-12 mt-8 flex justify-center">
             <div className="glass rounded-lg p-6">
               <h1 className="text-base font-bold text-white mb-2 font-mono">
                 <span className="text-green-400">$</span> cd ~/projects
