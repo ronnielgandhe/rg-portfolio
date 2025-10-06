@@ -46,5 +46,11 @@ export const photos = [
     alt: "Dubai skyline", 
     createdAt: "2019-08-10",
     caption: "Dubai's futuristic skyline - where desert meets innovation"
+  },
+  { 
+    src: "/gallery/turkey.png", 
+    alt: "Istanbul view", 
+    createdAt: "2019-08-12",
+    caption: "Istanbul's timeless beauty - where East meets West"
   }
 ];
