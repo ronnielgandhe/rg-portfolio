@@ -34,5 +34,11 @@ export const photos = [
     alt: "Weekend coding project", 
     createdAt: "2025-10-01",
     caption: "Building something new - always experimenting"
+  },
+  { 
+    src: "/gallery/cn-tower.png", 
+    alt: "CN Tower reflection", 
+    createdAt: "2019-04-01",
+    caption: "CN Tower reflecting off downtown Toronto glass - iconic skyline"
   }
 ];
