@@ -40,5 +40,11 @@ export const photos = [
     alt: "CN Tower reflection", 
     createdAt: "2019-04-01",
     caption: "CN Tower reflecting off downtown Toronto glass - iconic skyline"
+  },
+  { 
+    src: "/gallery/dubai.png", 
+    alt: "Dubai skyline", 
+    createdAt: "2019-08-10",
+    caption: "Dubai's futuristic skyline - where desert meets innovation"
   }
 ];
