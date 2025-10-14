@@ -110,13 +110,13 @@ readingTime: 14
 ## (Optional) Figures
 
 <div style="text-align: center; margin: 2em 0;">
-  <img src="/images/saas_layers.svg" alt="SaaS layers diagram" style="max-width: 100%; height: auto; border: 1px solid var(--divider); border-radius: 8px;">
-  <p style="font-style: italic; color: var(--text-muted); margin-top: 0.5em; font-size: 0.875rem;">Platform layers: data model → workflow → integration → analytics → governance.</p>
+  <img src="/images/saas_layers.svg" alt="SaaS layers diagram" style="max-width: 100%; height: auto; border: 1px solid var(—divider); border-radius: 8px;">
+  <p style="font-style: italic; color: var(—text-muted); margin-top: 0.5em; font-size: 0.875rem;">Platform layers: data model → workflow → integration → analytics → governance.</p>
 </div>
 
 <div style="text-align: center; margin: 2em 0;">
-  <img src="/images/buyer_journey.svg" alt="Buyer journey swimlane" style="max-width: 100%; height: auto; border: 1px solid var(--divider); border-radius: 8px;">
-  <p style="font-style: italic; color: var(--text-muted); margin-top: 0.5em; font-size: 0.875rem;">Buyer journey with veto points: procurement, security, audit, business sponsor.</p>
+  <img src="/images/buyer_journey.svg" alt="Buyer journey swimlane" style="max-width: 100%; height: auto; border: 1px solid var(—divider); border-radius: 8px;">
+  <p style="font-style: italic; color: var(—text-muted); margin-top: 0.5em; font-size: 0.875rem;">Buyer journey with veto points: procurement, security, audit, business sponsor.</p>
 </div>
 
 ## Pitfalls & Sanity Checks

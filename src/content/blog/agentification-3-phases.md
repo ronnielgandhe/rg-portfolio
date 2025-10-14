@@ -154,8 +154,8 @@ gates. It's not sexy, but it's the difference between a demo and a system.
 ## Visual Architecture
 
 <div style="text-align: center; margin: 2em 0;">
-  <img src="/images/phases.svg" alt="Agent maturity phases diagram" style="max-width: 100%; height: auto; border: 1px solid var(--border-color); border-radius: 8px;">
-  <p style="font-style: italic; color: var(--text-muted); margin-top: 0.5em; font-size: 0.875rem;">
+  <img src="/images/phases.svg" alt="Agent maturity phases diagram" style="max-width: 100%; height: auto; border: 1px solid var(—border-color); border-radius: 8px;">
+  <p style="font-style: italic; color: var(—text-muted); margin-top: 0.5em; font-size: 0.875rem;">
     The three phases of agent maturity: Tools, Orchestrated, and Autonomous
   </p>
 </div>
@@ -163,8 +163,8 @@ gates. It's not sexy, but it's the difference between a demo and a system.
 The closed-loop orchestration flow:
 
 <div style="text-align: center; margin: 2em 0;">
-  <img src="/images/loop.svg" alt="Orchestration loop diagram" style="max-width: 100%; height: auto; border: 1px solid var(--border-color); border-radius: 8px;">
-  <p style="font-style: italic; color: var(--text-muted); margin-top: 0.5em; font-size: 0.875rem;">
+  <img src="/images/loop.svg" alt="Orchestration loop diagram" style="max-width: 100%; height: auto; border: 1px solid var(—border-color); border-radius: 8px;">
+  <p style="font-style: italic; color: var(—text-muted); margin-top: 0.5em; font-size: 0.875rem;">
     Plan → Act → Verify → Policy Gate → Approve or Rollback
   </p>
 </div>

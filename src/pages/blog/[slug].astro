@@ -11,7 +11,9 @@ import { getFixedBackgroundKey, getOptimizedBackgrounds } from '../../utils/back
 const { slug } = Astro.params;
 
 // Fetch all blog posts and find the one with matching id (filename without extension)
-const allPosts = await getCollection('blog');
+const allPosts = await getCollection('blog', ({ id }) => {
+  return !id.startsWith('_archive/');
+});
 const post = allPosts.find(p => p.id === slug);
 
 if (!post) {

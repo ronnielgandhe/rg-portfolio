@@ -7,7 +7,9 @@ import BlogLayout from '../../layouts/BlogLayout';
 import { getRecentBlogPosts } from '../../utils/blog';
 import { getFixedBackgroundKey, getOptimizedBackgrounds } from '../../utils/backgrounds';
 
-const posts = await getCollection('blog');
+const posts = await getCollection('blog', ({ id }) => {
+  return !id.startsWith('_archive/');
+});
 const sortedPosts = posts.sort((a, b) => 
   new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime()
 );

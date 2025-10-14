@@ -2,7 +2,9 @@ import { getCollection } from 'astro:content';
 
 export async function getRecentBlogPosts() {
   try {
-    const allPosts = await getCollection('blog');
+    const allPosts = await getCollection('blog', ({ id }) => {
+      return !id.startsWith('_archive/');
+    });
     
     // Sort by publishedAt date (most recent first)
     const sortedPosts = allPosts.sort((a, b) => {
