@@ -206,4 +206,74 @@
       transform: none !important;
     }
   }
+
+  /* ===== Tag Pills ===== */
+  :root {
+    --pill-mint: #34d399;
+    --pill-cyan: #22d3ee;
+    --pill-sky: #38bdf8;
+    --pill-blue: #60a5fa;
+    --pill-indigo: #818cf8;
+    --pill-purple: #a78bfa;
+    --pill-pink: #f472b6;
+    --pill-amber: #f59e0b;
+  }
+
+  [data-theme="dark"] {
+    --pill-mint: #10b981;
+    --pill-cyan: #06b6d4;
+    --pill-sky: #0ea5e9;
+    --pill-blue: #3b82f6;
+    --pill-indigo: #6366f1;
+    --pill-purple: #8b5cf6;
+    --pill-pink: #ec4899;
+    --pill-amber: #f59e0b;
+  }
+
+  /* Base pill */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.18rem 0.55rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    line-height: 1.2;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  /* Cycle colors by position */
+  .tag-list .pill:nth-child(8n+1) {
+    color: var(--pill-mint);
+    border-color: color-mix(in oklab, var(--pill-mint) 35%, transparent);
+  }
+  .tag-list .pill:nth-child(8n+2) {
+    color: var(--pill-cyan);
+    border-color: color-mix(in oklab, var(--pill-cyan) 35%, transparent);
+  }
+  .tag-list .pill:nth-child(8n+3) {
+    color: var(--pill-sky);
+    border-color: color-mix(in oklab, var(--pill-sky) 35%, transparent);
+  }
+  .tag-list .pill:nth-child(8n+4) {
+    color: var(--pill-blue);
+    border-color: color-mix(in oklab, var(--pill-blue) 35%, transparent);
+  }
+  .tag-list .pill:nth-child(8n+5) {
+    color: var(--pill-indigo);
+    border-color: color-mix(in oklab, var(--pill-indigo) 35%, transparent);
+  }
+  .tag-list .pill:nth-child(8n+6) {
+    color: var(--pill-purple);
+    border-color: color-mix(in oklab, var(--pill-purple) 35%, transparent);
+  }
+  .tag-list .pill:nth-child(8n+7) {
+    color: var(--pill-pink);
+    border-color: color-mix(in oklab, var(--pill-pink) 35%, transparent);
+  }
+  .tag-list .pill:nth-child(8n+8) {
+    color: var(--pill-amber);
+    border-color: color-mix(in oklab, var(--pill-amber) 35%, transparent);
+  }
 }

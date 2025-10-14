@@ -53,12 +53,9 @@ export default function BlogPostCard({ post }: BlogPostCardProps) {
         </p>
 
         {/* Tags */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="tag-list flex flex-wrap gap-2 mb-4">
           {post.tags.map((tag, index) => (
-            <span
-              key={index}
-              className="text-xs px-2 py-1 bg-gray-700/50 text-green-400 rounded border border-green-500/30"
-            >
+            <span key={index} className="pill">
               #{tag}
             </span>
           ))}
