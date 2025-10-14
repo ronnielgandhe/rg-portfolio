@@ -1,9 +1,10 @@
 ---
 title: "Demystifying Enterprise SaaS: SAP, Workday, Atlassian — How It Really Works"
-description: "A field guide to enterprise software: buyers, budgets, moats, implementation realities, and why these platforms endure."
-published: 2025-07-15
-readingTime: "14 min read"
-tags: ["Enterprise","SaaS","Consulting","Go-To-Market","Platforms"]
+slug: demystifying-enterprise-saas
+publishedAt: "2025-07-15"
+tags: ["Enterprise", "SaaS", "Consulting", "Go-To-Market", "Platforms"]
+summary: "A field guide to enterprise software: buyers, budgets, moats, implementation realities, and why these platforms endure."
+readingTime: 14
 ---
 
 # Demystifying Enterprise SaaS: SAP, Workday, Atlassian — How It Really Works
