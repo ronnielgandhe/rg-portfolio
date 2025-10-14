@@ -4,6 +4,9 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
 import vercel from '@astrojs/vercel';
 import sitemap from '@astrojs/sitemap';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import remarkGfm from 'remark-gfm';
 
 export default defineConfig({
   // Replace with your website URL (required for sitemap generation)
@@ -15,6 +18,16 @@ export default defineConfig({
   // Vite configuration
   vite: {
     plugins: [tailwindcss()],
+  },
+
+  // Markdown configuration
+  markdown: {
+    remarkPlugins: [remarkMath, remarkGfm],
+    rehypePlugins: [rehypeKatex],
+    shikiConfig: {
+      theme: 'nord',
+      wrap: true,
+    },
   },
 
   // Required integrations

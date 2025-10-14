@@ -9,11 +9,20 @@ readingTime: 10
 
 # What Got Me Curious About Gold vs. the Nasdaq
 
-**TL;DR**
+<div class="callout callout-info">
+<div class="callout-header">
+<span class="callout-icon">ℹ</span>
+<span class="callout-title">TL;DR</span>
+</div>
+<div class="callout-content">
+
 - Gold and Nasdaq move inversely during risk regime shifts, but the relationship isn't stable.
 - A rolling regression of Nasdaq returns on gold returns isolates divergence as a residual z-score.
 - Positive z suggests Nasdaq strength decoupled from gold; negative z flags flight-to-safety.
 - This is context for macro awareness, not a trading signal—confounders like the dollar matter.
+
+</div>
+</div>
 
 ## Motivation
 
@@ -72,6 +81,25 @@ This isolates Nasdaq moves orthogonal to all three macro factors. For simplicity
 below uses the univariate version—adding controls is a one-line `RollingOLS` change.
 
 ## Reproducible code (drop-in)
+
+<div class="stat-row">
+<div class="stat-item">
+<span class="stat-label">Window</span>
+<span class="stat-value">90 <span style="font-size: 0.875rem; font-weight: 400; color: var(--text-muted);">days</span></span>
+</div>
+<div class="stat-item">
+<span class="stat-label">Latest Z</span>
+<span class="stat-value">3.87</span>
+</div>
+<div class="stat-item">
+<span class="stat-label">Residual (ε)</span>
+<span class="stat-value">0.0404</span>
+</div>
+<div class="stat-item">
+<span class="stat-label">Beta (XAU)</span>
+<span class="stat-value">0.006</span>
+</div>
+</div>
 
 ```python
 """
@@ -209,6 +237,8 @@ If I were productionizing this for a macro dashboard:
 
 Total cost: ~$10/month for 1 daily refresh. Latency: <100ms API response.
 
+<hr class="divider" />
+
 ## Pitfalls & sanity checks
 
 1. **Non-stationarity**: The gold-Nasdaq relationship shifts with monetary policy regimes. 
@@ -230,6 +260,8 @@ Total cost: ~$10/month for 1 daily refresh. Latency: <100ms API response.
 5. **Data quality**: Gold futures (GC=F) sometimes have stale prices overnight. Consider 
    using GLD ETF or spot gold (XAU=X) for more liquid quotes, though ETFs embed tracking error.
 
+<hr class="divider" />
+
 ## Where I'd take it next
 
 **Idea 1: ETF pair (QQQ/GLD)**  
@@ -248,7 +280,7 @@ calendar). Reduces noise from random daily jitter.
 Use z < -2 as a trigger to buy GLD calls or size down Nasdaq exposure. Backtest on 2020 COVID 
 crash and 2022 tightening cycle to validate hedge effectiveness.
 
----
+<hr class="divider" />
 
 ## Repo README (excerpt)
 

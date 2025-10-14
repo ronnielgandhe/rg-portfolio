@@ -3,7 +3,7 @@ export const prerender = false;
 import { getCollection } from 'astro:content';
 import { getImage } from 'astro:assets';
 import Layout from '../../layouts/Layout.astro';
-import BlogPostLayout from '../../layouts/BlogPostLayout';
+import BlogPostLayoutEnhanced from '../../layouts/BlogPostLayoutEnhanced.astro';
 import { getRecentBlogPosts } from '../../utils/blog';
 import { getFixedBackgroundKey, getOptimizedBackgrounds } from '../../utils/backgrounds';
 
@@ -18,8 +18,6 @@ if (!post) {
   return Astro.redirect('/404');
 }
 
-const { Content } = await post.render();
-
 // Get optimized backgrounds
 const backgroundMap = await getOptimizedBackgrounds(getImage);
 
@@ -32,18 +30,9 @@ const recentPosts = await getRecentBlogPosts();
   description={post.data.summary}
   canonical={`https://ronnielgandhe.com/blog/${post.data.slug}`}
 >
-  <BlogPostLayout
-    client:load
-    title={post.data.title}
-    summary={post.data.summary}
-    publishedAt={post.data.publishedAt}
-    readingTime={post.data.readingTime}
-    tags={post.data.tags || []}
-    slug={post.data.slug || ''}
-    initialBg={getFixedBackgroundKey()}
+  <BlogPostLayoutEnhanced
+    post={post}
     backgroundMap={backgroundMap}
     recentPosts={recentPosts}
-  >
-    <Content />
-  </BlogPostLayout>
+  />
 </Layout>

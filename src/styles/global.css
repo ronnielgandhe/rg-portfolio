@@ -1,14 +1,84 @@
 @import 'tailwindcss';
 
 @layer base {
+  :root {
+    /* Terminal theme color palette */
+    --bg: #0b1220;
+    --bg-elevated: #111927;
+    --text: #e6e9ef;
+    --text-muted: #9ca3af;
+    --muted: #6b7280;
+    
+    /* Accent colors */
+    --accent: #10b981;
+    --accent-dim: #059669;
+    --accent-bright: #34d399;
+    
+    /* Callout variants */
+    --info: #3b82f6;
+    --info-bg: rgba(59, 130, 246, 0.1);
+    --info-border: rgba(59, 130, 246, 0.3);
+    
+    --warn: #f59e0b;
+    --warn-bg: rgba(245, 158, 11, 0.1);
+    --warn-border: rgba(245, 158, 11, 0.3);
+    
+    --tip: #8b5cf6;
+    --tip-bg: rgba(139, 92, 246, 0.1);
+    --tip-border: rgba(139, 92, 246, 0.3);
+    
+    --error-text: #ef4444;
+    --error-bg: rgba(239, 68, 68, 0.1);
+    --error-border: rgba(239, 68, 68, 0.3);
+    
+    --success-text: #10b981;
+    --success-bg: rgba(16, 185, 129, 0.1);
+    --success-border: rgba(16, 185, 129, 0.3);
+    
+    /* Borders and dividers */
+    --divider: rgba(255, 255, 255, 0.1);
+    --divider-light: rgba(255, 255, 255, 0.05);
+    --hover-bg: rgba(255, 255, 255, 0.03);
+    
+    /* Code blocks (Nord theme) */
+    --code-bg: #2e3440;
+    --code-border: rgba(255, 255, 255, 0.1);
+    --code-text: #d8dee9;
+    --code-title-bg: #3b4252;
+    --code-title-text: #d8dee9;
+    --code-line-number: #616e88;
+    
+    /* Code inline */
+    --code-inline-bg: rgba(46, 52, 64, 0.8);
+    --code-inline-text: #a3be8c;
+    --code-inline-border: rgba(163, 190, 140, 0.2);
+    
+    /* Copy button */
+    --code-copy-bg: transparent;
+    --code-copy-border: rgba(216, 222, 233, 0.2);
+    --code-copy-text: #d8dee9;
+    --code-copy-hover-bg: rgba(216, 222, 233, 0.1);
+    --code-copy-hover-border: rgba(216, 222, 233, 0.3);
+    --code-copy-hover-text: #eceff4;
+    
+    /* Scrollbars */
+    --code-scrollbar-track: rgba(46, 52, 64, 0.4);
+    --code-scrollbar-thumb: rgba(76, 86, 106, 0.6);
+    --code-scrollbar-thumb-hover: rgba(76, 86, 106, 0.8);
+    
+    /* Math */
+    --math-operator: #81a1c1;
+    --math-bracket: #88c0d0;
+  }
+
   body {
     font-family: 'SF Pro Text', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
       'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
       'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #0b1220;
-    color: #e6e9ef;
+    background-color: var(--bg);
+    color: var(--text);
   }
 
   .font-mono {
