@@ -7,6 +7,7 @@ import sitemap from '@astrojs/sitemap';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
+import remarkFixDashes from './scripts/remark-fix-dashes.mjs';
 
 export default defineConfig({
   // Replace with your website URL (required for sitemap generation)
@@ -22,7 +23,7 @@ export default defineConfig({
 
   // Markdown configuration
   markdown: {
-    remarkPlugins: [remarkMath, remarkGfm],
+    remarkPlugins: [remarkMath, remarkGfm, remarkFixDashes],
     rehypePlugins: [rehypeKatex],
     shikiConfig: {
       theme: 'nord',

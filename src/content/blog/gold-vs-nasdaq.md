@@ -85,7 +85,7 @@ below uses the univariate version—adding controls is a one-line `RollingOLS` c
 <div class="stat-row">
 <div class="stat-item">
 <span class="stat-label">Window</span>
-<span class="stat-value">90 <span style="font-size: 0.875rem; font-weight: 400; color: var(--text-muted);">days</span></span>
+<span class="stat-value">90 <span style="font-size: 0.875rem; font-weight: 400; color: var(—text-muted);">days</span></span>
 </div>
 <div class="stat-item">
 <span class="stat-label">Latest Z</span>
