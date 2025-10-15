@@ -7,11 +7,15 @@ import Layout from '../../layouts/Layout.astro';
 import ProjectDetailLayout from '../../layouts/ProjectDetailLayout';
 import { getRecentBlogPosts } from '../../utils/blog';
 import { getFixedBackgroundKey, getOptimizedBackgrounds } from '../../utils/backgrounds';
+import 'katex/dist/katex.min.css';
+import '../../styles/prose.css';
+import '../../styles/code.css';
+import '../../styles/math.css';
 
 export async function getStaticPaths() {
   const projectEntries = await getCollection('projects');
   return projectEntries.map(project => ({
-    params: { slug: project.id },
+    params: { slug: project.data.slug || project.id.replace('.md', '') },
     props: { project },
   }));
 }
@@ -54,3 +58,8 @@ const recentPosts = await getRecentBlogPosts();
     <Content />
   </ProjectDetailLayout>
 </Layout>
+
+<script>
+  import { initCopyButtons } from '../../scripts/copy-code';
+  initCopyButtons();
+</script>

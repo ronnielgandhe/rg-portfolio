@@ -16,7 +16,7 @@ const sortedProjects = allProjects.sort((a, b) => b.data.year - a.data.year);
 // Format projects for the ProjectsLayout component
 const projects = sortedProjects.map((project) => ({
   title: project.data.title,
-  slug: project.id,
+  slug: project.data.slug || project.id.replace('.md', ''),
   year: project.data.year,
   tech: project.data.tech,
   summary: project.data.summary,

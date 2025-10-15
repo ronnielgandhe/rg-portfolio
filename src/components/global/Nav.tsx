@@ -167,9 +167,17 @@ export default function Nav({ currentPath, recentPosts = [] }: NavProps) {
       ];
 
   const projectItems = [
-    { label: 'QuantTerminal', href: '/projects/quantterminal', sublabel: 'Financial Analysis Tool' },
-    { label: 'YourNews', href: '/projects/yournews', sublabel: 'News Aggregation Platform' },
+    { label: 'QuantZoo', href: '/projects/quantzoo', sublabel: 'Strategy Backtesting Library' },
+    { label: 'QuantTerminal', href: '/projects/quantterminal', sublabel: 'Live Trading Platform' },
+    { label: 'YourNews', href: '/projects/yournews', sublabel: 'Personalized News Feed' },
     { label: 'All Projects', href: '/projects', sublabel: 'View all projects', divider: true },
+  ];
+
+  const caseStudyItems = [
+    { label: 'Netflix', href: '/case-studies/netflix', sublabel: 'Microservices at Scale' },
+    { label: 'Uber', href: '/case-studies/uber', sublabel: 'API Architecture Evolution' },
+    { label: 'Spotify', href: '/case-studies/spotify', sublabel: 'Scaling Agile Teams' },
+    { label: 'All Case Studies', href: '/case-studies', sublabel: 'View all cases', divider: true },
   ];
 
   return (
@@ -206,6 +214,14 @@ export default function Nav({ currentPath, recentPosts = [] }: NavProps) {
           items={projectItems}
           isOpen={openMenu === 'projects'}
           onToggle={() => handleMenuToggle('projects')}
+        />
+
+        {/* Case Studies Block */}
+        <MenuBlock
+          trigger="Case Studies"
+          items={caseStudyItems}
+          isOpen={openMenu === 'case-studies'}
+          onToggle={() => handleMenuToggle('case-studies')}
         />
 
         {/* Simple Link Blocks */}

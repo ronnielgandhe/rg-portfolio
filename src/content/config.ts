@@ -26,4 +26,17 @@ const blog = defineCollection({
   }),
 });
 
-export const collections = { projects, blog };
+const caseStudies = defineCollection({
+  type: "content",
+  schema: z.object({
+    title: z.string(),
+    slug: z.string().optional(),
+    company: z.string(),
+    publishedAt: z.string(),
+    tags: z.array(z.string()).default([]),
+    summary: z.string(),
+    readingTime: z.number().optional(),
+  }),
+});
+
+export const collections = { projects, blog, caseStudies };

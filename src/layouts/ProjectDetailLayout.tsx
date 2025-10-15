@@ -140,23 +140,7 @@ export default function ProjectDetailLayout({
               </header>
 
               {/* Article Content */}
-              <article
-                className="prose prose-invert prose-lg max-w-none
-                  [&>h1]:text-white [&>h1]:font-bold [&>h1]:text-2xl [&>h1]:mt-8 [&>h1]:mb-4
-                  [&>h2]:text-white [&>h2]:font-bold [&>h2]:text-xl [&>h2]:mt-6 [&>h2]:mb-3
-                  [&>h3]:text-white [&>h3]:font-semibold [&>h3]:text-lg [&>h3]:mt-4 [&>h3]:mb-2
-                  [&>p]:text-gray-300 [&>p]:leading-relaxed [&>p]:mb-4
-                  [&>ul]:text-gray-300 [&>ul]:space-y-2 [&>ul]:my-4
-                  [&>ol]:text-gray-300 [&>ol]:space-y-2 [&>ol]:my-4
-                  [&>li]:text-gray-300
-                  [&>code]:text-green-400 [&>code]:bg-gray-800/80 [&>code]:px-1.5 [&>code]:py-0.5 [&>code]:rounded [&>code]:text-sm [&>code]:font-mono
-                  [&>pre]:bg-gray-800/80 [&>pre]:border [&>pre]:border-gray-700 [&>pre]:p-4 [&>pre]:rounded-lg [&>pre]:overflow-x-auto [&>pre]:my-6
-                  [&>pre>code]:bg-transparent [&>pre>code]:p-0 [&>pre>code]:text-green-300
-                  [&>blockquote]:border-l-4 [&>blockquote]:border-green-500 [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:text-gray-400 [&>blockquote]:my-6
-                  [&>a]:text-green-400 [&>a]:underline [&>a]:hover:text-green-300
-                  [&>strong]:text-white [&>strong]:font-semibold
-                  [&>em]:text-gray-300 [&>em]:italic"
-              >
+              <article className="prose">
                 {children}
               </article>
 
