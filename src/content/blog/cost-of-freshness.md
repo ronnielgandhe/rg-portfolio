@@ -16,7 +16,7 @@ readingTime: 7
 </div>
 <div class="callout-content">
 
-- Real-time data pipelines are expensive—cloud costs, complexity, and paradoxically, sometimes worse accuracy.
+- Real-time data pipelines are expensive. Cloud costs, complexity, and paradoxically, sometimes worse accuracy.
 - Some data really needs to be fresh (fraud detection), but most doesn't (weekly BI reports).
 - I'm curious about the tradeoff: when does pushing for faster data stop being worth it?
 - Simple tiering (critical vs. standard vs. batch) seems like a practical approach.
@@ -53,7 +53,7 @@ $$
 $$
 
 - **CloudCost** goes up as freshness requirements get tighter (faster updates = more expensive)
-- **ErrorCost** is interesting—it might actually go *down* initially with a small delay (late data gets included), then goes up as staleness hurts decisions
+- **ErrorCost** is interesting: it might actually go *down* initially with a small delay (late data gets included), then goes up as staleness hurts decisions
 - **IncidentCost** spikes when SLAs are too aggressive (more things break, more alerts, more manual fixes)
 
 The goal isn't to minimize any one of these, but to find the sweet spot where the total is lowest.
@@ -65,19 +65,19 @@ Instead of optimizing to the minute, most teams I've read about use a simple thr
 **Tier 0 (Critical Operations): 1-5 minutes**
 - Examples: Fraud detection, payment reconciliation, live operations dashboards
 - Why: Decisions degrade within minutes. A 10-minute delay could mean thousands in fraud losses.
-- Cost: High—requires streaming infrastructure, hot storage, always-on compute
+- Cost: High, requires streaming infrastructure, hot storage, always-on compute
 - Owner: Usually SRE or the operations team
 
 **Tier 1 (Product & Analytics): 30-120 minutes**
 - Examples: Product KPIs, marketing dashboards, A/B test results
 - Why: People check these hourly or daily, not minute-by-minute
-- Cost: Moderate—micro-batching works, can use cheaper compute
+- Cost: Moderate, micro-batching works, can use cheaper compute
 - Owner: Analytics engineering or data team
 
 **Tier 2 (BI & Reports): 6-24 hours**
 - Examples: Monthly reports, historical analysis, compliance exports
 - Why: Decisions happen on longer timescales. Yesterday's data is fine.
-- Cost: Low—simple nightly batch jobs, cold storage
+- Cost: Low, simple nightly batch jobs, cold storage
 - Owner: BI team or analysts
 
 ## A Story About Too-Tight SLAs
@@ -130,4 +130,4 @@ A few questions I want to explore:
 - **How do big companies handle this?** Do they have formal processes for assigning tiers, or is it ad-hoc?
 - **Can you build a simple cost estimator?** Input: records/day, update frequency. Output: estimated AWS bill.
 
-This is more of a systems design thought exercise for me right now—learning how to think about tradeoffs beyond just "make it fast."
+This is more of a systems design thought exercise for me right now. Learning how to think about tradeoffs beyond just "make it fast."

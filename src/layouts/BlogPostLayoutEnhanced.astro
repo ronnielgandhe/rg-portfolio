@@ -97,9 +97,11 @@ function formatDate(dateString: string) {
 
             <!-- Tags -->
             {post.data.tags && post.data.tags.length > 0 && (
-              <div class="flex flex-wrap gap-2">
+              <div class="tag-list flex flex-wrap gap-2">
                 {post.data.tags.map((tag: string) => (
-                  <Pill text={`#${tag}`} variant="accent" />
+                  <span class="pill">
+                    #{tag}
+                  </span>
                 ))}
               </div>
             )}

@@ -27,7 +27,7 @@ I wanted a **personalized news feed** that:
 - Surfaces relevant articles first
 - Provides AI-generated summaries so I can decide whether to read the full text
 
-The challenge: build this **at scale**—supporting thousands of users with different interests, without a custom ML model for each person.
+The challenge: build this **at scale**. Supporting thousands of users with different interests, without a custom ml model for each person.
 
 ---
 
@@ -70,7 +70,7 @@ YourNews uses a **two-stage pipeline**: content ingestion → personalization ra
 
 - **OpenAI API (GPT-4)**: Summarization via prompt engineering. Cache responses in DB (summary only changes if article content changes).
 
-- **TF-IDF**: Lightweight personalization—doesn't require training a neural network. Computes similarity between article text and user's past reads.
+- **TF-IDF**: Lightweight personalization. Doesn't require training a neural network. Computes similarity between article text and user's past reads.
 
 - **Docker + GitHub Actions**: Containerized backend (Express + MongoDB) deployed via CI/CD. Tests run on every commit.
 
@@ -287,8 +287,8 @@ export async function POST(request: Request) {
 **Pilot Launch (100 beta users, 2 months)**:
 - **Total articles ingested**: 18,742
 - **Unique sources**: 52 RSS feeds
-- **Summaries generated**: 1,890 (10% of articles—only those matching user interests)
-- **Average session time**: 4.2 minutes (vs. 1.8 min for unfiltered feeds—users read more)
+- **Summaries generated**: 1,890 (10% of articles: only those matching user interests)
+- **Average session time**: 4.2 minutes (vs. 1.8 min for unfiltered feeds: users read more)
 - **Click-through rate**: 32% (users clicked 1 in 3 articles shown)
 
 **Cost**:
@@ -310,7 +310,7 @@ export async function POST(request: Request) {
 
 ### Business Insight
 
-Learned that **personalization drives engagement**—users spent 2× longer on the site when they saw relevant articles. This validated the core hypothesis.
+Learned that **personalization drives engagement**. Users spent 2× longer on the site when they saw relevant articles. this validated the core hypothesis.
 
 Also realized that **RSS is a declining format** (many publishers dropped RSS support in 2023). Future versions need to scrape HTML directly or integrate with APIs (NYT, Reddit, Twitter).
 

@@ -30,7 +30,7 @@ I was reading market commentary during late 2023 when everyone was talking about
 
 Normally, when investors feel good about growth (stocks up), they sell safe assets (gold/bonds down). When they're nervous (stocks down), money flows into safety (gold/bonds up). Clean risk-on vs. risk-off.
 
-But these mixed days broke the pattern. Everything went up together. That's weird—and it made me curious about when it happens and why.
+But these mixed days broke the pattern. Everything went up together. That's weird. And it made me curious about when it happens and why.
 
 ## What I Wanted to Measure
 
@@ -116,9 +116,9 @@ print(yearly.to_string())
 ```
 
 **What I found** when running this on 2020-2024 data:
-- **2020**: High concordance (~45%) during Fed emergency measures—everything up due to liquidity
+- **2020**: High concordance (~45%) during Fed emergency measures. Everything up due to liquidity
 - **2021**: Lower (~30%) as markets normalized and picked directions
-- **2022**: Very low (~20%) during rate hikes—classic risk-off dominated
+- **2022**: Very low (~20%) during rate hikes. Classic risk-off dominated
 - **2023**: Spiked back up (~40%) during Fed pivot speculation
 - **2024**: Moderate (~35%) as markets debated landing scenarios
 
@@ -141,9 +141,9 @@ When concordance is low (under 30%):
 
 ## How I'd Use This When Reading Macro News
 
-This isn't about trading—it's about understanding market behavior. When I see a high concordance rate and then read Fed comments or CPI data, I ask:
+This isn't about trading. It's about understanding market behavior. when i see a high concordance rate and then read fed comments or cpi data, i ask:
 
-- **Is this a dollar story?** Check DXY—if it's weak, that explains both rallying.
+- **Is this a dollar story?** Check DXY: if it's weak, that explains both rallying.
 - **Is this a rates story?** If yields are falling across the curve, duration benefits everyone.
 - **Is this positioning?** Sometimes hedge funds buy both ahead of volatility events (FOMC, earnings) as insurance.
 
@@ -160,4 +160,4 @@ A few things to explore next:
 - **Crypto**: Where does Bitcoin fit? Does it act like gold (safe haven) or stocks (risk asset) during these days?
 - **Volatility timing**: Can I predict *when* concordance spikes will happen, or only measure them after the fact?
 
-This is a work in progress—just trying to make sense of market patterns that don't fit the textbook risk-on/risk-off framework.## A minimal measure (math)
+This is a work in progress. Just trying to make sense of market patterns that don't fit the textbook risk-on/risk-off framework.## a minimal measure (math)

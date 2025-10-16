@@ -20,7 +20,7 @@ readingTime: 9
 
   - Why do companies pay millions for software that looks like "just CRUD"?
   - What makes platforms like **SAP**, **Workday**, and **Atlassian** so hard to replace?
-  - How does the **buying process** actually work—who decides, who says no, and why?
+  - How does the **buying process** actually work: who decides, who says no, and why?
   - What goes wrong during implementation, and what makes some projects succeed?
 
   </div>
@@ -36,7 +36,7 @@ I kept hearing "enterprise software" thrown around like it's a separate universe
 
 **Workday**: Manages employee data and financial reporting. The interesting part is how it ties worker records (who reports to whom, what they're paid) to ledger accounts (where does their salary show up in the budget?).
 
-**Atlassian** (Jira/Confluence): Tracks work—issues, projects, documentation. Developers use it to manage bugs, features, and releases.
+**Atlassian** (Jira/Confluence): Tracks work. Issues, projects, documentation. developers use it to manage bugs, features, and releases.
 
 ## Why They're Hard to Replace
 
@@ -46,13 +46,13 @@ At first glance, these look replaceable. But here's what I've learned:
 
 2. **Integrations lock you in**: These systems connect to payroll providers, banks, identity systems, and dozens of internal tools. Each integration is a dependency.
 
-3. **Compliance and audits**: If you're a public company, you need audit trails—who approved what, when, and why. These platforms bake that in. Rolling your own means rebuilding those controls.
+3. **Compliance and audits**: If you're a public company, you need audit trails. Who approved what, when, and why. These platforms bake that in. Rolling your own means rebuilding those controls.
 
 4. **Partner ecosystems**: There are consulting firms that specialize in SAP implementations for specific industries (pharma, manufacturing). They bring templates and playbooks that speed up launches.
 
 ## How Companies Actually Buy This Stuff
 
-This blew my mind—it's not like buying a SaaS tool for a side project. The process looks like:
+This blew my mind. It's not like buying a saas tool for a side project. the process looks like:
 
 1. **Trigger**: Something breaks (current system is too slow, can't handle new regulations, etc.)
 2. **RFP (Request for Proposal)**: Company writes a doc listing requirements, vendors respond
@@ -65,10 +65,10 @@ This blew my mind—it's not like buying a SaaS tool for a side project. The pro
 
 ## What Actually Happens During Implementation
 
-The word "implementation" makes it sound simple—install the software, configure it, done. In reality:
+The word "implementation" makes it sound simple. Install the software, configure it, done. in reality:
 
 - **Data migration** takes months. You're mapping old employee records to the new system's format, cleaning up duplicates, reconciling mismatches.
-- **Roles and permissions** are political. Who can approve a purchase order? Who can see salary data? These aren't just technical configs—they require buy-in from legal, HR, and finance.
+- **Roles and permissions** are political. Who can approve a purchase order? Who can see salary data? These aren't just technical configs: they require buy-in from legal, HR, and finance.
 - **Integrations** with payroll, banks, and other systems often break. You need automated tests and SLAs for each integration.
 - **Partners matter**: A good consulting partner brings industry-specific templates (e.g., "here's how pharma companies handle regulatory reporting in SAP"). A bad one just throws bodies at the problem.
 
@@ -76,14 +76,14 @@ The word "implementation" makes it sound simple—install the software, configur
 
 ### SAP: The Process Backbone
 - **Strength**: End-to-end workflows (order → shipment → invoice → payment) with audit trails built in
-- **Risk**: Complexity—teams often customize too much and end up with "technical debt" that makes upgrades painful
+- **Risk**: Complexity. Teams often customize too much and end up with "technical debt" that makes upgrades painful
 
 ### Workday: The Unified Data Model
 - **Strength**: Worker data and financial data live in one place, so reporting is consistent
-- **Risk**: If you don't enforce governance (who owns which reports?), you end up with "reporting sprawl"—hundreds of reports no one maintains
+- **Risk**: If you don't enforce governance (who owns which reports?), you end up with "reporting sprawl". Hundreds of reports no one maintains
 
 ### Atlassian: The Work Graph
-- **Strength**: Flexible—you can model issues, epics, and workflows however you want
+- **Strength**: Flexible. You can model issues, epics, and workflows however you want
 - **Risk**: Without guardrails, teams proliferate custom fields and permissions until the system is a mess
 
 ## What I'm Still Wondering

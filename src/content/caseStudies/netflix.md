@@ -89,7 +89,7 @@ This created lock contention, eventually corrupting indexes.
 **Business Impact**:
 - Lost $10M+ in revenue (subscribers couldn't rent, paused subscriptions)
 - PR crisis (headlines: "Netflix Down for Days")
-- Realization: **Own data centers are a liability**—hardware failures are inevitable, need resilient architecture
+- Realization: **Own data centers are a liability**: hardware failures are inevitable, need resilient architecture
 
 ### Strategic Constraints
 

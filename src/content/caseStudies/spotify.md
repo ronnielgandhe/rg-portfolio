@@ -19,11 +19,11 @@ readingTime: 13
 
 **Context**: 2008–2018 scaling from Swedish startup (40 engineers) to global product org (3,000+ engineers)
 
-**Challenge**: Traditional Agile (Scrum teams) broke at 200+ engineers—too much coordination overhead, too many dependencies between teams
+**Challenge**: Traditional Agile (Scrum teams) broke at 200+ engineers. Too much coordination overhead, too many dependencies between teams
 
 **Stakes**: If Spotify couldn't ship features fast, Apple Music and YouTube Music would win the streaming wars
 
-**Result**: Invented "Spotify Model" (Squads/Tribes/Chapters/Guilds)—became case study taught at business schools worldwide
+**Result**: Invented "Spotify Model" (Squads/Tribes/Chapters/Guilds). Became case study taught at business schools worldwide
 
   </div>
 </div>
@@ -372,7 +372,7 @@ Spotify leadership evaluated options based on:
 **When NOT to Adopt Spotify Model**:
 - Highly regulated industry (need approval gates)
 - Junior engineering team (need structure, not autonomy)
-- Product is simple (e.g., CRUD app—doesn't need squads)
+- Product is simple (e.g., CRUD app. Doesn't need squads)
 
 **Key Insight**: Organizational structure is a product. Iterate on it like you iterate on features. Spotify didn't get it right the first time (took 3 years of refinement).
 
@@ -392,7 +392,7 @@ Spotify leadership evaluated options based on:
 - Added "Technical Program Managers" to coordinate cross-squad dependencies
 - Formalized "Platform Teams" for shared infrastructure (databases, CI/CD)
 
-**Lesson**: No model is perfect. Spotify Model worked for Spotify at a specific time. Don't copy blindly—adapt to your context.
+**Lesson**: No model is perfect. Spotify Model worked for Spotify at a specific time. Don't copy blindly. Adapt to your context.
 
 ---
 

@@ -21,7 +21,7 @@ After building **QuantZoo** (a backtesting library for systematic strategies), I
 - **Execution delays**: By the time a signal is generated and sent to a broker, prices have moved.
 - **Data feed reliability**: Live market data has gaps, stale quotes, and network issues that backtests ignore.
 - **Order rejection**: Limit orders don't always fill; market orders incur slippage beyond backtested assumptions.
-- **Operational complexity**: Running strategies requires monitoring, alerting, and incident response—not just code.
+- **Operational complexity**: Running strategies requires monitoring, alerting, and incident response. Not just code.
 
 I needed a **production-grade trading system** that could:
 1. Ingest live market data with minimal latency
@@ -56,7 +56,7 @@ QuantTerminal is structured as a **3-tier architecture** to separate data ingest
 
 3. **Execution Layer**: Translates signals into orders (Alpaca API), tracks fills, updates positions in Redis cache.
 
-4. **Monitoring Dashboard**: React frontend with terminal-style UI—shows live P&L, open positions, strategy performance.
+4. **Monitoring Dashboard**: React frontend with terminal-style UI. Shows live P&L, open positions, strategy performance.
 
 ### Technology Choices
 
@@ -80,7 +80,7 @@ QuantTerminal is structured as a **3-tier architecture** to separate data ingest
 
 3. **Backtesting Divergence**: Live strategies behaved differently than backtests due to timestamp precision (backtest used daily close; live used sub-second ticks). Standardized to minute bars for both.
 
-4. **Order Fill Tracking**: Alpaca API has eventual consistency—order status updates arrive out-of-order. Built state machine (pending → filled/rejected) with idempotent handlers.
+4. **Order Fill Tracking**: Alpaca API has eventual consistency. Order status updates arrive out-of-order. Built state machine (pending → filled/rejected) with idempotent handlers.
 
 ---
 
@@ -218,7 +218,7 @@ Built with `react-chartjs-2` for visualizations, styled with Tailwind to match p
 - **Strategies deployed**: 3 (momentum, mean reversion, volatility breakout)
 - **Total trades**: 847
 - **Win rate**: 54%
-- **Sharpe ratio**: 0.71 (vs. 0.88 in backtest—execution drag ~20%)
+- **Sharpe ratio**: 0.71 (vs. 0.88 in backtest: execution drag ~20%)
 - **Max drawdown**: -9.2%
 - **Average latency**: Signal generation to order placement = **180ms**
 

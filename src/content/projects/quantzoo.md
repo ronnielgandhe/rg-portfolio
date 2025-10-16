@@ -16,13 +16,13 @@ highlights:
 
 ## Problem
 
-While learning quantitative finance, I noticed that most trading strategy tutorials exist in isolation—random blog posts with inconsistent data formats, ad-hoc backtesting logic, and no standardized way to compare performance. This made it difficult to:
+While learning quantitative finance, I noticed that most trading strategy tutorials exist in isolation. Random blog posts with inconsistent data formats, ad-hoc backtesting logic, and no standardized way to compare performance. this made it difficult to:
 
 - **Reproduce results**: Different data sources, timeframes, and assumptions led to conflicting conclusions about the same strategy.
 - **Compare strategies fairly**: Without a common backtesting framework, it was impossible to know if a strategy's performance was due to the logic itself or implementation artifacts.
 - **Learn from patterns**: Strategies weren't organized by type (momentum, mean reversion, volatility), making it hard to understand which concepts actually worked.
 
-I needed a unified library where I could implement, test, and compare strategies using consistent infrastructure—something between academic research code (too complex) and retail trading platforms (black boxes).
+I needed a unified library where I could implement, test, and compare strategies using consistent infrastructure. Something between academic research code (too complex) and retail trading platforms (black boxes).
 
 ---
 
@@ -48,7 +48,7 @@ I designed QuantZoo as a **strategy library + backtesting engine**, structured t
 - **NumPy**: Array operations for indicator calculations (moving averages, Bollinger Bands, RSI).
 - **scikit-learn**: For machine learning strategies (random forests on technical indicators).
 - **PyTest**: Unit tests for each strategy, ensuring signals match expected behavior on synthetic data.
-- **Docker**: Reproducible environments—eliminates "it works on my machine" issues when sharing results.
+- **Docker**: Reproducible environments. Eliminates "it works on my machine" issues when sharing results.
 
 ### Development Challenges
 
@@ -109,7 +109,7 @@ class Backtester:
 
 Key features:
 - **Position Sizing**: Fixed fractional (e.g., 10% of capital per position) or Kelly Criterion
-- **Slippage Model**: Percentage-based—assumes fills at `price * (1 + slippage * direction)`
+- **Slippage Model**: Percentage-based. Assumes fills at `price * (1 + slippage * direction)`
 - **Commission**: Flat rate per trade or percentage of notional value
 
 ### Performance Metrics
@@ -180,7 +180,7 @@ QuantZoo's architecture directly influenced **QuantTerminal**:
 - Performance metrics module was reused for live tracking
 - Backtesting insights (slippage, commission) informed order execution logic
 
-Learned that **good infrastructure scales**—the 80 hours spent on the backtesting engine paid off when adding 30 new strategies took only 10 hours.
+Learned that **good infrastructure scales**. The 80 hours spent on the backtesting engine paid off when adding 30 new strategies took only 10 hours.
 
 ---
 

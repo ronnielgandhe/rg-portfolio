@@ -65,7 +65,7 @@ This is where it gets interesting. The system can:
 4. Writes the results to a file
 5. If any step fails, it logs the error and stops
 
-This requires real engineering—typed inputs/outputs for each tool, retry logic, logging. Most "agent" demos skip this and break in production.
+This requires real engineering. Typed inputs/outputs for each tool, retry logic, logging. most "agent" demos skip this and break in production.
 
 ### Phase 2: Autonomous Systems
 
@@ -77,7 +77,7 @@ This is the sci-fi level (rare in practice):
 
 **Example**: A self-driving car deciding routes, monitoring safety metrics, and handing control back to the driver if something goes wrong.
 
-Most companies aren't here yet—even Phase 1 is challenging.
+Most companies aren't here yet. Even phase 1 is challenging.
 
 **Definition**: Agents that set their own subgoals within a policy-constrained envelope, 
 optimize toward KPIs, and operate in closed loops with continuous measurement and adjustment.
@@ -189,7 +189,7 @@ results = orchestrator.run_plan(plan)
 print(results)
 ```
 
-This is barebones—no typed schemas, no approval gates, no cost tracking. But it shows the core idea: a plan is just a list of steps, and the orchestrator handles retries and errors.
+This is barebones, no typed schemas, no approval gates, no cost tracking. But it shows the core idea: a plan is just a list of steps, and the orchestrator handles retries and errors.
 
 ---
 

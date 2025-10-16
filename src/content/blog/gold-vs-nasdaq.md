@@ -18,7 +18,7 @@ readingTime: 7
 
 - Gold and tech stocks often move in opposite directions when investors shift between "risky" and "safe" assets.
 - I wanted to visualize this relationship and see when they decouple from the usual pattern.
-- This isn't a trading strategy—just a lens for understanding market sentiment shifts.
+- This isn't a trading strategy. Just a lens for understanding market sentiment shifts.
 - The dollar and interest rates complicate things, so there's more to learn here.
 
 </div>
@@ -26,9 +26,9 @@ readingTime: 7
 
 ## Why I Started Looking at This
 
-I was reading about a Fed meeting where tech stocks dropped while gold rallied. The pattern made sense—investors were nervous about rate hikes, so they moved money from growth stocks (Nasdaq) to safer assets (gold). Classic "risk-off" behavior.
+I was reading about a Fed meeting where tech stocks dropped while gold rallied. The pattern made sense. Investors were nervous about rate hikes, so they moved money from growth stocks (nasdaq) to safer assets (gold). classic "risk-off" behavior.
 
-But I wondered: how often does this happen? And more interestingly, when do they *both* go up at the same time? That would suggest something different is going on—maybe falling interest rates that help both, or a weak dollar lifting all boats.
+But I wondered: how often does this happen? And more interestingly, when do they *both* go up at the same time? That would suggest something different is going on. Maybe falling interest rates that help both, or a weak dollar lifting all boats.
 
 The question: can I plot these two assets together and spot the interesting moments when their relationship breaks the usual pattern?
 
@@ -123,13 +123,13 @@ print("\nChart saved as gold_nasdaq_comparison.png")
 
 When I ran this, a few patterns jumped out:
 
-**Negative correlation most of the time**: Over the past few years, the 90-day correlation often sits around -0.3 to -0.5. That confirms the "risk-on/risk-off" story—when one goes up, the other tends to go down.
+**Negative correlation most of the time**: Over the past few years, the 90-day correlation often sits around -0.3 to -0.5. That confirms the "risk-on/risk-off" story. When one goes up, the other tends to go down.
 
 **Correlation flips during rate cuts**: Around major Fed policy shifts (especially rate cuts or pivot expectations), the correlation sometimes goes positive. Both assets benefit from easier monetary policy.
 
 **2020 COVID crash**: During the March 2020 selloff, both initially dropped together (everything sold), then gold recovered first while tech took longer. The correlation went wild during this period.
 
-**Dollar matters a lot**: A strong dollar typically hurts both gold (priced in dollars) and tech stocks (multinational revenues). A weak dollar can lift both—that's why the correlation isn't perfectly stable.
+**Dollar matters a lot**: A strong dollar typically hurts both gold (priced in dollars) and tech stocks (multinational revenues). A weak dollar can lift both. That's why the correlation isn't perfectly stable.
 
 <hr class="divider" />
 
@@ -154,6 +154,6 @@ The script uses:
 - **pandas**: For handling time series data and calculating returns.
 - **matplotlib**: For plotting the charts.
 
-The correlation calculation is straightforward—just Pearson correlation between the two return series over a rolling 90-day window. Nothing fancy, but it works for exploring the relationship.
+The correlation calculation is straightforward. Just pearson correlation between the two return series over a rolling 90-day window. nothing fancy, but it works for exploring the relationship.
 
 This is a learning exercise, not financial advice. I'm just trying to understand how markets move and what drives different asset classes.
