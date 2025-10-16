@@ -344,9 +344,9 @@ Spotify leadership evaluated options based on:
 
 ---
 
-## What a CS + Management Student Should Learn
+## My Reflections
 
-### Organizational Takeaways
+### Organizational Insights
 
 1. **Conway's Law**: System architecture mirrors org structure. Spotify's microservices reflected squad boundaries (each squad owned services).
 
@@ -354,7 +354,7 @@ Spotify leadership evaluated options based on:
 
 3. **Career Development**: Chapters solve the "how do I grow?" problem in flat orgs. Chapter leads mentor engineers across squads.
 
-### Product Takeaways
+### Product Insights
 
 1. **Ownership Drives Quality**: Squads that own metrics end-to-end ship better features (vs. "throw it over the wall" to Ops).
 

@@ -338,9 +338,9 @@ Uber engineering evaluated options based on:
 
 ---
 
-## What a CS + Management Student Should Learn
+## What I Learned
 
-### Technical Takeaways
+### Technical Insights
 
 1. **Monoliths Aren't Evil**: Uber started with a monolith (right choice for 2 engineers). Microservices made sense at 100+ engineers.
 
@@ -348,7 +348,7 @@ Uber engineering evaluated options based on:
 
 3. **Geographic Distribution**: Latency matters. Uber's Asia users saw 7× latency improvement by deploying services locally.
 
-### Business Takeaways
+### Business Insights
 
 1. **Architecture Enables Strategy**: Microservices allowed Uber to scale engineering team 40× (2 → 8,000) without collapsing.
 

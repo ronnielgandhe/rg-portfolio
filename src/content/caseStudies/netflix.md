@@ -308,9 +308,9 @@ Netflix engineering evaluated options based on:
 
 ---
 
-## What a CS + Management Student Should Learn
+## Key Takeaways
 
-### Technical Takeaways
+### Technical Insights
 
 1. **No Silver Bullet**: Microservices solve specific problems (scale, velocity) but add complexity. Not appropriate for startups with 5 engineers.
 
@@ -318,7 +318,7 @@ Netflix engineering evaluated options based on:
 
 3. **Observability is Non-Negotiable**: Can't manage what you can't measure. Invest in logging, metrics, tracing from day one.
 
-### Business Takeaways
+### Business Insights
 
 1. **Architecture Enables Strategy**: Netflix's microservices allowed rapid international expansion (launch in new country = deploy services in local AWS region).
 
