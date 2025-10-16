@@ -56,11 +56,11 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         </p>
 
         {/* Tech Stack Tags */}
-        <div className="flex flex-wrap gap-2 mb-5">
+        <div className="tag-list flex flex-wrap gap-2 mb-5">
           {project.tech.map((tech, index) => (
             <span
               key={index}
-              className="text-xs px-2 py-1 bg-gray-700/50 text-green-400 rounded border border-green-500/30"
+              className="pill"
             >
               #{tech}
             </span>

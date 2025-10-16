@@ -111,9 +111,9 @@ function formatDate(dateString: string) {
 
                 <!-- Tags -->
                 {caseStudy.data.tags && caseStudy.data.tags.length > 0 && (
-                  <div class="flex flex-wrap gap-2">
+                  <div class="tag-list flex flex-wrap gap-2">
                     {caseStudy.data.tags.map((tag: string) => (
-                      <span class="text-xs text-gray-400 border border-gray-700 px-2 py-1 rounded">
+                      <span class="pill">
                         #{tag}
                       </span>
                     ))}

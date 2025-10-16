@@ -99,11 +99,11 @@ export default function ProjectDetailLayout({
                 </p>
 
                 {/* Tech Stack */}
-                <div className="flex flex-wrap gap-2 mb-6">
+                <div className="tag-list flex flex-wrap gap-2 mb-6">
                   {tech.map((techItem, index) => (
                     <span
                       key={index}
-                      className="text-xs px-3 py-1 bg-gray-700/50 text-green-400 rounded border border-green-500/30 font-mono"
+                      className="pill"
                     >
                       #{techItem}
                     </span>
