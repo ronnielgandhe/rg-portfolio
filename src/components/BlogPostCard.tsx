@@ -34,7 +34,7 @@ export default function BlogPostCard({ post }: BlogPostCardProps) {
         <div className="w-3 h-3 rounded-full bg-green-500 group-hover:bg-green-400 transition-colors"></div>
         <span className="text-sm text-gray-300 flex-grow text-center font-semibold flex items-center justify-center gap-2">
           <FaRegFolderClosed size={14} className="text-gray-300" />
-          {post.slug} — blog
+          {post.title} — blog
         </span>
       </div>
 
