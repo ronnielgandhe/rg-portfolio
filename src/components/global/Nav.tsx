@@ -12,6 +12,7 @@ interface NavProps {
 
 interface MenuBlockProps {
   trigger: string;
+  triggerHref: string;
   items: Array<{
     label: string;
     href: string;
@@ -22,7 +23,7 @@ interface MenuBlockProps {
   onToggle: () => void;
 }
 
-function MenuBlock({ trigger, items, isOpen, onToggle }: MenuBlockProps) {
+function MenuBlock({ trigger, triggerHref, items, isOpen, onToggle }: MenuBlockProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -77,17 +78,18 @@ function MenuBlock({ trigger, items, isOpen, onToggle }: MenuBlockProps) {
     <div 
       className="relative"
       onMouseEnter={handleMouseEnter}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <button
+      <a
+        href={triggerHref}
         className="text-white hover:text-white/80 transition-colors text-sm font-normal px-0"
-        onClick={onToggle}
         onKeyDown={handleKeyDown}
         aria-expanded={shouldShowMenu}
         aria-haspopup="true"
       >
         {trigger}
-      </button>
+      </a>
       
       {shouldShowMenu && (
         <div
@@ -203,6 +205,7 @@ export default function Nav({ currentPath, recentPosts = [] }: NavProps) {
         {/* Blog Block */}
         <MenuBlock
           trigger="Blog"
+          triggerHref="/blog"
           items={blogItems}
           isOpen={openMenu === 'blog'}
           onToggle={() => handleMenuToggle('blog')}
@@ -211,6 +214,7 @@ export default function Nav({ currentPath, recentPosts = [] }: NavProps) {
         {/* Projects Block */}
         <MenuBlock
           trigger="Projects"
+          triggerHref="/projects"
           items={projectItems}
           isOpen={openMenu === 'projects'}
           onToggle={() => handleMenuToggle('projects')}
@@ -219,6 +223,7 @@ export default function Nav({ currentPath, recentPosts = [] }: NavProps) {
         {/* Case Studies Block */}
         <MenuBlock
           trigger="Case Studies"
+          triggerHref="/case-studies"
           items={caseStudyItems}
           isOpen={openMenu === 'case-studies'}
           onToggle={() => handleMenuToggle('case-studies')}
