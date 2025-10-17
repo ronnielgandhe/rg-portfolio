@@ -19,7 +19,7 @@ export default function DesktopDock() {
   };
 
   const handleSpotifyClick = () => {
-    window.open('https://open.spotify.com', '_blank');
+    window.open('https://open.spotify.com/playlist/2uud5zGJZf3U98FlTnQip8?trackId=294pxweq9pggAO32OQVgYw', '_blank');
   };
 
   const handleVSCodeClick = () => {
