@@ -26,7 +26,7 @@ export default function BlogPostCard({ post }: BlogPostCardProps) {
   
   return (
     <a
-      href={`/blog/${post.slug}`}
+      href={`/blog/${filename}`}
       className="block glass rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 group"
     >
       {/* Terminal Title Bar */}
