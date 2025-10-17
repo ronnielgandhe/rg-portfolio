@@ -17,7 +17,7 @@ const sortedPosts = posts.sort((a, b) =>
 // Format posts for the BlogLayout component
 const formattedPosts = sortedPosts.map((post) => ({
   title: post.data.title,
-  slug: post.id,
+  slug: post.data.slug,
   summary: post.data.summary,
   publishedAt: post.data.publishedAt,
   readingTime: post.data.readingTime,
