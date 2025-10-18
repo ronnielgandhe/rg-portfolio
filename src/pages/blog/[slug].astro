@@ -10,11 +10,14 @@ import { getFixedBackgroundKey, getOptimizedBackgrounds } from '../../utils/back
 // Get the slug from the URL
 const { slug } = Astro.params;
 
-// Fetch all blog posts and find the one with matching id (filename without extension)
+// Fetch all blog posts and find the one with matching slug or id
 const allPosts = await getCollection('blog', ({ id }) => {
   return !id.startsWith('_archive/');
 });
-const post = allPosts.find(p => p.id === slug);
+const post = allPosts.find(p => {
+  const postSlug = p.data.slug || p.slug;
+  return postSlug === slug || p.id === slug;
+});
 
 if (!post) {
   return Astro.redirect('/404');
