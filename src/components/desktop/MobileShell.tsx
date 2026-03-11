@@ -17,7 +17,7 @@ import { HiPencilSquare } from 'react-icons/hi2';
 type SectionId = 'education' | 'experience' | 'projects' | 'research' | 'blog' | null;
 
 const SECTIONS = [
-  { id: 'education' as const, label: 'Education', icon: <HiAcademicCap size={20} />, color: '#667eea' },
+  { id: 'education' as const, label: 'education', icon: <HiAcademicCap size={20} />, color: '#667eea' },
   { id: 'experience' as const, label: 'Experience', icon: <BsBriefcaseFill size={18} />, color: '#f5576c' },
   { id: 'projects' as const, label: 'Projects', icon: <FaCode size={18} />, color: '#4facfe' },
   { id: 'research' as const, label: 'Research', icon: <FaMicroscope size={18} />, color: '#43e97b' },
