@@ -191,7 +191,7 @@ function Inner() {
               Software Engineering{' '}
               <span className="rg-inline-link-group">
                 <SLink
-                  href="https://bluejay.ai"
+                  href="https://getbluejay.ai/"
                   icon="/bluejay-mark-black.svg"
                   iconDark="/bluejay-mark-white.svg"
                 >
