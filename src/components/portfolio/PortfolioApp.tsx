@@ -6,6 +6,7 @@ import { contentMap } from './contentData';
 import Blackbook from './Blackbook';
 
 const LazyDesktopShell = lazy(() => import('../desktop/DesktopShell'));
+const LazyChromeBadge = lazy(() => import('../desktop/RGChromeBadge'));
 
 /* ══════════════════════════════════════════════════════════
    Theme context — dark/light mode
@@ -15,7 +16,9 @@ const ThemeCtx = createContext<{ dark: boolean; toggle: () => void; siteReady: b
 
 function getInitialTheme() {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('rg-theme') === 'dark';
+    const saved = localStorage.getItem('rg-theme');
+    if (saved) return saved === 'dark';
+    return false; // default to light
   }
   return false;
 }
@@ -815,6 +818,17 @@ function OSCloseButton({ onClose }: { onClose: () => void }) {
   );
 }
 
+function BadgeLayer() {
+  const { dark } = useContext(ThemeCtx);
+  return (
+    <div className="rg-badge-left">
+      <Suspense fallback={null}>
+        <LazyChromeBadge dark={dark} />
+      </Suspense>
+    </div>
+  );
+}
+
 export default function PortfolioApp() {
   const [phase, setPhase] = useState<AppPhase>('loading');
   const [expanded, setExpanded] = useState(false);
@@ -854,9 +868,12 @@ export default function PortfolioApp() {
   return (
     <ThemeProvider siteReady={phase !== 'loading'}>
       {/* Portfolio page — the main content (hidden but not unmounted during desktop phase to avoid remount flash) */}
-      <div style={{ position: 'relative', zIndex: 1, minHeight: '100vh', background: '#f5f5f4', display: (phase === 'loading' || phase === 'site') ? undefined : 'none' }}>
+      <div style={{ position: 'relative', zIndex: 1, minHeight: '100vh', background: '#000000', display: (phase === 'loading' || phase === 'site') ? undefined : 'none' }}>
         <Inner />
       </div>
+
+      {/* chrome lanyard badge, full-screen overlay you can fling anywhere (page stays clickable) */}
+      {phase === 'site' && <BadgeLayer />}
 
       {/* Corner fold — static, click to expand into RonnielOS */}
       {(phase === 'site' || phase === 'desktop') && (
@@ -924,6 +941,15 @@ export default function PortfolioApp() {
         }
         body.blackbook-active .peek-container {
           display: none !important;
+        }
+        .rg-badge-left {
+          position: fixed;
+          inset: 0;
+          z-index: 5;
+          pointer-events: none; /* canvas ignores events; the card is grabbed via raycast */
+        }
+        @media (max-width: 768px) {
+          .rg-badge-left { display: none !important; }
         }
         @media (max-width: 768px) {
           .peek-container {

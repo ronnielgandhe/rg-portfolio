@@ -1,0 +1,22 @@
+---
+// preview: the RG chrome lanyard badge, full-screen. throwaway route for iterating on the look.
+import RGChromeBadge from '../components/desktop/RGChromeBadge';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RG Chrome Badge</title>
+    <style is:global>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; background: #f5f5f4; overflow: hidden; }
+      #badge-root { width: 100vw; height: 100vh; }
+    </style>
+  </head>
+  <body>
+    <div id="badge-root">
+      <RGChromeBadge client:only="react" dark={false} />
+    </div>
+  </body>
+</html>

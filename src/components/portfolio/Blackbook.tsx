@@ -1,10 +1,11 @@
-import type { ReactNode } from 'react';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import type { ReactNode, CSSProperties } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 /* ═══════════════════════════════════════════════════════════
-   BLACKBOOK — Ronniel's hidden personal dashboard
-   Password-gated, Supabase-synced, theme-matched
+   BLACKBOOK — Paper-warm redesign
+   Password-gated, Supabase-synced, glass-card aesthetic.
+   Visual system from /design_handoff_blackbook
    ═══════════════════════════════════════════════════════════ */
 
 const SUPABASE_URL = 'https://czdvtqqanvmgptginlwa.supabase.co';
@@ -18,173 +19,166 @@ export async function hashPass(pw: string): Promise<string> {
 }
 
 export const PASS = 'vaishali123!';
-// Apple/YouOS font stack (SF Pro on macOS/iOS, system fonts elsewhere)
-const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'NeueMontreal-Regular', 'Segoe UI', sans-serif";
-const FONT_MEDIUM = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'NeueMontreal-Medium', 'Segoe UI', sans-serif";
 
-// Apple-style spring transition (used everywhere)
-const APPLE_TRANSITION = 'all 200ms cubic-bezier(0.16, 1, 0.3, 1)';
-const CARD_RADIUS = 18;
-const CARD_RADIUS_SM = 12;
-const CARD_SHADOW = '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.08)';
+const FONT_TEXT = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif";
+const FONT_DISPLAY = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', system-ui, sans-serif";
 
-// CAD/USD reference rate (manual, conservative). Can be overridden by user later.
 const FX_USD_TO_CAD = 1.37;
 
-// ── Theme ──
+/* ───────── Design tokens (paper warm) ───────── */
+const TOK = {
+  ink0: '#1a1612',
+  ink1: '#2a2521',
+  ink2: '#5a5249',
+  ink3: '#8a8278',
+  ink4: '#b5ad9f',
+  paper: '#f5f0e8',
+  hair: 'rgba(20,16,12,0.07)',
+  hairStrong: 'rgba(20,16,12,0.12)',
+  glass: 'rgba(255,253,249,0.62)',
+  glass2: 'rgba(255,253,249,0.85)',
+  good: 'oklch(0.55 0.10 150)',
+  bad: 'oklch(0.55 0.14 28)',
+  warn: 'oklch(0.66 0.13 70)',
+  accent: 'oklch(0.62 0.13 28)',
+  rCard: '18px',
+  rPill: '999px',
+  shadow: '0 0.5px 0 rgba(255,255,255,0.7) inset, 0 1px 0 rgba(20,16,12,0.04), 0 8px 28px -14px rgba(40,30,20,0.18)',
+};
+
+/* Backwards-compat Theme shape used by older code paths */
 interface Theme {
   bg: string; text: string; textStrong: string; textMuted: string;
   border: string; cardBg: string; inputBg: string; accentSubtle: string;
 }
+const PAPER_THEME: Theme = {
+  bg: TOK.paper,
+  text: TOK.ink1,
+  textStrong: TOK.ink0,
+  textMuted: TOK.ink3,
+  border: TOK.hair,
+  cardBg: TOK.glass,
+  inputBg: 'rgba(255,253,249,0.7)',
+  accentSubtle: 'rgba(20,16,12,0.05)',
+};
+function useBlackbookTheme(): Theme { return PAPER_THEME; }
 
-function useBlackbookTheme(): Theme {
-  const [dark, setDark] = useState(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('rg-theme') === 'dark';
-    return false;
-  });
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const current = localStorage.getItem('rg-theme') === 'dark';
-      setDark(prev => prev !== current ? current : prev);
-    }, 500);
-    return () => clearInterval(interval);
-  }, []);
-
-  return dark ? {
-    bg: '#000000', text: '#b5b5b5', textStrong: '#e8e5e3', textMuted: '#8a8380',
-    border: 'rgba(255,255,255,0.1)', cardBg: '#171717',
-    inputBg: 'rgba(255,255,255,0.06)', accentSubtle: 'rgba(255,255,255,0.12)',
-  } : {
-    bg: '#f5f5f4', text: '#44403c', textStrong: '#1c1917', textMuted: '#6b6560',
-    border: 'rgba(0,0,0,0.1)', cardBg: '#f5f5f5',
-    inputBg: 'rgba(0,0,0,0.04)', accentSubtle: 'rgba(0,0,0,0.06)',
-  };
-}
-
-// ── Types ──
+/* ───────── Types ───────── */
 interface Meeting {
   id: string; title: string; person: string; time: string; notes: string; link?: string;
   contactId?: string;
 }
-
 interface Deliverable { text: string; done: boolean; }
 interface JournalEntry {
   id: string; date: string; body: string; tomorrow: string;
-  deliverables?: Deliverable[];
-  agenda?: string[];
+  deliverables?: Deliverable[]; agenda?: string[];
   meetings: Meeting[]; updatedAt: string;
+  mood?: 'rough' | 'meh' | 'good' | 'great';
 }
 
-// Legacy types (kept for migration)
 type ScoutingStatus = 'researching' | 'ready' | 'archived';
 type OutreachStatus = 'queued' | 'dm-sent' | 'replied' | 'call-scheduled' | 'call-done' | 'connected';
-
-// New contact system
 type ContactCategory = 'call-booked' | 'reply-needed' | 'warm' | 'awaiting-reply' | 'connected' | 'archived';
 type Urgency = 'now' | 'soon' | 'later' | 'waiting';
 
 interface NetworkContact {
   id: string; name: string; company: string; role: string;
-  // New fields
   category: ContactCategory; urgency: Urgency;
   whatTheySaid: string; actionNeeded: string; followUpDate?: string;
   linkedinUrl?: string; tags?: string[];
   notes: string; createdAt: string;
-  // Legacy fields (optional, for backward compat)
   whyReachOut?: string; companyInfo?: string; foundVia?: string;
   scoutingStatus?: ScoutingStatus; outreachStatus?: OutreachStatus;
   platform?: string; lastContactDate?: string; nextAction?: string;
+  touches?: { date: string; type: string; note: string }[];
 }
 
 type TaskPriority = 'high' | 'medium' | 'low';
 type TaskStatus = 'todo' | 'in-progress' | 'done';
-
 interface Task {
   id: string; title: string; status: TaskStatus; priority: TaskPriority;
   dueDate?: string; notes?: string; createdAt: string; updatedAt: string;
+  list?: string;
 }
 
 type GoalStatus = 'active' | 'completed' | 'paused';
 type GoalTimeframe = 'short' | 'long';
-
 interface GoalCheckItem { id: string; text: string; done: boolean; }
 interface GoalLogEntry { id: string; text: string; date: string; }
-
 interface Goal {
   id: string; title: string; description: string; status: GoalStatus;
   timeframe: GoalTimeframe; deadline?: string;
   progress: number; checklist: GoalCheckItem[]; log: GoalLogEntry[];
   milestones?: string[]; completedMilestones?: boolean[];
+  scope?: string;
   createdAt: string; updatedAt: string;
 }
-
 interface ProjectIdea {
   id: string; title: string; description: string;
   tags: string[]; createdAt: string; updatedAt: string;
 }
 
-// ── Finance types ──
 type Currency = 'USD' | 'CAD';
 type AccountType = 'checking' | 'savings' | 'tfsa' | 'crypto' | 'cash';
-
 interface Account {
   id: string; name: string; type: AccountType;
   currency: Currency; balance: number; updatedAt: string;
 }
-
 interface Transaction {
   id: string; date: string; amount: number; currency: Currency;
   type: 'income' | 'expense'; category: string; note: string; createdAt: string;
 }
-
 interface Budget {
   id: string; category: string; monthlyTarget: number; currency: Currency;
 }
-
 interface FinancialGoal {
   id: string; name: string; targetAmount: number; currentAmount: number;
   currency: Currency; deadline?: string;
 }
-
 interface FinanceData {
   accounts: Account[]; transactions: Transaction[];
   budgets: Budget[]; goals: FinancialGoal[];
 }
-
 interface BlackbookData {
   journal: JournalEntry[]; contacts: NetworkContact[]; ideas: ProjectIdea[];
   tasks: Task[]; goals: Goal[]; finance: FinanceData;
   journalUpdatedAt?: string; contactsUpdatedAt?: string; ideasUpdatedAt?: string;
   tasksUpdatedAt?: string; goalsUpdatedAt?: string; financeUpdatedAt?: string;
 }
+const DEFAULT_FINANCE: FinanceData = { accounts: [], transactions: [], budgets: [], goals: [] };
+const DEFAULT_CONTACTS: NetworkContact[] = [];
 
-// Default empty finance state
-const DEFAULT_FINANCE: FinanceData = {
-  accounts: [], transactions: [], budgets: [], goals: [],
-};
-
-// Convert to CAD for net-worth aggregation
+/* ───────── Helpers ───────── */
 function toCAD(amount: number, currency: Currency): number {
   return currency === 'USD' ? amount * FX_USD_TO_CAD : amount;
 }
-
-// YYYY-MM string for "this month" filtering
-function monthKey(dateStr: string): string {
-  return dateStr.slice(0, 7);
-}
+function monthKey(dateStr: string): string { return dateStr.slice(0, 7); }
 function thisMonthKey(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
-
-// ── Date helper (local timezone, not UTC) ──
 function localToday(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
+function fmtMoney(amount: number, currency: Currency): string {
+  const sign = amount < 0 ? '-' : '';
+  const abs = Math.abs(amount);
+  const symbol = currency === 'USD' ? '$' : 'C$';
+  return `${sign}${symbol}${abs.toFixed(2)}`;
+}
+function fmtDateShort(date: string): string {
+  try {
+    const d = new Date(date + 'T12:00');
+    return d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+  } catch { return date; }
+}
+function daysBetween(from: Date, to: Date): number {
+  const diff = to.getTime() - from.getTime();
+  return Math.round(diff / (1000 * 60 * 60 * 24));
+}
 
-// ── Storage helpers ──
+/* ───────── Storage ───────── */
 function load<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(`bb-${key}`);
@@ -195,11 +189,10 @@ function save<T>(key: string, val: T) {
   localStorage.setItem(`bb-${key}`, JSON.stringify(val));
 }
 
-// ── Data migration from v1 ──
+/* ───────── Migrations ───────── */
 function migrateIfNeeded() {
   if (localStorage.getItem('bb-migrated')) return;
   try {
-    // Migrate logs → journal
     const oldLogs = load<any[]>('logs', []);
     if (oldLogs.length > 0) {
       const journal: JournalEntry[] = oldLogs.map(l => ({
@@ -209,7 +202,6 @@ function migrateIfNeeded() {
       }));
       save('journal', journal);
     }
-    // Migrate contacts (v1 format)
     const oldContacts = load<any[]>('contacts', []);
     if (oldContacts.length > 0) {
       const contacts: NetworkContact[] = oldContacts.map(c => ({
@@ -220,7 +212,6 @@ function migrateIfNeeded() {
       }));
       save('contacts', contacts);
     }
-    // Migrate projects → ideas
     const oldProjects = load<any[]>('projects', []);
     if (oldProjects.length > 0) {
       const ideas: ProjectIdea[] = oldProjects.map(p => ({
@@ -230,20 +221,16 @@ function migrateIfNeeded() {
       save('ideas', ideas);
     }
     localStorage.setItem('bb-migrated', '1');
-    // Clean old keys
     localStorage.removeItem('bb-logs');
     localStorage.removeItem('bb-projects');
   } catch { /* silent */ }
 }
-
-// ── V3 contact migration: old outreach/scouting → new category/urgency ──
 function migrateContactsV3() {
   if (localStorage.getItem('bb-migrated-v3-contacts')) return;
   const contacts = load<any[]>('contacts', []);
   if (contacts.length === 0) { localStorage.setItem('bb-migrated-v3-contacts', '1'); return; }
-
   const migrated = contacts.map((c: any) => {
-    if (c.category) return c; // Already v3
+    if (c.category) return c;
     let category: ContactCategory = 'warm';
     let urgency: Urgency = 'later';
     const os = c.outreachStatus as string;
@@ -262,15 +249,12 @@ function migrateContactsV3() {
   save('contacts', migrated);
   localStorage.setItem('bb-migrated-v3-contacts', '1');
 }
-
-// ── Finance migration: ensure default empty finance shape exists ──
 function migrateFinance() {
   if (localStorage.getItem('bb-migrated-finance')) return;
   const existing = load<any>('finance', null);
   if (!existing || typeof existing !== 'object' || !Array.isArray(existing.accounts)) {
     save('finance', DEFAULT_FINANCE);
   } else {
-    // Patch any missing arrays to keep older partials valid
     const patched: FinanceData = {
       accounts: Array.isArray(existing.accounts) ? existing.accounts : [],
       transactions: Array.isArray(existing.transactions) ? existing.transactions : [],
@@ -282,24 +266,19 @@ function migrateFinance() {
   localStorage.setItem('bb-migrated-finance', '1');
 }
 
-// ── Supabase sync ──
+/* ───────── Cloud sync ───────── */
 async function loadFromCloud(passHash: string) {
   const { data } = await supabase
     .from('blackbook').select('data').eq('pass_hash', passHash).single();
   return data?.data as BlackbookData | null;
 }
-
 async function saveToCloud(passHash: string, payload: BlackbookData) {
   await supabase.from('blackbook').upsert({
     pass_hash: passHash, data: payload, updated_at: new Date().toISOString(),
   });
 }
-
-// Per-field merge: for each section, the one with the newer timestamp wins.
-// This means if you edit contacts on phone and journal on laptop, both are kept.
 function mergeCloudLocal(cloud: BlackbookData | null, local: BlackbookData): BlackbookData {
   if (!cloud) return local;
-
   const pick = <T,>(
     cloudVal: T, cloudTs: string | undefined,
     localVal: T, localTs: string | undefined,
@@ -310,7 +289,6 @@ function mergeCloudLocal(cloud: BlackbookData | null, local: BlackbookData): Bla
     if (cTime >= lTime) return cloudVal ?? fallback;
     return localVal ?? fallback;
   };
-
   return {
     journal: pick(cloud.journal, cloud.journalUpdatedAt, local.journal, local.journalUpdatedAt, []),
     contacts: pick(cloud.contacts, cloud.contactsUpdatedAt, local.contacts, local.contactsUpdatedAt, []),
@@ -327,7 +305,6 @@ function mergeCloudLocal(cloud: BlackbookData | null, local: BlackbookData): Bla
   };
 }
 
-// ── Retry queue for failed saves ──
 class SaveQueue {
   private pending: (() => Promise<void>) | null = null;
   private retryCount = 0;
@@ -340,7 +317,6 @@ class SaveQueue {
     this.retryCount = 0;
     this.run();
   }
-
   private async run() {
     if (!this.pending) return;
     const fn = this.pending;
@@ -361,71 +337,287 @@ class SaveQueue {
       }
     }
   }
-
   hasPending() { return this.pending !== null; }
   cancel() { if (this.retryTimer) clearTimeout(this.retryTimer); }
 }
 
-// ── Company domain mapping for logos ──
-const COMPANY_DOMAINS: Record<string, string> = {
-  'linear': 'linear.app', 'offdeal': 'offdeal.com', 'ostium': 'ostium.io',
-  'alpaca': 'alpaca.markets', 'composer': 'composer.trade', 'ramp': 'ramp.com',
-  'vercel': 'vercel.com', 'mercury': 'mercury.com', 'kalshi': 'kalshi.com', 'entorr': 'entorr.com',
-  'rippling': 'rippling.com', 'boardy.ai': 'boardy.ai', 'fable': 'fable.app',
-  'maxima': 'maxima.com', 'builder': 'builder.io', 'gentube': 'gentube.app',
-  'doordash': 'doordash.com', 'university of waterloo': 'uwaterloo.ca', 'uwaterloo': 'uwaterloo.ca',
-  'hexa / stackadapt': 'stackadapt.com', 'stackadapt': 'stackadapt.com',
-  'bahl': 'bahl.com', 'bcv/kp fellow': 'kleinerperkins.com',
-};
+/* ───────── Google Calendar (read-only) ───────── */
+const GOOGLE_CLIENT_ID =
+  (typeof import.meta !== 'undefined' && (import.meta as any).env?.PUBLIC_GOOGLE_CLIENT_ID) || '';
+const GOOGLE_SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
+const GOOGLE_TOKEN_KEY = 'bb-google-token';
 
-function getCompanyLogo(company: string) {
-  const domain = COMPANY_DOMAINS[company.toLowerCase()];
-  return domain ? `https://unavatar.io/${domain}?fallback=false` : null;
+interface GCalEvent { id: string; title: string; start: string; end?: string; link?: string; }
+
+function loadGoogleScripts(): Promise<void> {
+  if (typeof window === 'undefined') return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    let gapiLoaded = !!(window as any).gapi;
+    let gisLoaded = !!(window as any).google?.accounts?.oauth2;
+    const done = () => { if (gapiLoaded && gisLoaded) resolve(); };
+    if (!gapiLoaded) {
+      const s = document.createElement('script');
+      s.src = 'https://apis.google.com/js/api.js';
+      s.async = true; s.defer = true;
+      s.onload = () => { (window as any).gapi.load('client', () => { gapiLoaded = true; done(); }); };
+      s.onerror = reject;
+      document.head.appendChild(s);
+    }
+    if (!gisLoaded) {
+      const s = document.createElement('script');
+      s.src = 'https://accounts.google.com/gsi/client';
+      s.async = true; s.defer = true;
+      s.onload = () => { gisLoaded = true; done(); };
+      s.onerror = reject;
+      document.head.appendChild(s);
+    }
+    done();
+  });
 }
 
-function getLinkedInSearchUrl(company: string) {
-  return `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(company + ' engineering')}&origin=GLOBAL_SEARCH_HEADER`;
+function useGoogleCalendar() {
+  const [token, setToken] = useState<string>(() => localStorage.getItem(GOOGLE_TOKEN_KEY) || '');
+  const [events, setEvents] = useState<GCalEvent[]>([]);
+  const [loading, setLoading] = useState(false);
+  const isConfigured = !!GOOGLE_CLIENT_ID;
+
+  const fetchEvents = useCallback(async (tk: string) => {
+    if (!tk) return;
+    setLoading(true);
+    try {
+      const now = new Date().toISOString();
+      const max = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+      const res = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/primary/events?` +
+        `timeMin=${encodeURIComponent(now)}&timeMax=${encodeURIComponent(max)}&singleEvents=true&orderBy=startTime&maxResults=50`,
+        { headers: { Authorization: `Bearer ${tk}` } }
+      );
+      if (res.status === 401) {
+        localStorage.removeItem(GOOGLE_TOKEN_KEY);
+        setToken('');
+        return;
+      }
+      const data = await res.json();
+      const ev: GCalEvent[] = (data.items || []).map((e: any) => ({
+        id: e.id,
+        title: e.summary || '(no title)',
+        start: e.start?.dateTime || e.start?.date || '',
+        end: e.end?.dateTime || e.end?.date,
+        link: e.hangoutLink || e.htmlLink,
+      }));
+      setEvents(ev);
+    } catch { /* network */ } finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { if (token) fetchEvents(token); }, [token, fetchEvents]);
+
+  const connect = useCallback(async () => {
+    if (!isConfigured) { alert('Google Client ID missing. Set PUBLIC_GOOGLE_CLIENT_ID in .env'); return; }
+    try {
+      await loadGoogleScripts();
+      const tokenClient = (window as any).google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID, scope: GOOGLE_SCOPES,
+        callback: (resp: any) => {
+          if (resp.access_token) {
+            setToken(resp.access_token);
+            localStorage.setItem(GOOGLE_TOKEN_KEY, resp.access_token);
+            fetchEvents(resp.access_token);
+          }
+        },
+      });
+      tokenClient.requestAccessToken({ prompt: 'consent' });
+    } catch (e) { console.error('Google connect failed', e); }
+  }, [isConfigured, fetchEvents]);
+
+  const disconnect = useCallback(() => {
+    localStorage.removeItem(GOOGLE_TOKEN_KEY);
+    setToken('');
+    setEvents([]);
+  }, []);
+
+  return { token, events, loading, connect, disconnect, isConfigured };
 }
 
-// ── Default data (empty — contacts come from cloud or are added manually) ──
-const DEFAULT_CONTACTS: NetworkContact[] = [];
-
-// ── Company Logo component ──
-function CompanyLogo({ company, size = 28, t }: { company: string; size?: number; t: Theme }) {
-  const [failed, setFailed] = useState(false);
-  const logo = getCompanyLogo(company);
-  if (!logo || failed) {
-    return (
-      <div style={{
-        width: size, height: size, borderRadius: 6, background: t.accentSubtle,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: size * 0.45, fontFamily: FONT_MEDIUM, color: t.textMuted,
-        flexShrink: 0,
-      }}>{company.charAt(0).toUpperCase()}</div>
-    );
-  }
+/* ───────── Common UI primitives ───────── */
+function Card({ children, hero, style, className, onClick }: {
+  children: ReactNode; hero?: boolean; style?: CSSProperties; className?: string;
+  onClick?: () => void;
+}) {
   return (
-    <img src={logo} alt={company} width={size} height={size}
-      onError={() => setFailed(true)}
-      style={{ borderRadius: 6, flexShrink: 0, objectFit: 'contain' }} />
+    <div onClick={onClick} className={className} style={{
+      background: hero ? TOK.glass2 : TOK.glass,
+      backdropFilter: 'saturate(160%) blur(20px)',
+      WebkitBackdropFilter: 'saturate(160%) blur(20px)',
+      border: `1px solid ${TOK.hair}`,
+      borderRadius: TOK.rCard,
+      boxShadow: TOK.shadow,
+      padding: 18,
+      cursor: onClick ? 'pointer' : undefined,
+      ...style,
+    }}>
+      {children}
+    </div>
   );
 }
 
-// ── Fingerprint SVG ──
+function CardLabel({ children, style }: { children: ReactNode; style?: CSSProperties }) {
+  return <div style={{
+    fontSize: 10.5, fontWeight: 600, letterSpacing: '0.08em',
+    textTransform: 'uppercase', color: TOK.ink3, marginBottom: 10,
+    fontFamily: FONT_TEXT, ...style,
+  }}>{children}</div>;
+}
+
+function Btn({ children, onClick, primary, ghost, style, type, disabled }: {
+  children: ReactNode; onClick?: () => void; primary?: boolean; ghost?: boolean;
+  style?: CSSProperties; type?: 'button' | 'submit'; disabled?: boolean;
+}) {
+  const base: CSSProperties = {
+    appearance: 'none', cursor: disabled ? 'not-allowed' : 'pointer',
+    fontFamily: FONT_TEXT, fontSize: 12.5, fontWeight: 500,
+    padding: '6px 13px', borderRadius: TOK.rPill,
+    border: `1px solid ${TOK.hairStrong}`,
+    background: 'rgba(255,253,249,0.85)', color: TOK.ink0,
+    transition: 'all 0.15s', opacity: disabled ? 0.5 : 1,
+  };
+  if (primary) {
+    base.background = TOK.ink0; base.color = '#fffaf2'; base.borderColor = TOK.ink0;
+  }
+  if (ghost) {
+    base.background = 'transparent'; base.borderColor = 'transparent'; base.color = TOK.ink2;
+  }
+  return (
+    <button type={type} onClick={onClick} disabled={disabled} style={{ ...base, ...style }}
+      onMouseEnter={e => {
+        if (disabled) return;
+        if (primary) e.currentTarget.style.background = TOK.ink1;
+        else if (ghost) { e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; e.currentTarget.style.color = TOK.ink0; }
+        else e.currentTarget.style.background = '#fff';
+      }}
+      onMouseLeave={e => {
+        if (disabled) return;
+        if (primary) e.currentTarget.style.background = TOK.ink0;
+        else if (ghost) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = TOK.ink2; }
+        else e.currentTarget.style.background = 'rgba(255,253,249,0.85)';
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Chip({ children, tone, style }: {
+  children: ReactNode; tone?: 'good' | 'warn' | 'bad' | 'neutral'; style?: CSSProperties;
+}) {
+  const palette: Record<string, { bg: string; fg: string; bd: string }> = {
+    good: { bg: 'oklch(0.55 0.10 150 / 0.10)', fg: TOK.good, bd: 'oklch(0.55 0.10 150 / 0.20)' },
+    warn: { bg: 'oklch(0.66 0.13 70 / 0.13)', fg: 'oklch(0.45 0.10 60)', bd: 'oklch(0.66 0.13 70 / 0.22)' },
+    bad: { bg: 'oklch(0.55 0.14 28 / 0.10)', fg: TOK.bad, bd: 'oklch(0.55 0.14 28 / 0.22)' },
+    neutral: { bg: 'rgba(20,16,12,0.05)', fg: TOK.ink2, bd: TOK.hair },
+  };
+  const p = palette[tone || 'neutral'];
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 5,
+      padding: '2px 8px', borderRadius: TOK.rPill,
+      fontSize: 11, fontWeight: 500, fontFamily: FONT_TEXT,
+      background: p.bg, color: p.fg, border: `1px solid ${p.bd}`,
+      whiteSpace: 'nowrap', ...style,
+    }}>{children}</span>
+  );
+}
+
+function Input({ value, onChange, placeholder, style, type, autoFocus, onKeyDown }: {
+  value: string; onChange: (v: string) => void; placeholder?: string;
+  style?: CSSProperties; type?: string; autoFocus?: boolean;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <input value={value} onChange={e => onChange(e.target.value)}
+      placeholder={placeholder} type={type || 'text'} autoFocus={autoFocus}
+      onKeyDown={onKeyDown}
+      style={{
+        width: '100%', background: 'rgba(255,253,249,0.7)',
+        border: `1px solid ${TOK.hair}`, borderRadius: 10,
+        padding: '9px 12px', fontFamily: FONT_TEXT, fontSize: 13.5,
+        color: TOK.ink0, transition: 'border-color 0.15s, background 0.15s, box-shadow 0.15s',
+        outline: 'none', boxSizing: 'border-box', ...style,
+      }}
+      onFocus={e => {
+        e.target.style.borderColor = TOK.ink3;
+        e.target.style.background = 'rgba(255,255,255,0.95)';
+        e.target.style.boxShadow = '0 0 0 3px rgba(20,16,12,0.05)';
+      }}
+      onBlur={e => {
+        e.target.style.borderColor = TOK.hair;
+        e.target.style.background = 'rgba(255,253,249,0.7)';
+        e.target.style.boxShadow = 'none';
+      }}
+    />
+  );
+}
+
+function TextArea({ value, onChange, placeholder, rows, style }: {
+  value: string; onChange: (v: string) => void; placeholder?: string;
+  rows?: number; style?: CSSProperties;
+}) {
+  return (
+    <textarea value={value} onChange={e => onChange(e.target.value)}
+      placeholder={placeholder} rows={rows || 4}
+      style={{
+        width: '100%', background: 'rgba(255,253,249,0.7)',
+        border: `1px solid ${TOK.hair}`, borderRadius: 10,
+        padding: '9px 12px', fontFamily: FONT_TEXT, fontSize: 13.5,
+        color: TOK.ink0, transition: 'border-color 0.15s, background 0.15s, box-shadow 0.15s',
+        outline: 'none', resize: 'vertical', minHeight: 80,
+        lineHeight: 1.55, boxSizing: 'border-box', ...style,
+      }}
+      onFocus={e => {
+        e.target.style.borderColor = TOK.ink3;
+        e.target.style.background = 'rgba(255,255,255,0.95)';
+        e.target.style.boxShadow = '0 0 0 3px rgba(20,16,12,0.05)';
+      }}
+      onBlur={e => {
+        e.target.style.borderColor = TOK.hair;
+        e.target.style.background = 'rgba(255,253,249,0.7)';
+        e.target.style.boxShadow = 'none';
+      }}
+    />
+  );
+}
+
+function PageHeader({ title, sub, right }: { title: string; sub?: string; right?: ReactNode }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
+      gap: 24, marginBottom: 24, flexWrap: 'wrap',
+    }}>
+      <div>
+        <h1 style={{
+          fontFamily: FONT_DISPLAY, fontSize: 32, fontWeight: 600,
+          letterSpacing: '-0.025em', lineHeight: 1.05, margin: 0, color: TOK.ink0,
+        }}>{title}</h1>
+        {sub && <div style={{
+          color: TOK.ink3, fontSize: 13, marginTop: 4, fontFamily: FONT_TEXT,
+        }}>{sub}</div>}
+      </div>
+      {right && <div style={{ display: 'flex', gap: 6 }}>{right}</div>}
+    </div>
+  );
+}
+
+/* ───────── FingerprintIcon ───────── */
 function FingerprintIcon({ onClick }: { onClick: () => void }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => { const timer = setTimeout(() => setVisible(true), 3000); return () => clearTimeout(timer); }, []);
-
-  const isDark = typeof window !== 'undefined' && localStorage.getItem('rg-theme') === 'dark';
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
   const iconSize = isMobile ? 18 : 28;
-
   return (
     <button onClick={onClick} aria-label="Access" style={{
       position: 'fixed', bottom: isMobile ? 12 : 20, right: isMobile ? 12 : 20, zIndex: 9999,
       background: 'none', border: 'none', cursor: 'pointer',
       opacity: visible ? 0.15 : 0, transition: 'opacity 1.5s ease',
-      padding: isMobile ? 4 : 8, color: isDark ? '#78716c' : '#78716c',
+      padding: isMobile ? 4 : 8, color: '#78716c',
     }}
       onMouseEnter={e => { e.currentTarget.style.opacity = '0.35'; }}
       onMouseLeave={e => { e.currentTarget.style.opacity = '0.15'; }}
@@ -443,37 +635,26 @@ function FingerprintIcon({ onClick }: { onClick: () => void }) {
   );
 }
 
-// ── Password Gate ──
+/* ───────── Password Gate ───────── */
 export function PasswordGate({ onUnlock, onClose, inline }: { onUnlock: (pw: string) => void; onClose: () => void; inline?: boolean }) {
   const [pw, setPw] = useState('');
   const [shake, setShake] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const baseTheme = useBlackbookTheme();
-  const t = inline ? {
-    ...baseTheme,
-    text: 'rgba(0,0,0,0.8)',
-    textStrong: '#1d1d1f',
-    textMuted: 'rgba(0,0,0,0.45)',
-    border: 'rgba(0,0,0,0.1)',
-    inputBg: 'rgba(255,255,255,0.5)',
-    accentSubtle: 'rgba(255,255,255,0.4)',
-  } : baseTheme;
   useEffect(() => { inputRef.current?.focus(); }, []);
-
   const submit = () => {
     if (pw === PASS) { onUnlock(pw); }
     else { setShake(true); setPw(''); setTimeout(() => setShake(false), 500); }
   };
-
   return (
     <div style={{
       position: inline ? 'relative' : 'fixed', inset: inline ? undefined : 0,
       width: inline ? '100%' : undefined, height: inline ? '100%' : undefined,
       zIndex: inline ? undefined : 10000,
-      background: inline ? 'transparent' : t.bg,
+      background: inline ? 'transparent' : TOK.paper,
       backdropFilter: inline ? undefined : 'blur(40px)',
       WebkitBackdropFilter: inline ? undefined : 'blur(40px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontFamily: FONT_TEXT,
     }} onClick={inline ? undefined : onClose}>
       <div onClick={e => e.stopPropagation()} style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20,
@@ -481,10 +662,10 @@ export function PasswordGate({ onUnlock, onClose, inline }: { onUnlock: (pw: str
       }}>
         <div style={{
           width: 64, height: 64, borderRadius: '50%',
-          background: t.accentSubtle,
+          background: 'rgba(20,16,12,0.05)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={TOK.ink3} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M2 12C2 6.5 6.5 2 12 2a10 10 0 0 1 8 4"/>
             <path d="M5 19.5C5.5 18 6 15 6 12c0-3.5 2.5-6 6-6 3 0 5.5 2 6 5"/>
             <path d="M9 12c0-1.5 1.5-3 3-3s3 1.5 3 3-1 6-2 8"/>
@@ -499,13 +680,13 @@ export function PasswordGate({ onUnlock, onClose, inline }: { onUnlock: (pw: str
           onKeyDown={e => e.key === 'Enter' && submit()}
           placeholder="type password"
           style={{
-            background: t.inputBg, border: `1px solid ${t.border}`,
-            borderRadius: 10, padding: '12px 20px', color: t.text,
-            fontSize: 15, fontFamily: FONT, outline: 'none',
+            background: 'rgba(255,253,249,0.7)', border: `1px solid ${TOK.hair}`,
+            borderRadius: 10, padding: '12px 20px', color: TOK.ink0,
+            fontSize: 15, fontFamily: FONT_TEXT, outline: 'none',
             width: 240, textAlign: 'center', letterSpacing: 2,
           }}
         />
-        <span style={{ color: t.textMuted, fontSize: 14, fontWeight: 500 }}>press enter</span>
+        <span style={{ color: TOK.ink3, fontSize: 14, fontWeight: 500 }}>press enter</span>
       </div>
       <style>{`
         @keyframes bb-shake {
@@ -520,1003 +701,1153 @@ export function PasswordGate({ onUnlock, onClose, inline }: { onUnlock: (pw: str
   );
 }
 
-// ── Shared Field (Apple-aesthetic) ──
-function Field({ label, value, onChange, placeholder, t, type }: {
-  label?: string; value: string; onChange: (v: string) => void;
-  placeholder?: string; t: Theme; type?: string;
-}) {
+/* ───────── Wallpaper ───────── */
+function Wallpaper() {
   return (
-    <div>
-      {label && <label style={{
-        fontSize: 11, color: t.textMuted, fontFamily: FONT_MEDIUM,
-        display: 'block', marginBottom: 6,
-        textTransform: 'uppercase', letterSpacing: '0.04em',
-      }}>{label}</label>}
-      <input value={value} onChange={e => onChange(e.target.value)}
-        placeholder={placeholder} type={type || 'text'} style={{
-          background: t.inputBg, border: `1px solid ${t.border}`, color: t.text,
-          padding: '9px 12px', borderRadius: 10, fontFamily: FONT, fontSize: 13,
-          width: '100%', outline: 'none', transition: APPLE_TRANSITION,
-          boxSizing: 'border-box', letterSpacing: '-0.005em',
-        }}
-        onFocus={e => { e.target.style.borderColor = t.textMuted; e.target.style.background = t.cardBg; }}
-        onBlur={e => { e.target.style.borderColor = t.border; e.target.style.background = t.inputBg; }}
-      />
+    <div aria-hidden style={{
+      position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
+      background: [
+        'radial-gradient(48% 38% at 14% 18%, oklch(0.86 0.07 60 / 0.55), transparent 70%)',
+        'radial-gradient(40% 35% at 88% 12%, oklch(0.84 0.07 320 / 0.45), transparent 70%)',
+        'radial-gradient(55% 45% at 80% 92%, oklch(0.82 0.06 230 / 0.45), transparent 70%)',
+        'radial-gradient(38% 35% at 10% 88%, oklch(0.84 0.07 130 / 0.40), transparent 70%)',
+        'linear-gradient(180deg, #f0e9df, #e6dfd3)',
+      ].join(', '),
+      filter: 'saturate(0.92)',
+    }}>
+      <div style={{
+        position: 'absolute', inset: 0,
+        backgroundImage: 'radial-gradient(rgba(0,0,0,0.04) 1px, transparent 1px)',
+        backgroundSize: '3px 3px', mixBlendMode: 'multiply', opacity: 0.30,
+      }} />
     </div>
   );
 }
 
-// ── Shared TextArea (Apple-aesthetic) ──
-function TextArea({ value, onChange, placeholder, t, minHeight = 120 }: {
-  value: string; onChange: (v: string) => void; placeholder?: string; t: Theme; minHeight?: number;
-}) {
-  return (
-    <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={{
-      background: t.inputBg, border: `1px solid ${t.border}`, color: t.text,
-      padding: '11px 14px', borderRadius: 10, fontFamily: FONT, fontSize: 13,
-      width: '100%', outline: 'none', resize: 'vertical', minHeight,
-      lineHeight: '1.55', transition: APPLE_TRANSITION, boxSizing: 'border-box',
-      wordBreak: 'break-word', overflowWrap: 'break-word',
-      letterSpacing: '-0.005em',
-    }}
-      onFocus={e => { e.target.style.borderColor = t.textMuted; e.target.style.background = t.cardBg; }}
-      onBlur={e => { e.target.style.borderColor = t.border; e.target.style.background = t.inputBg; }}
-    />
-  );
+/* ───────── ID helper ───────── */
+function uid(): string {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
-// ── Save Indicator ──
-function SaveIndicator({ status, t }: { status: 'saved' | 'saving' | 'unsaved' | 'error' | 'retrying'; t: Theme }) {
-  const isError = status === 'error';
-  const isRetrying = status === 'retrying';
-  return (
-    <span style={{
-      fontSize: 14,
-      color: isError ? '#ef4444' : isRetrying ? '#f59e0b' : status === 'saved' ? t.textMuted : t.text,
-      fontFamily: FONT, opacity: status === 'unsaved' ? 0 : 0.7,
-      transition: 'opacity 0.3s',
-    }}>
-      {status === 'saving' ? 'Saving...' : status === 'saved' ? 'Saved' : isRetrying ? 'Retrying...' : isError ? 'Save failed' : ''}
-    </span>
-  );
+/* ═══════════════════════════════════════════════════════════
+   DASHBOARD
+   ═══════════════════════════════════════════════════════════ */
+
+interface DashboardProps {
+  journal: JournalEntry[];
+  setJournal: (fn: (prev: JournalEntry[]) => JournalEntry[]) => void;
+  contacts: NetworkContact[];
+  tasks: Task[];
+  setTasks: (fn: (prev: Task[]) => Task[]) => void;
+  goals: Goal[];
+  finance: FinanceData;
+  googleEvents: GCalEvent[];
+  googleConfigured: boolean;
+  googleConnected: boolean;
+  googleLoading: boolean;
+  onConnectGoogle: () => void;
+  onNavigate: (tab: BlackbookTab) => void;
 }
 
-// ── Mini Calendar ──
-function MiniCalendar({ selectedDate, onSelectDate, journalDates, t }: {
-  selectedDate: string; onSelectDate: (d: string) => void; journalDates: Set<string>; t: Theme;
-}) {
-  const [viewDate, setViewDate] = useState(() => new Date(selectedDate + 'T12:00'));
+function Dashboard({
+  journal, setJournal, contacts, tasks, setTasks, goals, finance,
+  googleEvents, googleConfigured, googleConnected, googleLoading, onConnectGoogle,
+  onNavigate,
+}: DashboardProps) {
   const today = localToday();
+  const todayEntry = journal.find(e => e.date === today);
+  const monthStart = today.slice(0, 7);
 
+  // Today's tasks (open + done)
+  const todaysTasks = tasks.filter(t => t.dueDate === today || (!t.dueDate && t.status !== 'done'));
+  const open = todaysTasks.filter(t => t.status !== 'done').length;
+  const done = todaysTasks.filter(t => t.status === 'done').length;
+
+  // Network counts
+  const needs = contacts.filter(c => c.category === 'reply-needed').length;
+  const callsBooked = contacts.filter(c => c.category === 'call-booked').length;
+  const awaiting = contacts.filter(c => c.category === 'awaiting-reply').length;
+  const active = contacts.filter(c => ['call-booked', 'reply-needed', 'warm'].includes(c.category)).length;
+  const cold = contacts.filter(c => c.category === 'archived').length;
+
+  // 7-day strip
+  const days = useMemo(() => {
+    const out: { d: string; n: number; iso: string; today: boolean; weekday: string }[] = [];
+    const base = new Date(today + 'T12:00');
+    for (let i = 0; i < 7; i++) {
+      const dt = new Date(base);
+      dt.setDate(base.getDate() + i);
+      const iso = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+      out.push({
+        d: dt.toLocaleDateString('en', { weekday: 'short' }).slice(0, 3),
+        n: dt.getDate(),
+        iso,
+        today: iso === today,
+        weekday: dt.toLocaleDateString('en', { weekday: 'long' }),
+      });
+    }
+    return out;
+  }, [today]);
+
+  // Active goals — top 2 by progress
+  const activeGoals = goals.filter(g => g.status === 'active').slice(0, 2);
+
+  // Finance month
+  const monthTx = finance.transactions.filter(t => monthKey(t.date) === monthStart);
+  const income = monthTx.filter(t => t.type === 'income').reduce((s, t) => s + toCAD(t.amount, t.currency), 0);
+  const spending = monthTx.filter(t => t.type === 'expense').reduce((s, t) => s + toCAD(t.amount, t.currency), 0);
+  const saved = income > 0 ? Math.max(0, Math.round(((income - spending) / income) * 100)) : 0;
+
+  // Toggle task
+  const toggleTask = (id: string) => {
+    setTasks(prev => prev.map(t => t.id === id ? {
+      ...t, status: t.status === 'done' ? 'todo' : 'done',
+      updatedAt: new Date().toISOString(),
+    } : t));
+  };
+
+  // Today journal body
+  const updateJournal = (patch: Partial<JournalEntry>) => {
+    setJournal(prev => {
+      const exists = prev.find(e => e.date === today);
+      if (exists) {
+        return prev.map(e => e.date === today ? { ...e, ...patch, updatedAt: new Date().toISOString() } : e);
+      }
+      return [...prev, {
+        id: today, date: today, body: '', tomorrow: '', meetings: [],
+        updatedAt: new Date().toISOString(), ...patch,
+      }];
+    });
+  };
+
+  // Quick add task
+  const [quickTask, setQuickTask] = useState('');
+  const addQuickTask = () => {
+    if (!quickTask.trim()) return;
+    const now = new Date().toISOString();
+    setTasks(prev => [...prev, {
+      id: uid(), title: quickTask.trim(), status: 'todo', priority: 'medium',
+      dueDate: today, list: 'personal',
+      createdAt: now, updatedAt: now,
+    }]);
+    setQuickTask('');
+  };
+
+  const dateObj = new Date(today + 'T12:00');
+  const monthName = dateObj.toLocaleDateString('en', { month: 'short' });
+  const dayNum = dateObj.getDate();
+  const weekday = dateObj.toLocaleDateString('en', { weekday: 'long' });
+  const fullDate = dateObj.toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' });
+
+  // Get user first name
+  const greetName = 'Ronniel';
+  const greeting = (() => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 18) return 'Good afternoon';
+    return 'Good evening';
+  })();
+
+  return (
+    <div style={{ animation: 'bb-fade 0.32s cubic-bezier(.2,.8,.2,1) both' }}>
+      <PageHeader
+        title={`${greeting}, ${greetName}`}
+        sub={`${fullDate} · ${open} ${open === 1 ? 'thing' : 'things'} on the list today`}
+      />
+
+      {/* Top hero row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.45fr 1fr', gap: 14, marginBottom: 14 }}>
+        <Card hero style={{ padding: 22, display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 26, alignItems: 'center' }}>
+          <div style={{ textAlign: 'center', minWidth: 100 }}>
+            <CardLabel style={{ marginBottom: 0 }}>{monthName}</CardLabel>
+            <div style={{ fontSize: 68, fontWeight: 300, lineHeight: 1, letterSpacing: '-0.04em', fontFamily: FONT_DISPLAY, color: TOK.ink0 }}>{dayNum}</div>
+            <div style={{ fontSize: 12, color: TOK.ink2, marginTop: 4, fontFamily: FONT_TEXT }}>{weekday}</div>
+          </div>
+          <div style={{ borderLeft: `0.5px solid ${TOK.hairStrong}`, paddingLeft: 24 }}>
+            <CardLabel style={{ marginBottom: 4 }}>Today</CardLabel>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, fontFamily: FONT_DISPLAY }}>
+              <span style={{ fontSize: 40, fontWeight: 300, letterSpacing: '-0.03em', color: TOK.ink0 }}>
+                {googleConnected ? googleEvents.length : todaysTasks.length}
+              </span>
+              <span style={{ color: TOK.ink2, fontSize: 13, fontFamily: FONT_TEXT }}>
+                · {googleConnected ? 'events on calendar' : 'open tasks'}
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: 14, marginTop: 8, fontSize: 12, color: TOK.ink2, fontFamily: FONT_TEXT }}>
+              <span>{open} open</span><span>{done} done</span>
+              <span style={{ color: TOK.ink3 }}>· {todayEntry?.body ? 'journaled' : 'no journal yet'}</span>
+            </div>
+            {!googleConnected && googleConfigured && (
+              <button onClick={onConnectGoogle}
+                style={{
+                  marginTop: 12, fontSize: 12, color: TOK.ink0, background: 'rgba(20,16,12,0.05)',
+                  border: 'none', padding: '5px 11px', borderRadius: TOK.rPill, cursor: 'pointer',
+                  fontFamily: FONT_TEXT,
+                }}>
+                {googleLoading ? 'Loading…' : 'Connect Google Calendar'}
+              </button>
+            )}
+            {!googleConfigured && (
+              <div style={{ marginTop: 12, fontSize: 11, color: TOK.ink3, fontFamily: FONT_TEXT }}>
+                Add <span style={{ color: TOK.ink1, fontFamily: 'monospace' }}>PUBLIC_GOOGLE_CLIENT_ID</span> to .env to connect calendar
+              </div>
+            )}
+          </div>
+        </Card>
+
+        <Card hero style={{ padding: 22 }}>
+          <CardLabel>Network pulse</CardLabel>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 2 }}>
+            <span style={{ fontSize: 44, fontWeight: 300, letterSpacing: '-0.03em', fontFamily: FONT_DISPLAY, color: TOK.ink0 }}>{needs}</span>
+            <span style={{ color: TOK.ink2, fontSize: 13, fontFamily: FONT_TEXT }}>
+              {needs === 1 ? 'reply needed' : 'replies needed'}
+            </span>
+          </div>
+          <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px', fontSize: 12.5, fontFamily: FONT_TEXT }}>
+            <PulseRow label="Calls booked" v={callsBooked} />
+            <PulseRow label="Awaiting reply" v={awaiting} />
+            <PulseRow label="Active" v={active} />
+            <PulseRow label="Archived" v={cold} tone={cold > 5 ? 'bad' : undefined} />
+          </div>
+          <button onClick={() => onNavigate('network')} style={{
+            marginTop: 14, fontSize: 12, color: TOK.ink2, background: 'transparent',
+            border: 'none', cursor: 'pointer', padding: 0, fontFamily: FONT_TEXT, textDecoration: 'underline',
+            textUnderlineOffset: 3, textDecorationColor: TOK.ink3,
+          }}>open network →</button>
+        </Card>
+      </div>
+
+      {/* Today's focus */}
+      <Card style={{ marginBottom: 14, padding: 22 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+          <div>
+            <CardLabel style={{ marginBottom: 2 }}>Today's focus</CardLabel>
+            <div style={{ fontSize: 13, color: TOK.ink2, fontFamily: FONT_TEXT }}>{open} open · {done} done</div>
+          </div>
+          <button onClick={() => onNavigate('tasks')} style={{
+            appearance: 'none', border: 0, background: 'transparent', fontFamily: FONT_TEXT,
+            fontSize: 12, color: TOK.ink2, cursor: 'pointer', padding: '4px 8px', borderRadius: 6,
+          }}>open tasks →</button>
+        </div>
+
+        {/* Quick add */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+          <span style={{ fontSize: 14, color: TOK.ink3 }}>+</span>
+          <input value={quickTask} onChange={e => setQuickTask(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && addQuickTask()}
+            placeholder="Quick add task… ↵"
+            style={{
+              flex: 1, background: 'transparent', border: 0, padding: '5px 0',
+              fontFamily: FONT_TEXT, fontSize: 13.5, color: TOK.ink0, outline: 'none',
+            }} />
+        </div>
+
+        {todaysTasks.length === 0 ? (
+          <div style={{ padding: '24px 0', textAlign: 'center', color: TOK.ink3, fontSize: 13, fontFamily: FONT_TEXT }}>
+            All clear. Add a task above ↑
+          </div>
+        ) : (
+          <div>
+            {todaysTasks.slice(0, 8).map(item => (
+              <div key={item.id} onClick={() => toggleTask(item.id)}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(20,16,12,0.025)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12, padding: '10px 4px',
+                  borderTop: `0.5px solid ${TOK.hair}`, cursor: 'pointer',
+                  opacity: item.status === 'done' ? 0.45 : 1, transition: 'opacity 0.18s, background 0.14s',
+                  borderRadius: 8,
+                }}>
+                <div style={{
+                  width: 18, height: 18, borderRadius: '50%',
+                  border: item.status === 'done' ? '0' : `1.5px solid ${TOK.ink3}`,
+                  background: item.status === 'done' ? TOK.ink0 : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>
+                  {item.status === 'done' && <span style={{ color: '#fff', fontSize: 10, fontWeight: 700 }}>✓</span>}
+                </div>
+                <span style={{
+                  flex: 1, fontSize: 14, fontFamily: FONT_TEXT, color: TOK.ink0,
+                  textDecoration: item.status === 'done' ? 'line-through' : 'none',
+                }}>{item.title}</span>
+                {item.priority === 'high' && item.status !== 'done' &&
+                  <span style={{ width: 3, height: 14, borderRadius: 2, background: TOK.bad }}></span>}
+                {item.list && <Chip>{item.list}</Chip>}
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {/* 3-up: 7-day · goals · finance */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr', gap: 14, marginBottom: 14 }}>
+        <Card>
+          <CardLabel>Next 7 days</CardLabel>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
+            {days.map((x, i) => (
+              <div key={i} style={{
+                textAlign: 'center', padding: '8px 0', borderRadius: 10,
+                background: x.today ? TOK.ink0 : 'transparent',
+                color: x.today ? '#fffaf2' : TOK.ink1,
+                fontFamily: FONT_TEXT,
+              }}>
+                <div style={{ fontSize: 10, opacity: 0.7, fontWeight: 500 }}>{x.d}</div>
+                <div style={{ fontSize: 16, fontWeight: 500, marginTop: 2 }}>{x.n}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{
+            fontSize: 12.5, color: TOK.ink2, padding: '10px 0 0',
+            borderTop: `0.5px solid ${TOK.hair}`, marginTop: 12, fontFamily: FONT_TEXT,
+          }}>
+            {googleConnected ? `${googleEvents.length} upcoming events` : 'No calendar connected · '}
+            {!googleConnected && googleConfigured && (
+              <span onClick={onConnectGoogle} style={{
+                color: TOK.ink0, textDecoration: 'underline', textDecorationColor: TOK.ink3,
+                textUnderlineOffset: 3, cursor: 'pointer',
+              }}>connect calendar</span>
+            )}
+          </div>
+        </Card>
+
+        <Card>
+          <CardLabel>Active goals</CardLabel>
+          {activeGoals.length === 0 ? (
+            <div style={{ fontSize: 13, color: TOK.ink3, padding: '20px 0', textAlign: 'center', fontFamily: FONT_TEXT }}>
+              No active goals · <span onClick={() => onNavigate('goals')} style={{ color: TOK.ink0, cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 3 }}>add one</span>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 4 }}>
+              {activeGoals.map(g => <GoalRow key={g.id} title={g.title} pct={g.progress} />)}
+            </div>
+          )}
+        </Card>
+
+        <Card>
+          <CardLabel>This month</CardLabel>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+            <Mini label="In" v={`$${income.toFixed(0)}`} tone={TOK.good} />
+            <Mini label="Out" v={`$${spending.toFixed(0)}`} tone={TOK.bad} />
+            <Mini label="Saved" v={`${saved}%`} />
+          </div>
+          <div style={{ marginTop: 14, height: 5, borderRadius: 999, background: 'rgba(20,16,12,0.06)', overflow: 'hidden' }}>
+            <div style={{ width: `${Math.min(100, saved)}%`, background: TOK.good, height: '100%' }}></div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Today's journal */}
+      <Card style={{ padding: 22 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <CardLabel style={{ marginBottom: 0 }}>Journal · today</CardLabel>
+          <span style={{ fontSize: 11, color: TOK.ink3, fontFamily: FONT_TEXT }}>private · auto-saving</span>
+        </div>
+        <textarea
+          value={todayEntry?.body || ''}
+          onChange={e => updateJournal({ body: e.target.value })}
+          rows={3}
+          placeholder="What did you do today? Wins, blockers, threads to pull tomorrow…"
+          style={{
+            width: '100%', background: 'transparent', border: 0, padding: 0,
+            fontSize: 14, lineHeight: 1.6, fontFamily: FONT_TEXT, color: TOK.ink0,
+            outline: 'none', resize: 'vertical', minHeight: 60,
+          }}
+        />
+      </Card>
+    </div>
+  );
+}
+
+const Mini = ({ label, v, tone }: { label: string; v: string; tone?: string }) => (
+  <div>
+    <div style={{ fontSize: 11, color: TOK.ink2, fontFamily: FONT_TEXT }}>{label}</div>
+    <div style={{
+      fontSize: 17, fontWeight: 500, color: tone || TOK.ink0, fontFamily: FONT_TEXT,
+      fontVariantNumeric: 'tabular-nums',
+    }}>{v}</div>
+  </div>
+);
+
+const PulseRow = ({ label, v, tone }: { label: string; v: number | string; tone?: 'bad' }) => (
+  <div style={{ display: 'flex', justifyContent: 'space-between', color: TOK.ink1 }}>
+    <span>{label}</span>
+    <span style={{
+      color: tone === 'bad' ? TOK.bad : TOK.ink0, fontWeight: 500,
+      fontVariantNumeric: 'tabular-nums',
+    }}>{v}</span>
+  </div>
+);
+
+const GoalRow = ({ title, pct }: { title: string; pct: number }) => (
+  <div>
+    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+      <span style={{ fontSize: 13, fontFamily: FONT_TEXT, color: TOK.ink0 }}>{title}</span>
+      <span style={{ fontSize: 12, color: TOK.ink2, fontVariantNumeric: 'tabular-nums', fontFamily: FONT_TEXT }}>{pct}%</span>
+    </div>
+    <div style={{ height: 4, borderRadius: 999, background: 'rgba(20,16,12,0.06)', overflow: 'hidden' }}>
+      <div style={{ width: `${pct}%`, background: TOK.ink0, height: '100%' }}></div>
+    </div>
+  </div>
+);
+
+/* ═══════════════════════════════════════════════════════════
+   JOURNAL
+   ═══════════════════════════════════════════════════════════ */
+
+function Journal({ journal, setJournal, contacts, googleEvents, googleConnected, googleConfigured, onConnectGoogle }: {
+  journal: JournalEntry[];
+  setJournal: (fn: (prev: JournalEntry[]) => JournalEntry[]) => void;
+  contacts: NetworkContact[];
+  googleEvents: GCalEvent[];
+  googleConnected: boolean;
+  googleConfigured: boolean;
+  onConnectGoogle: () => void;
+}) {
+  const today = localToday();
+  const [selectedDate, setSelectedDate] = useState<string>(today);
+  const [viewDate, setViewDate] = useState(() => new Date(today + 'T12:00'));
+
+  const entry = journal.find(e => e.date === selectedDate);
+
+  const updateEntry = (patch: Partial<JournalEntry>) => {
+    setJournal(prev => {
+      const exists = prev.find(e => e.date === selectedDate);
+      if (exists) {
+        return prev.map(e => e.date === selectedDate ? {
+          ...e, ...patch, updatedAt: new Date().toISOString(),
+        } : e);
+      }
+      return [...prev, {
+        id: selectedDate, date: selectedDate, body: '', tomorrow: '', meetings: [],
+        updatedAt: new Date().toISOString(), ...patch,
+      }];
+    });
+  };
+
+  // Streak calculation
+  const streak = useMemo(() => {
+    let count = 0;
+    let cursor = new Date(today + 'T12:00');
+    const haveSet = new Set(
+      journal
+        .filter(e => (e.body?.trim() || '').length >= 3)
+        .map(e => e.date)
+    );
+    while (true) {
+      const iso = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
+      if (haveSet.has(iso)) {
+        count++;
+        cursor.setDate(cursor.getDate() - 1);
+      } else break;
+    }
+    return count;
+  }, [journal, today]);
+
+  // Calendar grid
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const monthName = viewDate.toLocaleDateString('en', { month: 'long', year: 'numeric' });
 
-  const prev = () => setViewDate(new Date(year, month - 1, 1));
-  const next = () => setViewDate(new Date(year, month + 1, 1));
+  const calCells: (number | null)[] = [];
+  for (let i = 0; i < firstDay; i++) calCells.push(null);
+  for (let i = 1; i <= daysInMonth; i++) calCells.push(i);
 
-  const days: (number | null)[] = [];
-  for (let i = 0; i < firstDay; i++) days.push(null);
-  for (let i = 1; i <= daysInMonth; i++) days.push(i);
+  const haveEntries = useMemo(() => {
+    const set = new Set<string>();
+    for (const e of journal) {
+      if ((e.body?.trim() || '').length >= 3) set.add(e.date);
+    }
+    return set;
+  }, [journal]);
+
+  const monthEntryCount = useMemo(() => {
+    const prefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+    return Array.from(haveEntries).filter(d => d.startsWith(prefix)).length;
+  }, [haveEntries, year, month]);
+
+  const dateObj = new Date(selectedDate + 'T12:00');
+  const niceDate = dateObj.toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' });
+  const wordCount = (entry?.body?.trim() || '').split(/\s+/).filter(Boolean).length;
+
+  // Today's meetings — combine google events + journal meetings
+  const todaysMeetings = useMemo(() => {
+    const j = entry?.meetings || [];
+    if (selectedDate !== today) return j.map(m => ({ id: m.id, title: m.title, time: m.time, person: m.person, link: m.link }));
+    if (googleConnected) {
+      return googleEvents
+        .filter(ev => ev.start.startsWith(today))
+        .map(ev => ({
+          id: ev.id, title: ev.title,
+          time: ev.start.includes('T') ? new Date(ev.start).toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit' }) : 'all day',
+          person: '', link: ev.link,
+        }));
+    }
+    return j.map(m => ({ id: m.id, title: m.title, time: m.time, person: m.person, link: m.link }));
+  }, [entry, googleEvents, googleConnected, selectedDate, today]);
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <button onClick={prev} style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', fontFamily: FONT, fontSize: 16, padding: '2px 8px' }}>&lsaquo;</button>
-        <span style={{ fontSize: 14, color: t.textStrong, fontFamily: FONT_MEDIUM }}>{monthName}</span>
-        <button onClick={next} style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', fontFamily: FONT, fontSize: 16, padding: '2px 8px' }}>&rsaquo;</button>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, textAlign: 'center' }}>
-        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-          <span key={i} style={{ fontSize: 14, color: t.textMuted, padding: '4px 0', fontFamily: FONT }}>{d}</span>
-        ))}
-        {days.map((day, i) => {
-          if (day === null) return <span key={i} />;
-          const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-          const isToday = dateStr === today;
-          const isSelected = dateStr === selectedDate;
-          const hasEntry = journalDates.has(dateStr);
-          return (
-            <button key={i} onClick={() => onSelectDate(dateStr)} style={{
-              background: isSelected ? t.accentSubtle : 'transparent',
-              border: isToday ? `1px solid ${t.textMuted}` : '1px solid transparent',
-              borderRadius: 6, padding: '4px 0', cursor: 'pointer',
-              color: isSelected ? t.textStrong : t.text, fontFamily: FONT, fontSize: 14,
-              position: 'relative', transition: 'all 0.15s',
-            }}>
-              {day}
-              {hasEntry && <span style={{
-                position: 'absolute', bottom: 1, left: '50%', transform: 'translateX(-50%)',
-                width: 3, height: 3, borderRadius: '50%', background: t.textMuted,
-              }} />}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+    <div style={{ animation: 'bb-fade 0.32s cubic-bezier(.2,.8,.2,1) both' }}>
+      <PageHeader
+        title="Journal"
+        sub={`${monthEntryCount} ${monthEntryCount === 1 ? 'entry' : 'entries'} this month · ${streak}-day streak`}
+        right={<>
+          <Btn ghost onClick={() => setSelectedDate(today)}>Today</Btn>
+          <Btn primary onClick={() => updateEntry({ body: entry?.body || '' })}>+ New entry</Btn>
+        </>}
+      />
 
-// ── Meeting Row ──
-function MeetingRow({ meeting, onChange, onRemove, contacts, t }: {
-  meeting: Meeting; onChange: (patch: Partial<Meeting>) => void; onRemove: () => void;
-  contacts?: NetworkContact[]; t: Theme;
-}) {
-  const linkedContact = contacts?.find(c => c.id === meeting.contactId);
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr auto', gap: 8, alignItems: 'start' }}>
-        <Field value={meeting.time} onChange={v => onChange({ time: v })} placeholder="2:00 PM" t={t} />
-        <Field value={meeting.title} onChange={v => onChange({ title: v })} placeholder="Meeting title" t={t} />
-        <button onClick={onRemove} style={{
-          background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer',
-          fontSize: 14, padding: '6px 4px', marginTop: 1,
-        }}>&times;</button>
-      </div>
-      {/* Contact picker + person field */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        {contacts && contacts.length > 0 && (
-          <select value={meeting.contactId || ''} onChange={e => {
-            const cId = e.target.value;
-            if (cId) {
-              const c = contacts.find(x => x.id === cId);
-              if (c) onChange({ contactId: cId, person: c.name });
-            } else {
-              onChange({ contactId: undefined });
-            }
-          }} style={{
-            background: t.inputBg, border: `1px solid ${t.border}`, color: t.text,
-            padding: '7px 8px', borderRadius: 8, fontFamily: FONT, fontSize: 13, outline: 'none',
-            maxWidth: 180,
+      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 16 }}>
+        {/* Left rail: calendar + streak */}
+        <Card style={{ alignSelf: 'start' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <button onClick={() => setViewDate(new Date(year, month - 1, 1))} style={{
+              appearance: 'none', border: 0, background: 'transparent', cursor: 'pointer',
+              fontFamily: FONT_TEXT, fontSize: 14, color: TOK.ink2, padding: '4px 8px', borderRadius: 6,
+            }}>‹</button>
+            <div style={{ fontSize: 13.5, fontWeight: 500, color: TOK.ink0, fontFamily: FONT_TEXT }}>{monthName}</div>
+            <button onClick={() => setViewDate(new Date(year, month + 1, 1))} style={{
+              appearance: 'none', border: 0, background: 'transparent', cursor: 'pointer',
+              fontFamily: FONT_TEXT, fontSize: 14, color: TOK.ink2, padding: '4px 8px', borderRadius: 6,
+            }}>›</button>
+          </div>
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 2,
+            fontSize: 11, color: TOK.ink3, marginBottom: 6, textAlign: 'center', fontFamily: FONT_TEXT,
           }}>
-            <option value="">Pick contact...</option>
-            {contacts.filter(c => c.category !== 'archived').map(c => (
-              <option key={c.id} value={c.id}>{c.name}{c.company ? ` (${c.company})` : ''}</option>
-            ))}
-          </select>
-        )}
-        <div style={{ flex: 1 }}>
-          <Field value={meeting.person} onChange={v => onChange({ person: v })} placeholder="With..." t={t} />
-        </div>
-        {linkedContact?.company && (
-          <span style={{ fontSize: 12, color: t.textMuted, fontFamily: FONT_MEDIUM, flexShrink: 0 }}>{linkedContact.company}</span>
-        )}
-      </div>
-      {/* Meeting link */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{ flex: 1 }}>
-          <TextArea value={meeting.link || ''} onChange={v => onChange({ link: v })} placeholder="Meeting link (Zoom, Google Meet...)" t={t} minHeight={34} />
-        </div>
-        {meeting.link && (
-          <a href={meeting.link} target="_blank" rel="noopener noreferrer" style={{
-            fontSize: 12, fontFamily: FONT_MEDIUM, color: '#2d8a56', textDecoration: 'none',
-            padding: '5px 10px', borderRadius: 6, background: 'rgba(48, 180, 98, 0.1)',
-            border: '1px solid rgba(48, 180, 98, 0.2)', whiteSpace: 'nowrap', flexShrink: 0,
-          }}>Join</a>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ── Journal Tab ──
-function JournalTab({ journal, setJournal, contacts, t }: {
-  journal: JournalEntry[]; setJournal: (fn: (prev: JournalEntry[]) => JournalEntry[]) => void;
-  contacts?: NetworkContact[]; t: Theme;
-}) {
-  const today = localToday();
-  const [selectedDate, setSelectedDate] = useState(today);
-
-  // Auto-create today's entry if it doesn't exist
-  useEffect(() => {
-    if (!journal.find(e => e.date === today)) {
-      setJournal(prev => [...prev, {
-        id: today, date: today, body: '', tomorrow: '',
-        meetings: [], updatedAt: new Date().toISOString(),
-      }]);
-    }
-    // Hard-remove old entries that have no user content
-    setJournal(prev => prev.filter(e => {
-      if (e.date === today) return true;
-      const hasBody = (e.body?.trim() || '').length >= 3;
-      const hasAgenda = e.agenda && e.agenda.length > 0;
-      const hasDeliverables = e.deliverables && e.deliverables.length > 0;
-      const hasMeetings = e.meetings && e.meetings.length > 0;
-      return hasBody || hasAgenda || hasDeliverables || hasMeetings;
-    }));
-  }, []);
-
-  const entry = journal.find(e => e.date === selectedDate);
-  const journalDates = new Set(journal.filter(e => {
-    const hasBody = (e.body?.trim() || '').length >= 3;
-    const hasAgenda = e.agenda && e.agenda.length > 0;
-    const hasDeliverables = e.deliverables && e.deliverables.length > 0;
-    const hasMeetings = e.meetings && e.meetings.length > 0;
-    return hasBody || hasAgenda || hasDeliverables || hasMeetings;
-  }).map(e => e.date));
-
-  const updateEntry = (patch: Partial<JournalEntry>) => {
-    if (entry) {
-      setJournal(prev => prev.map(e => e.date === selectedDate
-        ? { ...e, ...patch, updatedAt: new Date().toISOString() } : e));
-    } else {
-      // Create entry for selected date
-      setJournal(prev => [...prev, {
-        id: selectedDate, date: selectedDate, body: '', tomorrow: '',
-        meetings: [], updatedAt: new Date().toISOString(), ...patch,
-      }]);
-    }
-  };
-
-  const addMeeting = () => {
-    const meetings = [...(entry?.meetings || []), {
-      id: Date.now().toString(), title: '', person: '', time: '', notes: '',
-    }];
-    updateEntry({ meetings });
-  };
-
-  const updateMeeting = (meetingId: string, patch: Partial<Meeting>) => {
-    const meetings = (entry?.meetings || []).map(m => m.id === meetingId ? { ...m, ...patch } : m);
-    updateEntry({ meetings });
-  };
-
-  const removeMeeting = (meetingId: string) => {
-    const meetings = (entry?.meetings || []).filter(m => m.id !== meetingId);
-    updateEntry({ meetings });
-  };
-
-  // Past entries (excluding selected date), newest first
-  const pastEntries = journal
-    .filter(e => e.date !== selectedDate && e.body.trim())
-    .sort((a, b) => b.date.localeCompare(a.date));
-
-  return (
-    <div>
-      {/* Calendar + Upcoming — one dark pane */}
-      <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: 0, marginBottom: 16, background: t.cardBg, borderRadius: 12, border: `0.5px solid ${t.border}`, overflow: 'hidden' }}>
-        <div style={{ padding: '16px' }}>
-          <MiniCalendar selectedDate={selectedDate} onSelectDate={setSelectedDate}
-            journalDates={journalDates} t={t} />
-        </div>
-        <div style={{ padding: '16px', borderLeft: `0.5px solid ${t.border}` }}>
-          <UpcomingMeetings journal={journal} onSelectDate={setSelectedDate} t={t} selectedDate={selectedDate} />
-        </div>
-      </div>
-
-      {/* Day section */}
-      <div style={{ background: t.cardBg, borderRadius: 12, border: `0.5px solid ${t.border}`, padding: 16 }}>
-        {/* Summary / Notes */}
-        <div style={{ marginBottom: 20 }}>
-          <label style={{ fontSize: 14, color: t.textMuted, fontFamily: FONT_MEDIUM, display: 'block', marginBottom: 8 }}>Summary</label>
-          <textarea
-            value={entry?.body || ''}
-            onChange={e => updateEntry({ body: e.target.value })}
-            placeholder="What did you do today? Jot down notes, wins, blockers..."
-            rows={4}
-            style={{
-              width: '100%', background: t.inputBg, border: `1px solid ${t.border}`, color: t.text,
-              padding: '10px 12px', borderRadius: 8, fontFamily: FONT, fontSize: 14,
-              outline: 'none', boxSizing: 'border-box', resize: 'vertical', lineHeight: 1.5,
-            }}
-          />
-        </div>
-
-        {/* Meetings */}
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <label style={{ fontSize: 14, color: t.textMuted, fontFamily: FONT_MEDIUM }}>Meetings</label>
-            <button onClick={addMeeting} style={{
-              background: 'none', border: 'none', color: t.textMuted,
-              cursor: 'pointer', fontFamily: FONT, fontSize: 14,
-            }}>+ add</button>
+            {['S','M','T','W','T','F','S'].map((d,i) => <div key={i}>{d}</div>)}
           </div>
-          {(entry?.meetings || []).length === 0 && (
-            <p style={{ color: t.textMuted, fontSize: 14, opacity: 0.6 }}>No meetings scheduled</p>
-          )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {(entry?.meetings || []).map(m => (
-              <MeetingRow key={m.id} meeting={m}
-                onChange={patch => updateMeeting(m.id, patch)}
-                onRemove={() => removeMeeting(m.id)} contacts={contacts} t={t} />
-            ))}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 2 }}>
+            {calCells.map((n, i) => {
+              if (n === null) return <button key={i} disabled style={{
+                appearance: 'none', border: 0, background: 'transparent', cursor: 'default',
+                aspectRatio: '1', borderRadius: 10,
+              }}></button>;
+              const iso = `${year}-${String(month + 1).padStart(2, '0')}-${String(n).padStart(2, '0')}`;
+              const isSelected = iso === selectedDate;
+              const has = haveEntries.has(iso);
+              const isToday = iso === today;
+              return (
+                <button key={i} onClick={() => setSelectedDate(iso)} style={{
+                  appearance: 'none', border: isToday && !isSelected ? `1px solid ${TOK.ink3}` : 0,
+                  cursor: 'pointer', aspectRatio: '1', borderRadius: 10, fontFamily: FONT_TEXT,
+                  background: isSelected ? TOK.ink0 : (has ? 'rgba(20,16,12,0.04)' : 'transparent'),
+                  color: isSelected ? '#fffaf2' : TOK.ink0,
+                  fontSize: 12.5, fontWeight: 500, position: 'relative', transition: 'all 0.15s',
+                }}>
+                  {n}
+                  {has && !isSelected && (
+                    <span style={{
+                      position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)',
+                      width: 3, height: 3, borderRadius: '50%', background: TOK.accent,
+                    }}></span>
+                  )}
+                </button>
+              );
+            })}
           </div>
-        </div>
+          <div style={{
+            marginTop: 16, paddingTop: 14, borderTop: `0.5px solid ${TOK.hair}`,
+            display: 'flex', justifyContent: 'space-between', fontSize: 12, color: TOK.ink2, fontFamily: FONT_TEXT,
+          }}>
+            <span>Streak</span>
+            <span style={{ color: TOK.ink0, fontWeight: 500 }}>{streak} {streak === 1 ? 'day' : 'days'}</span>
+          </div>
+        </Card>
 
-        {/* Tomorrow's Agenda */}
-        <div>
-          <label style={{ fontSize: 14, color: t.textMuted, fontFamily: FONT_MEDIUM, display: 'block', marginBottom: 8 }}>Tomorrow's Agenda</label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {(entry?.agenda || []).map((item, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0' }}>
-                <span style={{ color: t.textMuted, fontSize: 10 }}>•</span>
-                <span style={{ fontSize: 14, fontFamily: FONT, color: t.text, flex: 1 }}>{item}</span>
-                <button onClick={() => {
-                  const items = [...(entry?.agenda || [])];
-                  items.splice(i, 1);
-                  updateEntry({ agenda: items });
-                }} style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', fontSize: 12, padding: '0 4px' }}>×</button>
+        {/* Right: entry */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <Card hero style={{ padding: 26 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 18, flexWrap: 'wrap', gap: 12 }}>
+              <div>
+                <CardLabel style={{ marginBottom: 2 }}>{niceDate}</CardLabel>
+                <div style={{ fontSize: 22, fontWeight: 500, letterSpacing: '-0.018em', fontFamily: FONT_DISPLAY, color: TOK.ink0 }}>
+                  How was today?
+                </div>
               </div>
-            ))}
-          </div>
-          <input
-            placeholder="Add agenda item..."
-            onKeyDown={e => {
-              if (e.key === 'Enter' && (e.target as HTMLInputElement).value.trim()) {
-                const text = (e.target as HTMLInputElement).value.trim();
-                updateEntry({ agenda: [...(entry?.agenda || []), text] });
-                (e.target as HTMLInputElement).value = '';
-              }
-            }}
-            style={{
-              width: '100%', background: t.inputBg, border: `1px solid ${t.border}`, color: t.text,
-              padding: '8px 12px', borderRadius: 8, fontFamily: FONT, fontSize: 14,
-              outline: 'none', boxSizing: 'border-box', marginTop: 8,
-            }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Upcoming Meetings ──
-function UpcomingMeetings({ journal, onSelectDate, t, selectedDate }: {
-  journal: JournalEntry[]; onSelectDate: (d: string) => void; t: Theme; selectedDate: string;
-}) {
-  const today = selectedDate;
-  // Helper: get next day from a YYYY-MM-DD string
-  const nextDay = (dateStr: string) => {
-    const d = new Date(dateStr + 'T12:00');
-    d.setDate(d.getDate() + 1);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  };
-
-  const upcoming = journal
-    .filter(e => e.date >= today || (e.agenda && e.agenda.length > 0))
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .flatMap(e => [
-      // Meetings show on their own date
-      ...(e.date >= today ? e.meetings.map(m => ({ type: 'meeting' as const, ...m, date: e.date })) : []),
-      // Agenda items are "for tomorrow" so shift date forward by 1 day
-      ...(e.agenda || [])
-        .map((a, i) => ({ type: 'agenda' as const, id: `agenda-${e.date}-${i}`, title: a, person: '', time: '', notes: '', date: nextDay(e.date) }))
-        .filter(a => a.date >= today),
-    ])
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .slice(0, 10);
-
-  const allUpcoming = upcoming;
-
-  if (allUpcoming.length === 0) return null;
-
-  return (
-    <div>
-      <label style={{ fontSize: 14, color: t.textMuted, fontFamily: FONT_MEDIUM, display: 'block', marginBottom: 8 }}>Upcoming</label>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {allUpcoming.map(m => {
-          const isToday = m.date === localToday();
-          const dateLabel = isToday ? 'Today' : new Date(m.date + 'T12:00').toLocaleDateString('en', { month: 'short', day: 'numeric' });
-          return (
-            <button key={m.id + m.date} onClick={() => onSelectDate(m.date)} style={{
-              display: 'flex', flexDirection: 'column', gap: 2,
-              background: 'transparent', border: 'none', borderRadius: 6,
-              padding: '6px 8px', cursor: 'pointer', fontFamily: FONT,
-              textAlign: 'left', transition: 'background 0.15s',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.background = t.accentSubtle; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-            >
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <span style={{ fontSize: 14, color: isToday ? '#2d8a56' : t.textMuted, fontFamily: FONT_MEDIUM }}>{dateLabel}</span>
-                {m.type === 'meeting' && m.time && <span style={{ fontSize: 14, color: t.textMuted }}>{m.time}</span>}
-                {m.type === 'agenda' && <span style={{ fontSize: 11, color: t.textMuted, fontFamily: FONT_MEDIUM }}>agenda</span>}
+              <div style={{ display: 'flex', gap: 4 }}>
+                {(['rough','meh','good','great'] as const).map(m => {
+                  const active = entry?.mood === m;
+                  return (
+                    <button key={m} onClick={() => updateEntry({ mood: m })} style={{
+                      appearance: 'none', cursor: 'pointer', fontFamily: FONT_TEXT,
+                      fontSize: 12, padding: '5px 11px', borderRadius: TOK.rPill,
+                      background: active ? TOK.ink0 : 'rgba(255,253,249,0.85)',
+                      border: `1px solid ${active ? TOK.ink0 : TOK.hairStrong}`,
+                      color: active ? '#fffaf2' : TOK.ink0,
+                      transition: 'all 0.15s',
+                    }}>{m}</button>
+                  );
+                })}
               </div>
-              <span style={{ fontSize: 14, fontWeight: 600, color: t.textStrong }}>{m.title || (m.type === 'meeting' ? 'Untitled meeting' : 'Untitled')}</span>
-              {m.type === 'meeting' && m.person && <span style={{ fontSize: 14, fontWeight: 500, color: t.text }}>{m.person}</span>}
-              {m.type === 'meeting' && (m as any).link && (
-                <a href={(m as any).link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{
-                  fontSize: 11, fontFamily: FONT_MEDIUM, color: '#2d8a56', textDecoration: 'none',
-                  marginTop: 2,
-                }}>Join meeting</a>
+            </div>
+            <textarea
+              value={entry?.body || ''}
+              onChange={e => updateEntry({ body: e.target.value })}
+              rows={6}
+              placeholder="Jot down notes, wins, blockers — whatever you want to remember."
+              style={{
+                width: '100%', background: 'transparent', border: 0, padding: 0,
+                fontSize: 14.5, lineHeight: 1.6, marginTop: 14, fontFamily: FONT_TEXT,
+                color: TOK.ink0, outline: 'none', resize: 'vertical', minHeight: 140,
+              }}
+            />
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              marginTop: 16, paddingTop: 16, borderTop: `0.5px solid ${TOK.hair}`,
+            }}>
+              <span style={{ fontSize: 12, color: TOK.ink3, fontFamily: FONT_TEXT }}>
+                {wordCount} {wordCount === 1 ? 'word' : 'words'} · autosaving
+              </span>
+            </div>
+          </Card>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <Card>
+              <CardLabel>{selectedDate === today ? "Today's meetings" : 'Meetings'}</CardLabel>
+              {todaysMeetings.length === 0 ? (
+                <div style={{ fontSize: 13, color: TOK.ink3, padding: '16px 0', textAlign: 'center', fontFamily: FONT_TEXT }}>
+                  {googleConnected || !googleConfigured ? 'No meetings' : (
+                    <span onClick={onConnectGoogle} style={{ cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 3 }}>
+                      Connect calendar
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {todaysMeetings.slice(0, 4).map(m => (
+                    <div key={m.id} style={{
+                      display: 'grid', gridTemplateColumns: '60px 1fr auto', gap: 10,
+                      padding: '8px 0', borderTop: `0.5px solid ${TOK.hair}`,
+                      fontSize: 13, alignItems: 'center', fontFamily: FONT_TEXT,
+                    }}>
+                      <span style={{ fontSize: 11, color: TOK.ink3 }}>{m.time}</span>
+                      <span style={{ color: TOK.ink0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.title}</span>
+                      {m.link && (
+                        <a href={m.link} target="_blank" rel="noopener noreferrer" style={{
+                          fontSize: 11, color: TOK.good, textDecoration: 'none',
+                          padding: '2px 8px', borderRadius: TOK.rPill, background: 'oklch(0.55 0.10 150 / 0.10)',
+                          border: '1px solid oklch(0.55 0.10 150 / 0.20)',
+                        }}>Join</a>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
-            </button>
-          );
-        })}
+            </Card>
+            <Card>
+              <CardLabel>Tomorrow's first move</CardLabel>
+              <Input value={entry?.tomorrow || ''}
+                onChange={v => updateEntry({ tomorrow: v })}
+                placeholder="What's the first thing tomorrow?" />
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-// ── Past entry preview ──
-function PastEntry({ entry, onSelect, t }: { entry: JournalEntry; onSelect: () => void; t: Theme }) {
-  const firstLine = entry.body.split('\n')[0].slice(0, 80);
-  const dateLabel = new Date(entry.date + 'T12:00').toLocaleDateString('en', { month: 'short', day: 'numeric', weekday: 'short' });
-  return (
-    <button onClick={onSelect} style={{
-      display: 'block', width: '100%', textAlign: 'left', padding: '8px 10px',
-      background: 'transparent', border: 'none', borderRadius: 6,
-      cursor: 'pointer', fontFamily: FONT, transition: 'background 0.15s',
-      marginBottom: 2,
-    }}
-      onMouseEnter={e => { e.currentTarget.style.background = t.accentSubtle; }}
-      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-    >
-      <span style={{ fontSize: 14, color: t.textMuted }}>{dateLabel}</span>
-      <span style={{ fontSize: 14, color: t.text, display: 'block', marginTop: 2 }}>
-        {firstLine || 'Empty entry'}{firstLine.length >= 80 ? '...' : ''}
-      </span>
-    </button>
-  );
-}
+/* ═══════════════════════════════════════════════════════════
+   NETWORK
+   ═══════════════════════════════════════════════════════════ */
 
-// ── Network Tab ──
-// Traffic light: green = active/ready, yellow = needs work, red = dead
-const TRAFFIC_COLORS: Record<string, string> = {
-  green: '#22c55e', yellow: '#eab308', red: '#ef4444',
+const URGENCY_TONE: Record<Urgency, 'good' | 'warn' | 'bad' | 'neutral'> = {
+  now: 'bad', soon: 'warn', later: 'neutral', waiting: 'neutral',
 };
-// Map any urgency value to a traffic light
-function getLight(urgency: string): 'green' | 'yellow' | 'red' {
-  if (['now', 'soon', 'hot', 'green'].includes(urgency)) return 'green';
-  if (['later', 'warm', 'yellow', 'waiting'].includes(urgency)) return 'yellow';
-  return 'red';
-}
-// Keep old names for backward compat
-const URGENCY_COLORS: Record<string, string> = new Proxy(TRAFFIC_COLORS, {
-  get: (_, key: string) => TRAFFIC_COLORS[getLight(key)] || '#6b7280',
-});
-const CATEGORY_META: any[] = []; // unused but referenced
 
-// ── LinkedIn URL parser ──
-function parseLinkedInUrl(url: string): { name: string; linkedinUrl: string } | null {
-  try {
-    const u = new URL(url.trim());
-    if (!u.hostname.includes('linkedin.com')) return null;
-    const match = u.pathname.match(/\/in\/([^/]+)/);
-    if (!match) return null;
-    const slug = match[1];
-    // Split by hyphens, drop trailing ID-like segments (all digits, or long alphanumeric hashes)
-    const parts = slug.split('-').filter(p => !/^\d+$/.test(p) && !(p.length > 6 && /^[a-z0-9]+$/.test(p)));
-    if (parts.length === 0) return null;
-    const name = parts.map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
-    return { name, linkedinUrl: url.trim() };
-  } catch { return null; }
+const CATEGORY_LABEL: Record<ContactCategory, string> = {
+  'call-booked': 'Call booked', 'reply-needed': 'Reply needed',
+  'warm': 'Warm', 'awaiting-reply': 'Awaiting reply',
+  'connected': 'Connected', 'archived': 'Archived',
+};
+
+function avatarColor(name: string): string {
+  const n = name.charCodeAt(0) || 0;
+  const hues = [30, 60, 130, 200, 280, 320, 350, 90, 240];
+  const h = hues[n % hues.length];
+  return `oklch(0.78 0.10 ${h})`;
 }
 
-// Try to fetch company from LinkedIn page title via CORS proxy (best-effort)
-function tryFetchLinkedInCompany(url: string, onCompany: (company: string) => void) {
-  fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`)
-    .then(r => r.text())
-    .then(html => {
-      // LinkedIn title format: "Firstname Lastname - Title at Company | LinkedIn"
-      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-      if (!titleMatch) return;
-      const title = titleMatch[1];
-      const atMatch = title.match(/\bat\b\s+(.+?)\s*\|/i);
-      if (atMatch) onCompany(atMatch[1].trim());
-    })
-    .catch(() => {}); // Silent fail — name from URL is still valuable
-}
-
-function NetworkTab({ contacts, setContacts, journal, t }: {
-  contacts: NetworkContact[]; setContacts: (fn: (prev: NetworkContact[]) => NetworkContact[]) => void;
-  journal?: JournalEntry[]; t: Theme;
+function Network({ contacts, setContacts, journal }: {
+  contacts: NetworkContact[];
+  setContacts: (fn: (prev: NetworkContact[]) => NetworkContact[]) => void;
+  journal: JournalEntry[];
 }) {
-  const [view, setView] = useState<'outreach' | 'contacts'>('outreach');
-  const [filter, setFilter] = useState('');
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-  const [expandedCard, setExpandedCard] = useState<string | null>(null);
-  const [pasteUrl, setPasteUrl] = useState('');
-  const [pasteStatus, setPasteStatus] = useState<string | null>(null);
-  const [justAdded, setJustAdded] = useState<string | null>(null);
+  const [filter, setFilter] = useState<'all' | 'active' | 'needs' | 'cold'>('all');
+  const [search, setSearch] = useState('');
+  const [selId, setSelId] = useState<string | null>(contacts[0]?.id || null);
+  const [showNew, setShowNew] = useState(false);
+  const [newC, setNewC] = useState<{ name: string; company: string; role: string }>({ name: '', company: '', role: '' });
+
+  const counts = {
+    active: contacts.filter(c => ['call-booked', 'reply-needed', 'warm'].includes(c.category)).length,
+    needs: contacts.filter(c => c.category === 'reply-needed').length,
+    cold: contacts.filter(c => c.category === 'archived').length,
+  };
+
+  const visible = useMemo(() => {
+    let list = contacts.filter(c => c.category !== 'archived' || filter === 'cold');
+    if (filter === 'active') list = list.filter(c => ['call-booked', 'reply-needed', 'warm'].includes(c.category));
+    else if (filter === 'needs') list = list.filter(c => c.category === 'reply-needed');
+    else if (filter === 'cold') list = list.filter(c => c.category === 'archived');
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(c =>
+        c.name.toLowerCase().includes(q) ||
+        c.company.toLowerCase().includes(q) ||
+        c.role.toLowerCase().includes(q));
+    }
+    return list;
+  }, [contacts, filter, search]);
+
+  const sel = contacts.find(c => c.id === selId);
 
   const updateContact = (id: string, patch: Partial<NetworkContact>) => {
     setContacts(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c));
   };
+
   const removeContact = (id: string) => {
     setContacts(prev => prev.filter(c => c.id !== id));
-    if (expandedCard === id) setExpandedCard(null);
-  };
-  const addContact = () => {
-    const id = Date.now().toString();
-    setContacts(prev => [...prev, {
-      id, name: '', company: '', role: '', category: 'warm', urgency: 'later',
-      whatTheySaid: '', actionNeeded: '', notes: '', createdAt: new Date().toISOString(),
-    }]);
-    setExpandedCard(id);
-    setJustAdded(id);
-    setTimeout(() => {
-      document.getElementById(`contact-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 50);
+    if (selId === id) setSelId(null);
   };
 
-  const addFromLinkedIn = (url: string) => {
-    const parsed = parseLinkedInUrl(url);
-    if (!parsed) {
-      setPasteStatus('Not a valid LinkedIn profile URL');
-      setTimeout(() => setPasteStatus(null), 2500);
-      return;
+  const createContact = () => {
+    if (!newC.name.trim()) return;
+    const c: NetworkContact = {
+      id: uid(), name: newC.name.trim(), company: newC.company.trim(), role: newC.role.trim(),
+      category: 'warm', urgency: 'later',
+      whatTheySaid: '', actionNeeded: '', notes: '',
+      createdAt: new Date().toISOString(),
+    };
+    setContacts(prev => [c, ...prev]);
+    setSelId(c.id);
+    setNewC({ name: '', company: '', role: '' });
+    setShowNew(false);
+  };
+
+  // Last 3 touches per contact (from journal meetings)
+  const touchesFor = (cid: string) => {
+    const out: { date: string; type: string; note: string }[] = [];
+    for (const e of journal) {
+      const m = e.meetings?.filter(mtg => mtg.contactId === cid) || [];
+      for (const mtg of m) {
+        out.push({
+          date: e.date,
+          type: mtg.title || 'Meeting',
+          note: mtg.notes || '',
+        });
+      }
     }
-    // Check for duplicate
-    if (contacts.some(c => c.linkedinUrl === parsed.linkedinUrl)) {
-      setPasteStatus(`${parsed.name} already exists`);
-      setTimeout(() => setPasteStatus(null), 2500);
-      return;
-    }
-    const id = Date.now().toString();
-    setContacts(prev => [...prev, {
-      id, name: parsed.name, company: '', role: '', category: 'warm', urgency: 'later',
-      whatTheySaid: '', actionNeeded: '', linkedinUrl: parsed.linkedinUrl,
-      notes: '', createdAt: new Date().toISOString(),
-    }]);
-    setExpandedCard(id);
-    setJustAdded(id);
-    setPasteUrl('');
-    setPasteStatus(`Added ${parsed.name}`);
-    setTimeout(() => {
-      document.getElementById(`contact-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 50);
-    setTimeout(() => setPasteStatus(null), 2500);
-    // Try to fetch company in background
-    tryFetchLinkedInCompany(parsed.linkedinUrl, (company) => {
-      setContacts(prev => prev.map(c => c.id === id ? { ...c, company: c.company || company } : c));
-    });
+    return out.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
   };
 
-  const active = contacts.filter(c => c.category !== 'connected' && c.category !== 'archived');
-  const connected = contacts.filter(c => c.category === 'connected');
-  const filtered = filter
-    ? filter.startsWith('tag:')
-      ? active.filter(c => (c.tags || []).includes(filter.slice(4)))
-      : active.filter(c => `${c.name} ${c.company}`.toLowerCase().includes(filter.toLowerCase()))
-    : active;
-
-  const counts = {
-    'call-booked': filtered.filter(c => c.category === 'call-booked').length,
-    'reply-needed': filtered.filter(c => c.category === 'reply-needed').length,
-    'warm': filtered.filter(c => c.category === 'warm').length,
-    'awaiting-reply': filtered.filter(c => c.category === 'awaiting-reply').length,
-  };
-
-  const filteredConnected = filter
-    ? filter.startsWith('tag:')
-      ? connected.filter(c => (c.tags || []).includes(filter.slice(4)))
-      : connected.filter(c => `${c.name} ${c.company}`.toLowerCase().includes(filter.toLowerCase()))
-    : connected;
-
-  // Sort: green first, yellow middle, red last
-  const lightOrder = (c: NetworkContact) => { const l = getLight(c.urgency); return l === 'green' ? 0 : l === 'yellow' ? 1 : 2; };
-  const sorted = [...filtered].sort((a, b) => {
-    if (a.id === justAdded) return -1;
-    if (b.id === justAdded) return 1;
-    return lightOrder(a) - lightOrder(b);
-  });
-  const greenCount = sorted.filter(c => getLight(c.urgency) === 'green').length;
-  const yellowCount = sorted.filter(c => getLight(c.urgency) === 'yellow').length;
-  const redCount = sorted.filter(c => getLight(c.urgency) === 'red').length;
-
-  return (
-    <div>
-      {/* Traffic light counts */}
-      <div style={{ display: 'flex', gap: 16, marginBottom: 16, fontSize: 14, fontFamily: FONT, background: t.cardBg, borderRadius: 10, padding: '10px 14px', border: `0.5px solid ${t.border}` }}>
-        <span><span style={{ color: '#22c55e', fontFamily: FONT_MEDIUM, fontSize: 16 }}>{greenCount}</span> <span style={{ color: t.textMuted }}>active</span></span>
-        <span><span style={{ color: '#eab308', fontFamily: FONT_MEDIUM, fontSize: 16 }}>{yellowCount}</span> <span style={{ color: t.textMuted }}>needs work</span></span>
-        <span><span style={{ color: '#ef4444', fontFamily: FONT_MEDIUM, fontSize: 16 }}>{redCount}</span> <span style={{ color: t.textMuted }}>inactive</span></span>
-      </div>
-
-      {/* Contact list — flat, sorted by light */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {sorted.map(c => (
-          <div key={c.id} id={`contact-${c.id}`}>
-            <ContactCard contact={c} expanded={expandedCard === c.id}
-              onToggle={() => {
-                const collapsing = expandedCard === c.id;
-                setExpandedCard(collapsing ? null : c.id);
-                if (collapsing && c.id === justAdded) setJustAdded(null);
-              }}
-              onUpdate={p => updateContact(c.id, p)} onRemove={() => removeContact(c.id)} t={t} />
-          </div>
-        ))}
-      </div>
-
-      {/* Add */}
-      <button onClick={addContact} style={{
-        background: t.cardBg, border: `1px dashed ${t.border}`,
-        color: t.textMuted, padding: '10px', borderRadius: 10, width: '100%',
-        cursor: 'pointer', fontFamily: FONT, fontSize: 14, marginTop: 16,
-      }}>+ Add Contact</button>
-    </div>
-  );
-}
-
-// ── Tag System ──
-const TAG_SUGGESTIONS = ['intent:refer', 'intent:hire', 'intro:pending', 'intro:done'];
-const TAG_COLORS: Record<string, string> = {
-  'intent:refer': '#2d8a56', 'intent:hire': '#2563eb', 'intro:pending': '#f59e0b', 'intro:done': '#6b7280',
-};
-
-function TagPill({ tag, onRemove, t }: { tag: string; onRemove?: () => void; t: Theme }) {
-  const color = TAG_COLORS[tag] || t.textMuted;
-  return (
-    <span style={{
-      fontSize: 11, fontFamily: FONT_MEDIUM, padding: '2px 7px', borderRadius: 4,
-      background: `${color}18`, color, display: 'inline-flex', alignItems: 'center', gap: 4,
+  const Pill = ({ id, label, n, dot }: { id: typeof filter; label: string; n: number; dot?: string }) => (
+    <button onClick={() => setFilter(id)} style={{
+      appearance: 'none', border: 0, cursor: 'pointer',
+      padding: '6px 12px', borderRadius: TOK.rPill,
+      fontSize: 12.5, fontWeight: 500, fontFamily: FONT_TEXT,
+      background: filter === id ? TOK.ink0 : 'transparent',
+      color: filter === id ? '#fffaf2' : TOK.ink1,
+      display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.15s',
     }}>
-      {tag}
-      {onRemove && <button onClick={e => { e.stopPropagation(); onRemove(); }} style={{
-        background: 'none', border: 'none', color, cursor: 'pointer', fontSize: 12, padding: 0, lineHeight: 1,
-      }}>&times;</button>}
-    </span>
+      {dot && <span style={{ width: 6, height: 6, borderRadius: '50%', background: dot }}></span>}
+      <span>{label}</span>
+      <span style={{ opacity: 0.6, fontVariantNumeric: 'tabular-nums' }}>{n}</span>
+    </button>
   );
-}
-
-// ── Contact Card (redesigned) ──
-function ContactCard({ contact: c, expanded, onToggle, onUpdate, onRemove, t }: {
-  contact: NetworkContact; expanded: boolean;
-  onToggle: () => void; onUpdate: (p: Partial<NetworkContact>) => void;
-  onRemove: () => void; t: Theme;
-}) {
-  const [newTag, setNewTag] = useState('');
-  const tags = c.tags || [];
-  const addTag = (tag: string) => {
-    const t = tag.trim().toLowerCase();
-    if (t && !tags.includes(t)) onUpdate({ tags: [...tags, t] });
-    setNewTag('');
-  };
-  const removeTag = (tag: string) => onUpdate({ tags: tags.filter(t => t !== tag) });
-
-  const light = getLight(c.urgency);
-  const urgColor = TRAFFIC_COLORS[light];
-
-  const isCold = ['waiting', 'later', 'cold'].includes(c.urgency);
 
   return (
-    <div style={{
-      border: `1px solid ${t.border}`, borderRadius: 10, overflow: 'hidden',
-      display: 'flex', cursor: 'pointer', background: t.cardBg,
-      opacity: isCold && !expanded ? 0.55 : 1, transition: 'opacity 0.15s',
-    }} onClick={onToggle}
-      onMouseEnter={e => { if (isCold) e.currentTarget.style.opacity = '0.85'; }}
-      onMouseLeave={e => { if (isCold && !expanded) e.currentTarget.style.opacity = '0.55'; }}
-    >
-      {/* Left urgency bar */}
-      <div style={{ width: 4, flexShrink: 0, background: urgColor }} />
+    <div style={{ animation: 'bb-fade 0.32s cubic-bezier(.2,.8,.2,1) both' }}>
+      <PageHeader
+        title="Network"
+        sub={`${contacts.length} ${contacts.length === 1 ? 'person' : 'people'} · ${counts.needs} need a reply`}
+        right={<>
+          <Btn ghost>Import</Btn>
+          <Btn primary onClick={() => setShowNew(true)}>+ Person</Btn>
+        </>}
+      />
 
-      <div style={{ flex: 1, padding: '12px 14px' }}>
-        {/* Header: logo + name + linkedin */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-          {c.company ? <CompanyLogo company={c.company} size={28} t={t} /> : (
-            <div style={{
-              width: 28, height: 28, borderRadius: 7, background: t.accentSubtle,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 13, fontFamily: FONT_MEDIUM, color: t.textMuted, flexShrink: 0,
-            }}>{(c.name || '?')[0].toUpperCase()}</div>
-          )}
-          <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontFamily: FONT_MEDIUM, color: t.textStrong, fontSize: 16 }}>{c.name || 'New contact'}</span>
-              {c.linkedinUrl && (
-                <a href={c.linkedinUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{
-                  color: t.textMuted, display: 'flex', opacity: 0.5, transition: 'opacity 0.15s',
-                }}
-                  onMouseEnter={e => { e.currentTarget.style.opacity = '1'; }}
-                  onMouseLeave={e => { e.currentTarget.style.opacity = '0.5'; }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                </a>
-              )}
-            </div>
-            {(c.company || c.role) && (
-              <div style={{ fontSize: 13, color: t.textMuted, marginTop: 1 }}>
-                {[c.company, c.role].filter(Boolean).join(' · ')}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Quote: what they said */}
-        {c.whatTheySaid && (
-          <div style={{
-            fontSize: 13, color: t.text, fontStyle: 'italic', marginTop: 8,
-            borderLeft: `2px solid ${t.border}`, paddingLeft: 10, lineHeight: 1.5,
-          }}>
-            "{c.whatTheySaid}"
-          </div>
-        )}
-
-        {/* Action needed */}
-        {c.actionNeeded && (
-          <div style={{ fontSize: 13, color: t.textStrong, fontFamily: FONT_MEDIUM, marginTop: 8 }}>
-            <span style={{ color: urgColor, marginRight: 4 }}>&rarr;</span> {c.actionNeeded}
-          </div>
-        )}
-
-        {/* Tags */}
-        {tags.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 8 }}>
-            {tags.map(tag => <TagPill key={tag} tag={tag} t={t} />)}
-          </div>
-        )}
-
-        {/* Expanded edit */}
-        {expanded && (
-          <div style={{ marginTop: 12, borderTop: `1px solid ${t.border}`, paddingTop: 12 }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-              <Field label="Name" value={c.name} onChange={v => onUpdate({ name: v })} placeholder="First Last" t={t} />
-              <Field label="Company" value={c.company} onChange={v => onUpdate({ company: v })} placeholder="Company" t={t} />
-              <Field label="Role" value={c.role} onChange={v => onUpdate({ role: v })} placeholder="Role" t={t} />
-            </div>
-            <div style={{ marginTop: 8 }}>
-              <label style={{ fontSize: 13, color: t.textMuted, fontFamily: FONT_MEDIUM, display: 'block', marginBottom: 3 }}>What they said</label>
-              <TextArea value={c.whatTheySaid} onChange={v => onUpdate({ whatTheySaid: v })} placeholder="Context from their last message..." t={t} minHeight={40} />
-            </div>
-            <div style={{ marginTop: 8 }}>
-              <Field label="Action needed" value={c.actionNeeded} onChange={v => onUpdate({ actionNeeded: v })} placeholder="What to do next..." t={t} />
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginTop: 8 }}>
-              <div>
-                <label style={{ fontSize: 13, color: t.textMuted, fontFamily: FONT_MEDIUM, display: 'block', marginBottom: 3 }}>Category</label>
-                <select value={c.category} onChange={e => onUpdate({ category: e.target.value as ContactCategory })} style={{
-                  background: t.inputBg, border: `1px solid ${t.border}`, color: t.text,
-                  padding: '7px 10px', borderRadius: 8, fontFamily: FONT, fontSize: 14, outline: 'none', width: '100%',
-                }}>
-                  <option value="call-booked">Call Booked</option>
-                  <option value="reply-needed">Need to Reply</option>
-                  <option value="warm">Warm</option>
-                  <option value="awaiting-reply">Awaiting Reply</option>
-                  <option value="connected">Connected</option>
-                  <option value="archived">Archived</option>
-                </select>
-              </div>
-              <div>
-                <label style={{ fontSize: 13, color: t.textMuted, fontFamily: FONT_MEDIUM, display: 'block', marginBottom: 3 }}>Status</label>
-                <select value={getLight(c.urgency)} onChange={e => onUpdate({ urgency: e.target.value as any })} style={{
-                  background: t.inputBg, border: `1px solid ${t.border}`, color: t.text,
-                  padding: '7px 10px', borderRadius: 8, fontFamily: FONT, fontSize: 14, outline: 'none', width: '100%',
-                }}>
-                  <option value="green">🟢 Active</option>
-                  <option value="yellow">🟡 Needs Work</option>
-                  <option value="red">🔴 Inactive</option>
-                </select>
-              </div>
-              <Field label="Follow-up" value={c.followUpDate || ''} onChange={v => onUpdate({ followUpDate: v })} placeholder="mid-May..." t={t} />
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 8 }}>
-              <Field label="LinkedIn URL" value={c.linkedinUrl || ''} onChange={v => onUpdate({ linkedinUrl: v })} placeholder="https://linkedin.com/in/..." t={t} />
-              <div />
-            </div>
-            {/* Tags editor */}
-            <div style={{ marginTop: 8 }}>
-              <label style={{ fontSize: 13, color: t.textMuted, fontFamily: FONT_MEDIUM, display: 'block', marginBottom: 3 }}>Tags</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
-                {tags.map(tag => <TagPill key={tag} tag={tag} onRemove={() => removeTag(tag)} t={t} />)}
-              </div>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-                <input value={newTag} onChange={e => setNewTag(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') { addTag(newTag); e.preventDefault(); } }}
-                  placeholder="Add tag..." style={{
-                    background: t.inputBg, border: `1px solid ${t.border}`, color: t.text,
-                    padding: '5px 8px', borderRadius: 6, fontFamily: FONT, fontSize: 12, outline: 'none', width: 100,
-                  }} />
-                {TAG_SUGGESTIONS.filter(s => !tags.includes(s)).map(s => (
-                  <button key={s} onClick={() => addTag(s)} style={{
-                    background: 'none', border: `1px solid ${t.border}`, color: t.textMuted,
-                    padding: '3px 7px', borderRadius: 4, cursor: 'pointer', fontFamily: FONT, fontSize: 11,
-                    transition: 'all 0.15s',
-                  }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = t.textMuted; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; }}
-                  >+ {s}</button>
-                ))}
-              </div>
-            </div>
-            <div style={{ marginTop: 8 }}>
-              <TextArea value={c.notes} onChange={v => onUpdate({ notes: v })} placeholder="Notes..." t={t} minHeight={40} />
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
-              <button onClick={e => { e.stopPropagation(); onRemove(); }} style={{
-                background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer',
-                fontFamily: FONT, fontSize: 13, opacity: 0.7,
-              }}>Delete contact</button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ── Tasks Tab ──
-const PRIORITY_COLORS: Record<TaskPriority, { bg: string; text: string }> = {
-  high: { bg: 'rgba(239, 68, 68, 0.15)', text: '#ef4444' },
-  medium: { bg: 'rgba(245, 158, 11, 0.15)', text: '#f59e0b' },
-  low: { bg: 'rgba(107, 114, 128, 0.15)', text: '#6b7280' },
-};
-
-function TasksTab({ tasks, setTasks, t }: {
-  tasks: Task[]; setTasks: (fn: (prev: Task[]) => Task[]) => void; t: Theme;
-}) {
-  const [newTitle, setNewTitle] = useState('');
-  const [newPriority, setNewPriority] = useState<TaskPriority>('medium');
-
-  const addTask = () => {
-    if (!newTitle.trim()) return;
-    const now = new Date().toISOString();
-    setTasks(prev => [{ id: Date.now().toString(), title: newTitle.trim(), status: 'todo', priority: newPriority, createdAt: now, updatedAt: now }, ...prev]);
-    setNewTitle('');
-  };
-
-  const updateTask = (id: string, patch: Partial<Task>) => {
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, ...patch, updatedAt: new Date().toISOString() } : t));
-  };
-
-  const today = localToday();
-  const active = tasks.filter(t => t.status !== 'done')
-    .sort((a, b) => {
-      const pOrder = { high: 0, medium: 1, low: 2 };
-      if (pOrder[a.priority] !== pOrder[b.priority]) return pOrder[a.priority] - pOrder[b.priority];
-      if (a.dueDate && b.dueDate) return a.dueDate.localeCompare(b.dueDate);
-      if (a.dueDate) return -1;
-      if (b.dueDate) return 1;
-      return 0;
-    });
-  const done = tasks.filter(t => t.status === 'done').slice(0, 20);
-  const [showDone, setShowDone] = useState(false);
-
-  return (
-    <div>
-      {/* Quick add */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-        <input value={newTitle} onChange={e => setNewTitle(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && addTask()}
-          placeholder="What needs to get done?"
+      <Card style={{ padding: 6, marginBottom: 14, display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
+        <Pill id="all" label="All" n={contacts.length} />
+        <Pill id="active" label="Active" n={counts.active} dot={TOK.good} />
+        <Pill id="needs" label="Needs reply" n={counts.needs} dot={TOK.warn} />
+        <Pill id="cold" label="Archived" n={counts.cold} dot={TOK.ink3} />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search…"
           style={{
-            flex: 1, background: t.inputBg, border: `1px solid ${t.border}`, color: t.text,
-            padding: '10px 14px', borderRadius: 8, fontFamily: FONT, fontSize: 14, outline: 'none',
+            marginLeft: 'auto', width: 200, padding: '5px 11px', fontSize: 12.5,
+            background: 'rgba(255,253,249,0.7)', border: `1px solid ${TOK.hair}`,
+            borderRadius: 10, fontFamily: FONT_TEXT, color: TOK.ink0, outline: 'none',
           }} />
-        <select value={newPriority} onChange={e => setNewPriority(e.target.value as TaskPriority)} style={{
-          background: t.inputBg, border: `1px solid ${t.border}`, color: t.text,
-          padding: '8px 10px', borderRadius: 8, fontFamily: FONT, fontSize: 14, outline: 'none',
-        }}>
-          <option value="high">High</option>
-          <option value="medium">Med</option>
-          <option value="low">Low</option>
-        </select>
-      </div>
+      </Card>
 
-      {/* Active tasks */}
-      {active.length === 0 && (
-        <p style={{ color: t.textMuted, fontSize: 14, textAlign: 'center', padding: 32 }}>No tasks. Add one above.</p>
-      )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {active.map(task => (
-          <TaskRow key={task.id} task={task} today={today} onUpdate={p => updateTask(task.id, p)}
-            onRemove={() => setTasks(prev => prev.filter(t => t.id !== task.id))} t={t} />
-        ))}
-      </div>
-
-      {/* Done tasks */}
-      {done.length > 0 && (
-        <div style={{ marginTop: 20 }}>
-          <button onClick={() => setShowDone(!showDone)} style={{
-            background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer',
-            fontFamily: FONT, fontSize: 14, padding: '4px 0',
-          }}>{showDone ? 'Hide' : 'Show'} completed ({done.length})</button>
-          {showDone && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 8, opacity: 0.6 }}>
-              {done.map(task => (
-                <TaskRow key={task.id} task={task} today={today} onUpdate={p => updateTask(task.id, p)}
-                  onRemove={() => setTasks(prev => prev.filter(t => t.id !== task.id))} t={t} />
-              ))}
+      {showNew && (
+        <Card hero style={{ marginBottom: 14, padding: 18 }}>
+          <CardLabel>New contact</CardLabel>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 8 }}>
+            <Input value={newC.name} onChange={v => setNewC({ ...newC, name: v })} placeholder="Name *" autoFocus />
+            <Input value={newC.company} onChange={v => setNewC({ ...newC, company: v })} placeholder="Company" />
+            <Input value={newC.role} onChange={v => setNewC({ ...newC, role: v })} placeholder="Role" />
+            <div style={{ display: 'flex', gap: 6 }}>
+              <Btn ghost onClick={() => { setShowNew(false); setNewC({ name: '', company: '', role: '' }); }}>Cancel</Btn>
+              <Btn primary onClick={createContact}>Add</Btn>
             </div>
-          )}
+          </div>
+        </Card>
+      )}
+
+      <div style={{ display: 'grid', gridTemplateColumns: sel ? '1fr 360px' : '1fr', gap: 14, alignItems: 'start' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {visible.length === 0 ? (
+            <Card>
+              <div style={{ padding: '32px 0', textAlign: 'center', color: TOK.ink3, fontFamily: FONT_TEXT }}>
+                {contacts.length === 0 ? 'No contacts yet · add your first person ↑' : 'No matches'}
+              </div>
+            </Card>
+          ) : visible.map(c => {
+            const isSel = selId === c.id;
+            const initial = (c.name[0] || '?').toUpperCase();
+            const tone = c.category === 'reply-needed' ? 'warn' : c.category === 'call-booked' ? 'good' : 'neutral';
+            return (
+              <div key={c.id} onClick={() => setSelId(c.id)} style={{
+                background: isSel ? TOK.glass2 : TOK.glass,
+                backdropFilter: 'saturate(160%) blur(20px)',
+                WebkitBackdropFilter: 'saturate(160%) blur(20px)',
+                border: `1px solid ${isSel ? TOK.ink3 : TOK.hairStrong}`,
+                borderRadius: TOK.rCard, boxShadow: TOK.shadow,
+                padding: '13px 16px', cursor: 'pointer',
+                display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 14, alignItems: 'center',
+              }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: '50%', background: avatarColor(c.name),
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontWeight: 600, fontSize: 13, color: TOK.ink0, fontFamily: FONT_TEXT,
+                }}>{initial}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                    <span style={{ fontSize: 14, fontWeight: 500, color: TOK.ink0, fontFamily: FONT_TEXT }}>{c.name}</span>
+                    {(c.role || c.company) && (
+                      <span style={{ fontSize: 12, color: TOK.ink2, fontFamily: FONT_TEXT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        · {[c.role, c.company].filter(Boolean).join(' · ')}
+                      </span>
+                    )}
+                  </div>
+                  {c.actionNeeded && (
+                    <div style={{ marginTop: 3, fontSize: 12.5, color: TOK.ink1, display: 'flex', gap: 8, fontFamily: FONT_TEXT }}>
+                      <span style={{ color: TOK.ink3 }}>→</span>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.actionNeeded}</span>
+                    </div>
+                  )}
+                </div>
+                <Chip tone={tone}>{CATEGORY_LABEL[c.category]}</Chip>
+              </div>
+            );
+          })}
         </div>
-      )}
+
+        {sel && (
+          <Card hero style={{ padding: 22, position: 'sticky', top: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+              <div style={{
+                width: 56, height: 56, borderRadius: '50%', background: avatarColor(sel.name),
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 600, fontSize: 22, color: TOK.ink0, fontFamily: FONT_TEXT,
+              }}>{(sel.name[0] || '?').toUpperCase()}</div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.015em', color: TOK.ink0, fontFamily: FONT_DISPLAY }}>{sel.name}</div>
+                <div style={{ fontSize: 12.5, color: TOK.ink2, fontFamily: FONT_TEXT }}>
+                  {[sel.role, sel.company].filter(Boolean).join(' · ') || 'No role yet'}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 6, marginBottom: 18, flexWrap: 'wrap' }}>
+              <select value={sel.category} onChange={e => updateContact(sel.id, { category: e.target.value as ContactCategory })}
+                style={{
+                  flex: 1, minWidth: 0, padding: '6px 10px', borderRadius: TOK.rPill, fontFamily: FONT_TEXT,
+                  fontSize: 12.5, fontWeight: 500, background: TOK.ink0, color: '#fffaf2',
+                  border: `1px solid ${TOK.ink0}`, cursor: 'pointer', outline: 'none',
+                }}>
+                {(Object.keys(CATEGORY_LABEL) as ContactCategory[]).map(cat => (
+                  <option key={cat} value={cat} style={{ background: '#fff', color: TOK.ink0 }}>
+                    {CATEGORY_LABEL[cat]}
+                  </option>
+                ))}
+              </select>
+              {sel.linkedinUrl && <a href={sel.linkedinUrl} target="_blank" rel="noopener noreferrer">
+                <Btn>LinkedIn</Btn>
+              </a>}
+              <Btn onClick={() => removeContact(sel.id)} style={{ color: TOK.bad }}>Remove</Btn>
+            </div>
+
+            <CardLabel>Next move</CardLabel>
+            <textarea
+              value={sel.actionNeeded}
+              onChange={e => updateContact(sel.id, { actionNeeded: e.target.value })}
+              rows={2}
+              placeholder="What's the next move?"
+              style={{
+                width: '100%', padding: '10px 12px', background: 'rgba(20,16,12,0.04)',
+                borderRadius: 10, fontSize: 13.5, marginBottom: 12, fontFamily: FONT_TEXT,
+                border: `1px solid ${TOK.hair}`, color: TOK.ink0, outline: 'none', resize: 'vertical',
+                lineHeight: 1.55, boxSizing: 'border-box',
+              }}
+            />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+              <div>
+                <CardLabel style={{ marginBottom: 4 }}>Urgency</CardLabel>
+                <select value={sel.urgency} onChange={e => updateContact(sel.id, { urgency: e.target.value as Urgency })}
+                  style={{
+                    width: '100%', padding: '7px 10px', borderRadius: 10, fontFamily: FONT_TEXT,
+                    fontSize: 12.5, background: 'rgba(255,253,249,0.7)', color: TOK.ink0,
+                    border: `1px solid ${TOK.hair}`, outline: 'none', cursor: 'pointer',
+                  }}>
+                  <option value="now">Now</option><option value="soon">Soon</option>
+                  <option value="later">Later</option><option value="waiting">Waiting</option>
+                </select>
+              </div>
+              <div>
+                <CardLabel style={{ marginBottom: 4 }}>Follow up</CardLabel>
+                <Input value={sel.followUpDate || ''} onChange={v => updateContact(sel.id, { followUpDate: v })}
+                  placeholder="YYYY-MM-DD" />
+              </div>
+            </div>
+
+            <CardLabel>What they said</CardLabel>
+            <textarea
+              value={sel.whatTheySaid}
+              onChange={e => updateContact(sel.id, { whatTheySaid: e.target.value })}
+              rows={3}
+              placeholder="Last conversation summary"
+              style={{
+                width: '100%', padding: '10px 12px', background: 'rgba(255,253,249,0.7)',
+                borderRadius: 10, fontSize: 13, marginBottom: 16, fontFamily: FONT_TEXT,
+                border: `1px solid ${TOK.hair}`, color: TOK.ink0, outline: 'none', resize: 'vertical',
+                lineHeight: 1.55, boxSizing: 'border-box',
+              }}
+            />
+
+            <CardLabel>Last 3 touches</CardLabel>
+            {(() => {
+              const t = touchesFor(sel.id);
+              if (t.length === 0) {
+                return <div style={{ fontSize: 12, color: TOK.ink3, padding: '12px 0', fontFamily: FONT_TEXT }}>
+                  No journal touches yet — log a meeting in Journal
+                </div>;
+              }
+              return (
+                <div>
+                  {t.map((x, i) => (
+                    <div key={i} style={{
+                      display: 'grid', gridTemplateColumns: '60px 1fr', gap: 12,
+                      padding: '10px 0', borderTop: i === 0 ? '0' : `0.5px solid ${TOK.hair}`,
+                      fontFamily: FONT_TEXT,
+                    }}>
+                      <span style={{ fontSize: 11, color: TOK.ink3 }}>{fmtDateShort(x.date)}</span>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: TOK.ink0 }}>{x.type}</div>
+                        {x.note && <div style={{ fontSize: 12, color: TOK.ink2, marginTop: 2 }}>{x.note}</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
 
-function TaskRow({ task, today, onUpdate, onRemove, t }: {
-  task: Task; today: string; onUpdate: (p: Partial<Task>) => void;
-  onRemove: () => void; t: Theme;
+/* ═══════════════════════════════════════════════════════════
+   TASKS
+   ═══════════════════════════════════════════════════════════ */
+
+function Tasks({ tasks, setTasks }: {
+  tasks: Task[]; setTasks: (fn: (prev: Task[]) => Task[]) => void;
 }) {
-  const isDone = task.status === 'done';
-  const isOverdue = task.dueDate && task.dueDate < today && !isDone;
-  const pc = PRIORITY_COLORS[task.priority];
-  const [editing, setEditing] = useState(false);
+  const today = localToday();
+  const [quick, setQuick] = useState('');
 
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px',
-      borderRadius: 8, transition: 'background 0.15s', background: t.cardBg,
-      border: `0.5px solid ${t.border}`,
-    }}
-      onMouseEnter={e => { e.currentTarget.style.background = t.accentSubtle; }}
-      onMouseLeave={e => { e.currentTarget.style.background = t.cardBg; }}
-    >
-      {/* Checkbox */}
-      <button onClick={() => onUpdate({ status: isDone ? 'todo' : 'done' })} style={{
-        width: 18, height: 18, borderRadius: 4, flexShrink: 0,
-        border: `1.5px solid ${isDone ? 'rgba(48, 180, 98, 0.5)' : t.border}`,
-        background: isDone ? 'rgba(48, 180, 98, 0.15)' : 'transparent',
-        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#2d8a56', fontSize: 14,
-      }}>{isDone ? '✓' : ''}</button>
+  const groups = useMemo(() => {
+    const open = tasks.filter(t => t.status !== 'done');
+    const todayList = open.filter(t => t.dueDate === today);
+    const todayPlus6 = (() => {
+      const d = new Date(today + 'T12:00');
+      d.setDate(d.getDate() + 7);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    })();
+    const week = open.filter(t => t.dueDate && t.dueDate > today && t.dueDate <= todayPlus6);
+    const later = open.filter(t => !t.dueDate || t.dueDate > todayPlus6 || t.dueDate < today);
+    const done = tasks.filter(t => t.status === 'done').slice(0, 12);
+    return { Today: todayList, 'This week': week, Later: later, Done: done };
+  }, [tasks, today]);
 
-      {/* Title */}
-      {editing ? (
-        <input value={task.title} onChange={e => onUpdate({ title: e.target.value })}
-          onBlur={() => setEditing(false)} onKeyDown={e => e.key === 'Enter' && setEditing(false)}
-          autoFocus style={{
-            flex: 1, background: t.inputBg, border: `1px solid ${t.border}`, color: t.text,
-            padding: '4px 8px', borderRadius: 6, fontFamily: FONT, fontSize: 14, outline: 'none',
-          }} />
-      ) : (
-        <span onClick={() => setEditing(true)} style={{
-          flex: 1, fontFamily: FONT, fontSize: 14, cursor: 'text',
-          color: isDone ? t.textMuted : t.text,
-          textDecoration: isDone ? 'line-through' : 'none',
-        }}>{task.title}</span>
-      )}
-
-      {/* Priority pill */}
-      <span style={{
-        fontSize: 14, fontFamily: FONT_MEDIUM, padding: '2px 6px', borderRadius: 4,
-        background: pc.bg, color: pc.text,
-      }}>{task.priority}</span>
-
-      {/* Due date */}
-      {task.dueDate && (
-        <span style={{ fontSize: 14, color: isOverdue ? '#ef4444' : t.textMuted, fontFamily: FONT }}>
-          {new Date(task.dueDate + 'T12:00').toLocaleDateString('en', { month: 'short', day: 'numeric' })}
-        </span>
-      )}
-
-      {/* Delete */}
-      <button onClick={onRemove} style={{
-        background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer',
-        fontSize: 14, opacity: 0.5, padding: '0 2px',
-      }}>&times;</button>
-    </div>
-  );
-}
-
-// ── Goals Tab ──
-// ── Goal migration: convert legacy milestones to checklist format ──
-function migrateGoal(g: any): Goal {
-  if (g.checklist) return g;
-  const checklist: GoalCheckItem[] = (g.milestones || []).map((text: string, i: number) => ({
-    id: Date.now().toString() + '_' + i, text, done: g.completedMilestones?.[i] ?? false,
-  }));
-  const doneCount = checklist.filter(c => c.done).length;
-  return {
-    ...g,
-    timeframe: g.timeframe || 'short',
-    checklist,
-    log: g.log || [],
-    progress: checklist.length > 0 ? Math.round((doneCount / checklist.length) * 100) : 0,
+  const toggle = (id: string) => {
+    setTasks(prev => prev.map(t => t.id === id ? {
+      ...t, status: t.status === 'done' ? 'todo' : 'done',
+      updatedAt: new Date().toISOString(),
+    } : t));
   };
-}
 
-function GoalsTab({ goals, setGoals, t }: {
-  goals: Goal[]; setGoals: (fn: (prev: Goal[]) => Goal[]) => void; t: Theme;
-}) {
-  // Migrate legacy goals on first render
-  useEffect(() => {
-    setGoals(prev => {
-      const needsMigration = prev.some((g: any) => !g.checklist);
-      return needsMigration ? prev.map(migrateGoal) : prev;
-    });
-  }, []);
+  const remove = (id: string) => {
+    setTasks(prev => prev.filter(t => t.id !== id));
+  };
 
-  const addGoal = (timeframe: GoalTimeframe) => {
+  // Quick-add parser: "Email Sam tomorrow #career !high"
+  const addQuick = () => {
+    if (!quick.trim()) return;
+    let title = quick.trim();
+    let priority: TaskPriority = 'medium';
+    let list: string | undefined;
+    let dueDate: string | undefined;
+
+    // !high !med !low
+    const pMatch = title.match(/!(high|med|medium|low)/i);
+    if (pMatch) {
+      const p = pMatch[1].toLowerCase();
+      priority = p === 'high' ? 'high' : p === 'low' ? 'low' : 'medium';
+      title = title.replace(pMatch[0], '').trim();
+    }
+    // #tag
+    const tMatch = title.match(/#(\w+)/);
+    if (tMatch) {
+      list = tMatch[1];
+      title = title.replace(tMatch[0], '').trim();
+    }
+    // today / tomorrow
+    if (/\btoday\b/i.test(title)) {
+      dueDate = today;
+      title = title.replace(/\btoday\b/i, '').trim();
+    } else if (/\btomorrow\b/i.test(title)) {
+      const d = new Date(today + 'T12:00');
+      d.setDate(d.getDate() + 1);
+      dueDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      title = title.replace(/\btomorrow\b/i, '').trim();
+    }
     const now = new Date().toISOString();
-    setGoals(prev => [...prev, {
-      id: Date.now().toString(), title: '', description: '', status: 'active' as GoalStatus,
-      progress: 0, timeframe, checklist: [], log: [],
+    setTasks(prev => [...prev, {
+      id: uid(), title, status: 'todo', priority,
+      dueDate: dueDate || today, list,
       createdAt: now, updatedAt: now,
     }]);
+    setQuick('');
+  };
+
+  const totalOpen = tasks.filter(t => t.status !== 'done').length;
+  const totalDone = tasks.filter(t => t.status === 'done').length;
+
+  return (
+    <div style={{ animation: 'bb-fade 0.32s cubic-bezier(.2,.8,.2,1) both' }}>
+      <PageHeader
+        title="Tasks"
+        sub={`${totalOpen} open · ${totalDone} done`}
+        right={<>
+          <Btn ghost>Filter</Btn>
+          <Btn primary onClick={() => { setQuick(''); }}>+ Task</Btn>
+        </>}
+      />
+
+      <Card style={{ marginBottom: 14, padding: 14 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <span style={{ fontSize: 18, color: TOK.ink3 }}>+</span>
+          <input value={quick} onChange={e => setQuick(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && addQuick()}
+            placeholder="Quick add — e.g. 'Email Sam tomorrow #career !high'"
+            style={{
+              flex: 1, background: 'transparent', border: 0, padding: 0, fontSize: 14,
+              fontFamily: FONT_TEXT, color: TOK.ink0, outline: 'none',
+            }} />
+          <span style={{ fontSize: 11, color: TOK.ink3, fontFamily: FONT_TEXT }}>↵ to add</span>
+        </div>
+      </Card>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+        {Object.entries(groups).map(([name, list]) => (
+          <Card key={name} style={{ padding: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '16px 18px 8px' }}>
+              <CardLabel style={{ marginBottom: 0 }}>{name}</CardLabel>
+              <span style={{ fontSize: 11, color: TOK.ink3, fontVariantNumeric: 'tabular-nums', fontFamily: FONT_TEXT }}>{list.length}</span>
+            </div>
+            {list.length === 0 ? (
+              <div style={{ padding: '24px 18px', color: TOK.ink3, fontSize: 12.5, textAlign: 'center', fontFamily: FONT_TEXT }}>Nothing here</div>
+            ) : (
+              <div style={{ padding: '0 18px 14px' }}>
+                {list.map(t => (
+                  <div key={t.id} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(20,16,12,0.025)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 12, padding: '10px 6px',
+                      borderTop: `0.5px solid ${TOK.hair}`,
+                      cursor: 'pointer', opacity: t.status === 'done' ? 0.45 : 1,
+                      borderRadius: 8, transition: 'background 0.14s, opacity 0.18s',
+                    }}>
+                    <div onClick={() => toggle(t.id)} style={{
+                      width: 16, height: 16, borderRadius: '50%',
+                      border: t.status === 'done' ? '0' : `1.5px solid ${TOK.ink3}`,
+                      background: t.status === 'done' ? TOK.ink0 : 'transparent',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    }}>
+                      {t.status === 'done' && <span style={{ color: '#fff', fontSize: 9, fontWeight: 700 }}>✓</span>}
+                    </div>
+                    {t.priority === 'high' && t.status !== 'done' &&
+                      <span style={{ width: 3, height: 14, borderRadius: 2, background: TOK.bad }}></span>}
+                    <span onClick={() => toggle(t.id)} style={{
+                      flex: 1, fontSize: 13.5, fontFamily: FONT_TEXT, color: TOK.ink0,
+                      textDecoration: t.status === 'done' ? 'line-through' : 'none',
+                    }}>{t.title}</span>
+                    {t.list && <Chip>{t.list}</Chip>}
+                    <button onClick={() => remove(t.id)} style={{
+                      appearance: 'none', border: 0, background: 'transparent', cursor: 'pointer',
+                      color: TOK.ink3, fontSize: 14, padding: '4px 6px', fontFamily: FONT_TEXT,
+                    }}>×</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GOALS
+   ═══════════════════════════════════════════════════════════ */
+
+function Goals({ goals, setGoals }: {
+  goals: Goal[]; setGoals: (fn: (prev: Goal[]) => Goal[]) => void;
+}) {
+  const [showNew, setShowNew] = useState(false);
+  const [draft, setDraft] = useState<{ title: string; description: string; deadline: string; scope: string }>({
+    title: '', description: '', deadline: '', scope: '',
+  });
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const active = goals.filter(g => g.status === 'active');
+  const dueThisMonth = active.filter(g => {
+    if (!g.deadline) return false;
+    return monthKey(g.deadline) === thisMonthKey();
+  }).length;
+
+  const addGoal = () => {
+    if (!draft.title.trim()) return;
+    const now = new Date().toISOString();
+    const g: Goal = {
+      id: uid(), title: draft.title.trim(), description: draft.description.trim(),
+      status: 'active', timeframe: 'short',
+      deadline: draft.deadline || undefined,
+      scope: draft.scope || undefined,
+      progress: 0, checklist: [], log: [],
+      milestones: [], completedMilestones: [],
+      createdAt: now, updatedAt: now,
+    };
+    setGoals(prev => [...prev, g]);
+    setDraft({ title: '', description: '', deadline: '', scope: '' });
+    setShowNew(false);
   };
 
   const updateGoal = (id: string, patch: Partial<Goal>) => {
@@ -1527,1776 +1858,463 @@ function GoalsTab({ goals, setGoals, t }: {
     setGoals(prev => prev.filter(g => g.id !== id));
   };
 
-  const shortActive = goals.filter(g => (g.timeframe || 'short') === 'short' && g.status === 'active');
-  const longActive = goals.filter(g => (g.timeframe || 'short') === 'long' && g.status === 'active');
-  const done = goals.filter(g => g.status !== 'active');
-
-  const sectionHead = (icon: string, label: string, count: number, suffix: string = 'active') => (
-    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 12 }}>
-      <span style={{ fontSize: 16 }}>{icon}</span>
-      <span style={{ fontSize: 15, fontFamily: FONT_MEDIUM, color: t.textStrong, letterSpacing: '-0.01em' }}>{label}</span>
-      <span style={{ fontSize: 13, color: t.textMuted, fontFamily: FONT }}>· {count} {suffix}</span>
-    </div>
-  );
-
-  const addBtn = (tf: GoalTimeframe) => (
-    <button onClick={() => addGoal(tf)} style={{
-      background: 'transparent', border: `1px dashed ${t.border}`,
-      color: t.textMuted, padding: '12px', borderRadius: CARD_RADIUS_SM, width: '100%',
-      cursor: 'pointer', fontFamily: FONT, fontSize: 14, marginTop: 10,
-      transition: APPLE_TRANSITION, boxSizing: 'border-box',
-    }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = t.textMuted; e.currentTarget.style.color = t.text; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.color = t.textMuted; }}
-    >+ Add {tf === 'short' ? 'short-term' : 'long-term'} goal</button>
-  );
-
-  const emptyState = (tf: GoalTimeframe) => (
-    <div style={{
-      border: `1px dashed ${t.border}`, borderRadius: CARD_RADIUS_SM,
-      padding: '20px 16px', textAlign: 'center', background: 'transparent',
-    }}>
-      <div style={{ fontSize: 14, color: t.textMuted, fontFamily: FONT, marginBottom: 4 }}>
-        No {tf === 'short' ? 'short-term' : 'long-term'} goals yet.
-      </div>
-      <button onClick={() => addGoal(tf)} style={{
-        background: 'none', border: 'none', color: t.text, fontFamily: FONT_MEDIUM,
-        fontSize: 14, cursor: 'pointer', padding: 0, marginTop: 2,
-      }}>Add one →</button>
-    </div>
-  );
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-      {/* Short-term */}
-      <div>
-        {sectionHead('🎯', 'Short-term', shortActive.length)}
-        {shortActive.length === 0 ? emptyState('short') : (
-          <>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {shortActive.map(g => <GoalCard key={g.id} goal={migrateGoal(g)} onUpdate={p => updateGoal(g.id, p)} onRemove={() => removeGoal(g.id)} t={t} />)}
-            </div>
-            {addBtn('short')}
-          </>
-        )}
-      </div>
-
-      {/* Long-term */}
-      <div>
-        {sectionHead('🌟', 'Long-term', longActive.length)}
-        {longActive.length === 0 ? emptyState('long') : (
-          <>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {longActive.map(g => <GoalCard key={g.id} goal={migrateGoal(g)} onUpdate={p => updateGoal(g.id, p)} onRemove={() => removeGoal(g.id)} t={t} />)}
-            </div>
-            {addBtn('long')}
-          </>
-        )}
-      </div>
-
-      {/* Completed / Paused */}
-      {done.length > 0 && (
-        <div style={{ opacity: 0.6 }}>
-          {sectionHead('✓', 'Completed / Paused', done.length, done.length === 1 ? 'goal' : 'goals')}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {done.map(g => <GoalCard key={g.id} goal={migrateGoal(g)} onUpdate={p => updateGoal(g.id, p)} onRemove={() => removeGoal(g.id)} t={t} />)}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function GoalCard({ goal: g, onUpdate, onRemove, t }: {
-  goal: Goal; onUpdate: (p: Partial<Goal>) => void; onRemove: () => void; t: Theme;
-}) {
-  // New goals (no title) start expanded so the user can fill them in.
-  const [expanded, setExpanded] = useState(!g.title);
-  const [hovered, setHovered] = useState(false);
-  const [newItem, setNewItem] = useState('');
-  const [newLog, setNewLog] = useState('');
-
-  const checklist = g.checklist || [];
-  const log = g.log || [];
-  const doneCount = checklist.filter(c => c.done).length;
-  const progress = checklist.length > 0 ? Math.round((doneCount / checklist.length) * 100) : 0;
-  const allDone = checklist.length > 0 && doneCount === checklist.length;
-
-  // Status pill styling (compact view)
-  const statusStyles: Record<GoalStatus, { bg: string; text: string }> = {
-    active: { bg: 'rgba(48,180,98,0.15)', text: '#2d8a56' },
-    paused: { bg: 'rgba(245,158,11,0.15)', text: '#d97706' },
-    completed: { bg: '#2d8a56', text: '#ffffff' },
-  };
-  const statusLabel: Record<GoalStatus, string> = {
-    active: 'Active', paused: 'Paused', completed: 'Completed',
+  const toggleMilestone = (g: Goal, idx: number) => {
+    const completed = [...(g.completedMilestones || [])];
+    completed[idx] = !completed[idx];
+    const total = (g.milestones || []).length;
+    const doneCount = completed.filter(Boolean).length;
+    const progress = total > 0 ? Math.round((doneCount / total) * 100) : g.progress;
+    updateGoal(g.id, { completedMilestones: completed, progress });
   };
 
-  // Deadline display: "Jul 1 (62d)" or "62d overdue" or "no deadline"
-  const deadlineDisplay = (() => {
-    if (!g.deadline) return { label: 'no deadline', color: t.textMuted, overdue: false };
-    const dt = new Date(g.deadline + 'T12:00:00');
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const diffMs = dt.getTime() - today.getTime();
-    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-    const dateStr = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    if (diffDays < 0) {
-      return { label: `${Math.abs(diffDays)}d overdue`, color: '#ef4444', overdue: true };
-    }
-    if (diffDays === 0) {
-      return { label: `${dateStr} (today)`, color: '#d97706', overdue: false };
-    }
-    return { label: `${dateStr} (${diffDays}d)`, color: t.textMuted, overdue: false };
-  })();
-
-  const isOverdueAndIncomplete = deadlineDisplay.overdue && progress < 100 && g.status === 'active';
-
-  const addCheckItem = () => {
-    if (!newItem.trim()) return;
-    const item: GoalCheckItem = { id: Date.now().toString(), text: newItem.trim(), done: false };
-    const updated = [...checklist, item];
-    const d = updated.filter(c => c.done).length;
-    onUpdate({ checklist: updated, progress: updated.length > 0 ? Math.round((d / updated.length) * 100) : 0 });
-    setNewItem('');
-  };
-
-  const toggleCheck = (id: string) => {
-    const updated = checklist.map(c => c.id === id ? { ...c, done: !c.done } : c);
-    const d = updated.filter(c => c.done).length;
-    onUpdate({ checklist: updated, progress: updated.length > 0 ? Math.round((d / updated.length) * 100) : 0 });
-  };
-
-  const removeCheck = (id: string) => {
-    const updated = checklist.filter(c => c.id !== id);
-    const d = updated.filter(c => c.done).length;
-    onUpdate({ checklist: updated, progress: updated.length > 0 ? Math.round((d / updated.length) * 100) : 0 });
-  };
-
-  const addLogEntry = () => {
-    if (!newLog.trim()) return;
-    const entry: GoalLogEntry = { id: Date.now().toString(), text: newLog.trim(), date: localToday() };
-    onUpdate({ log: [entry, ...log] });
-    setNewLog('');
-  };
-
-  const removeLog = (id: string) => {
-    onUpdate({ log: log.filter(l => l.id !== id) });
-  };
-
-  const fmtDate = (d: string) => {
-    const dt = new Date(d + 'T12:00:00');
-    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
-
-  // First unchecked item (the "next action")
-  const nextAction = checklist.find(c => !c.done);
-
-  // Goal-type emoji
-  const goalEmoji = g.timeframe === 'long' ? '🌟' : '🎯';
-
-  // Progress bar color
-  const progressColor = isOverdueAndIncomplete ? '#ef4444' : progress === 100 ? '#2d8a56' : '#3b82f6';
-
-  // ───────── COMPACT VIEW ─────────
-  if (!expanded) {
-    const titleDisplay = g.title.trim() || 'Untitled goal';
-    return (
-      <div
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        onClick={(e) => {
-          // Only toggle when clicking the card body, not interactive elements
-          const target = e.target as HTMLElement;
-          if (target.closest('button') || target.closest('input')) return;
-          setExpanded(true);
-        }}
-        style={{
-          border: `1px solid ${t.border}`, borderRadius: CARD_RADIUS,
-          padding: 16, background: t.cardBg, cursor: 'pointer',
-          transition: APPLE_TRANSITION,
-          boxShadow: hovered ? CARD_SHADOW : 'none',
-          transform: hovered ? 'translateY(-1px)' : 'none',
-        }}
-      >
-        {/* Top row: title + emoji + deadline */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <span style={{ fontSize: 16, flexShrink: 0 }}>{goalEmoji}</span>
-          <span style={{
-            flex: 1, fontFamily: FONT_MEDIUM, fontSize: 15,
-            color: g.title.trim() ? t.textStrong : t.textMuted,
-            letterSpacing: '-0.01em',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>{titleDisplay}</span>
-          <span style={{
-            fontSize: 13, color: deadlineDisplay.color, fontFamily: FONT_MEDIUM,
-            flexShrink: 0,
-          }}>{deadlineDisplay.label}</span>
-        </div>
-
-        {/* Progress bar */}
-        {checklist.length > 0 ? (
-          <div style={{ marginBottom: 12 }}>
-            <div style={{
-              height: 8, borderRadius: 4, background: t.accentSubtle, overflow: 'hidden',
-            }}>
-              <div style={{
-                width: `${progress}%`, height: '100%', borderRadius: 4,
-                background: progressColor,
-                transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-              }} />
-            </div>
-            <div style={{ marginTop: 5, fontSize: 12, color: t.textMuted, fontFamily: FONT }}>
-              {progress}% · {doneCount} of {checklist.length} done
-            </div>
-          </div>
-        ) : (
-          <div style={{ marginBottom: 12 }}>
-            <div style={{
-              height: 8, borderRadius: 4, background: t.accentSubtle, overflow: 'hidden',
-            }} />
-            <div style={{ marginTop: 5, fontSize: 12, color: t.textMuted, fontFamily: FONT }}>
-              No checklist yet
-            </div>
-          </div>
-        )}
-
-        {/* Next action / all done / empty */}
-        {checklist.length === 0 ? (
-          <button onClick={(e) => { e.stopPropagation(); setExpanded(true); }} style={{
-            width: '100%', background: t.inputBg, border: `1px solid ${t.border}`,
-            color: t.textMuted, padding: '10px 12px', borderRadius: CARD_RADIUS_SM,
-            fontFamily: FONT, fontSize: 13, cursor: 'pointer', textAlign: 'left',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            transition: APPLE_TRANSITION,
-          }}>
-            <span>↪ Add first action item</span>
-            <span style={{ opacity: 0.6 }}>→</span>
-          </button>
-        ) : allDone && g.status === 'active' ? (
-          <button onClick={(e) => { e.stopPropagation(); onUpdate({ status: 'completed' }); }} style={{
-            width: '100%', background: 'rgba(48,180,98,0.12)', border: `1px solid rgba(48,180,98,0.3)`,
-            color: '#2d8a56', padding: '10px 12px', borderRadius: CARD_RADIUS_SM,
-            fontFamily: FONT_MEDIUM, fontSize: 13, cursor: 'pointer', textAlign: 'left',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            transition: APPLE_TRANSITION,
-          }}>
-            <span>✓ All actions done — mark goal complete?</span>
-            <span>→</span>
-          </button>
-        ) : nextAction ? (
-          <div style={{
-            background: t.inputBg, border: `1px solid ${t.border}`,
-            borderRadius: CARD_RADIUS_SM, padding: '8px 10px',
-            display: 'flex', alignItems: 'center', gap: 10,
-          }}>
-            <span style={{
-              fontSize: 12, color: t.textMuted, fontFamily: FONT_MEDIUM, flexShrink: 0,
-            }}>↪ Next:</span>
-            <span style={{
-              flex: 1, fontSize: 13, color: t.text, fontFamily: FONT,
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}>{nextAction.text}</span>
-            <button
-              onClick={(e) => { e.stopPropagation(); toggleCheck(nextAction.id); }}
-              title="Mark done"
-              style={{
-                width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-                border: `1.5px solid ${t.border}`, background: 'transparent',
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: t.textMuted, fontSize: 12, transition: APPLE_TRANSITION,
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.borderColor = 'rgba(48,180,98,0.5)';
-                e.currentTarget.style.background = 'rgba(48,180,98,0.1)';
-                e.currentTarget.style.color = '#2d8a56';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.borderColor = t.border;
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = t.textMuted;
-              }}
-            >☐</button>
-          </div>
-        ) : null}
-
-        {/* Bottom row: status pill + log count + edit */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 10, marginTop: 12,
-        }}>
-          <span style={{
-            fontSize: 12, fontFamily: FONT_MEDIUM, padding: '3px 9px', borderRadius: 999,
-            background: statusStyles[g.status].bg, color: statusStyles[g.status].text,
-          }}>{statusLabel[g.status]}</span>
-          <span style={{ fontSize: 12, color: t.textMuted, fontFamily: FONT }}>·</span>
-          <span style={{ fontSize: 12, color: t.textMuted, fontFamily: FONT }}>
-            {log.length} {log.length === 1 ? 'log' : 'logs'}
-          </span>
-          <span style={{ flex: 1 }} />
-          <button
-            onClick={(e) => { e.stopPropagation(); setExpanded(true); }}
-            style={{
-              background: 'none', border: 'none', color: t.textMuted,
-              fontFamily: FONT_MEDIUM, fontSize: 12, cursor: 'pointer', padding: '2px 4px',
-              transition: APPLE_TRANSITION, display: 'flex', alignItems: 'center', gap: 4,
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = t.text; }}
-            onMouseLeave={e => { e.currentTarget.style.color = t.textMuted; }}
-          >✏ Edit</button>
-        </div>
-      </div>
-    );
-  }
-
-  // ───────── EXPANDED EDIT VIEW ─────────
-  const sectionLabel = (text: string) => (
-    <div style={{
-      fontSize: 11, fontFamily: FONT_MEDIUM, color: t.textMuted,
-      textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8,
-    }}>{text}</div>
-  );
-
-  const segBtnStyle = (active: boolean): React.CSSProperties => ({
-    flex: 1, padding: '7px 10px', borderRadius: 7,
-    background: active ? t.cardBg : 'transparent',
-    color: active ? t.textStrong : t.textMuted,
-    border: 'none',
-    fontFamily: FONT_MEDIUM, fontSize: 13, cursor: 'pointer',
-    transition: APPLE_TRANSITION,
-    boxShadow: active ? '0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)' : 'none',
-  });
-
-  return (
-    <div style={{
-      border: `1px solid ${t.border}`, borderRadius: CARD_RADIUS,
-      padding: 18, background: t.cardBg,
-      boxShadow: CARD_SHADOW,
-      transition: APPLE_TRANSITION,
-    }}>
-      {/* Header bar with collapse */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <span style={{ fontSize: 16 }}>{goalEmoji}</span>
-        <span style={{
-          flex: 1, fontFamily: FONT_MEDIUM, fontSize: 13, color: t.textMuted,
-          textTransform: 'uppercase', letterSpacing: '0.06em',
-        }}>Editing goal</span>
-        <button onClick={() => setExpanded(false)} style={{
-          background: 'none', border: 'none', color: t.textMuted,
-          fontFamily: FONT_MEDIUM, fontSize: 13, cursor: 'pointer', padding: '4px 8px',
-          borderRadius: 6, transition: APPLE_TRANSITION,
-        }}
-          onMouseEnter={e => { e.currentTarget.style.color = t.text; e.currentTarget.style.background = t.inputBg; }}
-          onMouseLeave={e => { e.currentTarget.style.color = t.textMuted; e.currentTarget.style.background = 'transparent'; }}
-        >Done editing ✓</button>
-      </div>
-
-      {/* ── Goal section ── */}
-      <div style={{ marginBottom: 18 }}>
-        {sectionLabel('Goal')}
-        <input value={g.title} onChange={e => onUpdate({ title: e.target.value })}
-          placeholder="Goal title..."
-          style={{
-            background: t.inputBg, border: `1px solid ${t.border}`, color: t.textStrong,
-            fontFamily: FONT_MEDIUM, fontSize: 15, outline: 'none', width: '100%',
-            padding: '9px 12px', borderRadius: CARD_RADIUS_SM, boxSizing: 'border-box',
-            marginBottom: 8, transition: APPLE_TRANSITION, letterSpacing: '-0.01em',
-          }}
-          onFocus={e => { e.target.style.borderColor = t.textMuted; }}
-          onBlur={e => { e.target.style.borderColor = t.border; }}
-        />
-        <TextArea value={g.description} onChange={v => onUpdate({ description: v })}
-          placeholder="Why this matters and what 'done' looks like" t={t} minHeight={60} />
-      </div>
-
-      {/* ── Timeline section ── */}
-      <div style={{ marginBottom: 18 }}>
-        {sectionLabel('Timeline')}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <span style={{ fontSize: 13, color: t.textMuted, fontFamily: FONT, flexShrink: 0 }}>Target:</span>
-          <input type="date" value={g.deadline || ''} onChange={e => onUpdate({ deadline: e.target.value })}
-            style={{
-              background: t.inputBg, border: `1px solid ${t.border}`, color: t.text,
-              fontFamily: FONT, fontSize: 13, outline: 'none',
-              padding: '6px 10px', borderRadius: 8, transition: APPLE_TRANSITION,
-            }}
-          />
-          {g.deadline && (
-            <span style={{ fontSize: 12, color: deadlineDisplay.color, fontFamily: FONT_MEDIUM }}>
-              {deadlineDisplay.label}
-            </span>
-          )}
-        </div>
-        {/* Segmented status switcher */}
-        <div style={{
-          display: 'flex', gap: 2, padding: 3, background: t.accentSubtle,
-          borderRadius: 9,
-        }}>
-          {(['active', 'paused', 'completed'] as GoalStatus[]).map(s => (
-            <button key={s} onClick={() => onUpdate({ status: s })} style={segBtnStyle(g.status === s)}>
-              {statusLabel[s]}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Action items section ── */}
-      <div style={{ marginBottom: 18 }}>
-        {sectionLabel(`Action items${checklist.length > 0 ? ` · ${doneCount}/${checklist.length}` : ''}`)}
-        {checklist.length > 0 && (
-          <div style={{ marginBottom: 8 }}>
-            {checklist.map(c => (
-              <div key={c.id} style={{
-                display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0',
-              }}>
-                <button onClick={() => toggleCheck(c.id)} style={{
-                  width: 18, height: 18, borderRadius: 5, flexShrink: 0,
-                  border: `1.5px solid ${c.done ? 'rgba(48,180,98,0.5)' : t.border}`,
-                  background: c.done ? 'rgba(48,180,98,0.15)' : 'transparent',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#2d8a56', fontSize: 12, transition: APPLE_TRANSITION,
-                }}>{c.done ? '✓' : ''}</button>
-                <span style={{
-                  fontSize: 13, color: c.done ? t.textMuted : t.text, fontFamily: FONT,
-                  textDecoration: c.done ? 'line-through' : 'none', flex: 1,
-                }}>{c.text}</span>
-                <button onClick={() => removeCheck(c.id)} style={{
-                  background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer',
-                  fontSize: 14, opacity: 0.5, padding: '2px 4px',
-                }}>&times;</button>
-              </div>
-            ))}
-          </div>
-        )}
-        <input value={newItem} onChange={e => setNewItem(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && addCheckItem()}
-          placeholder="Add an action item, press Enter..."
-          style={{
-            width: '100%', background: t.inputBg, border: `1px solid ${t.border}`, color: t.text,
-            padding: '8px 12px', borderRadius: CARD_RADIUS_SM,
-            fontFamily: FONT, fontSize: 13, outline: 'none',
-            boxSizing: 'border-box', transition: APPLE_TRANSITION,
-          }}
-          onFocus={e => { e.target.style.borderColor = t.textMuted; }}
-          onBlur={e => { e.target.style.borderColor = t.border; }}
-        />
-      </div>
-
-      {/* ── Progress log section ── */}
-      <div style={{ marginBottom: 16 }}>
-        {sectionLabel(`Progress log${log.length > 0 ? ` · ${log.length}` : ''}`)}
-        <input value={newLog} onChange={e => setNewLog(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && addLogEntry()}
-          placeholder={log.length === 0 ? 'Log your first update, press Enter...' : 'Log an update, press Enter...'}
-          style={{
-            width: '100%', background: t.inputBg, border: `1px solid ${t.border}`, color: t.text,
-            padding: '8px 12px', borderRadius: CARD_RADIUS_SM,
-            fontFamily: FONT, fontSize: 13, outline: 'none',
-            boxSizing: 'border-box', marginBottom: log.length > 0 ? 10 : 0,
-            transition: APPLE_TRANSITION,
-          }}
-          onFocus={e => { e.target.style.borderColor = t.textMuted; }}
-          onBlur={e => { e.target.style.borderColor = t.border; }}
-        />
-        {log.length > 0 && (
-          <div>
-            {log.map(l => (
-              <div key={l.id} style={{
-                display: 'flex', gap: 10, padding: '5px 0', alignItems: 'start',
-              }}>
-                <span style={{
-                  fontSize: 12, color: t.textMuted, fontFamily: FONT_MEDIUM,
-                  flexShrink: 0, minWidth: 50, paddingTop: 1,
-                }}>{fmtDate(l.date)}</span>
-                <span style={{ fontSize: 13, color: t.text, fontFamily: FONT, flex: 1 }}>{l.text}</span>
-                <button onClick={() => removeLog(l.id)} style={{
-                  background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer',
-                  fontSize: 14, opacity: 0.5, padding: '0 4px',
-                }}>&times;</button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* ── Footer: delete ── */}
-      <div style={{
-        display: 'flex', justifyContent: 'flex-end',
-        paddingTop: 12, borderTop: `1px solid ${t.border}`,
-      }}>
-        <button onClick={onRemove} style={{
-          background: 'none', border: 'none', color: '#ef4444',
-          fontFamily: FONT, fontSize: 12, cursor: 'pointer', padding: '4px 8px',
-          opacity: 0.75, transition: APPLE_TRANSITION, borderRadius: 6,
-        }}
-          onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; }}
-          onMouseLeave={e => { e.currentTarget.style.opacity = '0.75'; e.currentTarget.style.background = 'transparent'; }}
-        >Delete goal</button>
-      </div>
-    </div>
-  );
-}
-
-// ── Ideas Tab ──
-function IdeasTab({ ideas, setIdeas, t }: {
-  ideas: ProjectIdea[]; setIdeas: (fn: (prev: ProjectIdea[]) => ProjectIdea[]) => void; t: Theme;
-}) {
-  const [newTitle, setNewTitle] = useState('');
-
-  const addIdea = () => {
-    if (!newTitle.trim()) return;
-    setIdeas(prev => [{
-      id: Date.now().toString(), title: newTitle.trim(), description: '',
-      tags: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
-    }, ...prev]);
-    setNewTitle('');
-  };
-
-  const updateIdea = (id: string, patch: Partial<ProjectIdea>) => {
-    setIdeas(prev => prev.map(i => i.id === id ? { ...i, ...patch, updatedAt: new Date().toISOString() } : i));
-  };
-
-  const removeIdea = (id: string) => {
-    setIdeas(prev => prev.filter(i => i.id !== id));
-  };
-
-  return (
-    <div>
-      {/* Quick capture */}
-      <div style={{ marginBottom: 20 }}>
-        <input value={newTitle} onChange={e => setNewTitle(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && addIdea()}
-          placeholder="What's the idea? Press Enter to add..."
-          style={{
-            background: t.inputBg, border: `1px solid ${t.border}`, color: t.text,
-            padding: '12px 14px', borderRadius: 10, fontFamily: FONT, fontSize: 14,
-            width: '100%', outline: 'none', transition: 'border-color 0.2s',
-            boxSizing: 'border-box',
-          }}
-          onFocus={e => { e.target.style.borderColor = t.textMuted; }}
-          onBlur={e => { e.target.style.borderColor = t.border; }}
-        />
-      </div>
-
-      {/* Idea cards */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {ideas.map(idea => (
-          <IdeaCard key={idea.id} idea={idea} onUpdate={p => updateIdea(idea.id, p)}
-            onRemove={() => removeIdea(idea.id)} t={t} />
-        ))}
-        {ideas.length === 0 && (
-          <p style={{ color: t.textMuted, fontSize: 14, textAlign: 'center', padding: 32 }}>
-            No ideas yet. Type one above and press Enter.
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ── Idea Card ──
-function IdeaCard({ idea, onUpdate, onRemove, t }: {
-  idea: ProjectIdea; onUpdate: (p: Partial<ProjectIdea>) => void;
-  onRemove: () => void; t: Theme;
-}) {
-  const [expanded, setExpanded] = useState(!!idea.description);
-  const dateLabel = new Date(idea.createdAt).toLocaleDateString('en', { month: 'short', day: 'numeric' });
-
-  return (
-    <div style={{ border: `1px solid ${t.border}`, borderRadius: 10, padding: 14, background: t.cardBg }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-        <div style={{ flex: 1 }}>
-          <input value={idea.title} onChange={e => onUpdate({ title: e.target.value })} style={{
-            background: 'transparent', border: 'none', color: t.textStrong,
-            fontFamily: FONT_MEDIUM, fontSize: 14, width: '100%', outline: 'none',
-            padding: 0,
-          }} />
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
-            <span style={{ fontSize: 14, color: t.textMuted }}>{dateLabel}</span>
-            {idea.tags.length > 0 && idea.tags.map((tag, i) => (
-              <span key={i} style={{
-                fontSize: 14, padding: '1px 6px', borderRadius: 4,
-                background: t.accentSubtle, color: t.textMuted,
-              }}>{tag}</span>
-            ))}
-            <button onClick={() => setExpanded(!expanded)} style={{
-              background: 'none', border: 'none', color: t.textMuted,
-              cursor: 'pointer', fontSize: 14, fontFamily: FONT,
-            }}>{expanded ? 'collapse' : 'expand'}</button>
-          </div>
-        </div>
-        <button onClick={onRemove} style={{
-          background: 'none', border: 'none', color: t.textMuted,
-          cursor: 'pointer', fontSize: 16, padding: '0 4px',
-        }}>&times;</button>
-      </div>
-      {expanded && (
-        <div style={{ marginTop: 10 }}>
-          <TextArea value={idea.description} onChange={v => onUpdate({ description: v })}
-            placeholder="Notes, links, brain dump..." t={t} minHeight={60} />
-          <div style={{ marginTop: 6 }}>
-            <input value={idea.tags.join(', ')}
-              onChange={e => onUpdate({ tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-              placeholder="Tags (comma separated)"
-              style={{
-                background: t.inputBg, border: `1px solid ${t.border}`, color: t.text,
-                padding: '5px 8px', borderRadius: 6, fontFamily: FONT, fontSize: 14,
-                width: '100%', outline: 'none', boxSizing: 'border-box',
-              }}
-            />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── One-time data seeding (runs once per key, never re-injects) ──
-function runOneTimeSeed(
-  key: string,
-  contacts: NetworkContact[],
-  journal: JournalEntry[],
-): { contacts: NetworkContact[]; journal: JournalEntry[] } {
-  const flag = `bb-seeded-${key}`;
-  if (typeof window !== 'undefined' && localStorage.getItem(flag)) return { contacts, journal };
-
-  let c = contacts;
-  let j = journal;
-
-  if (key === 'linear') {
-    if (c.some(x => x.company === 'Linear')) { if (typeof window !== 'undefined') localStorage.setItem(flag, '1'); return { contacts: c, journal: j }; }
-    const today = localToday();
-    const people = [
-      { name: 'Lena Vu Sawyer' }, { name: 'Sabin Roman' },
-      { name: 'Tom Moor' }, { name: 'Mufeez Amjad' },
-    ];
-    c = [...c, ...people.map((p, i): NetworkContact => ({
-      id: `linear-${Date.now()}-${i}`, name: p.name, company: 'Linear', role: '',
-      category: 'awaiting-reply', urgency: 'waiting',
-      whatTheySaid: '', actionNeeded: 'Wait for reply',
-      whyReachOut: '', companyInfo: 'Project management tool for software teams', foundVia: 'LinkedIn',
-      scoutingStatus: 'ready', outreachStatus: 'dm-sent',
-      platform: 'LinkedIn', lastContactDate: today, nextAction: 'Wait for reply',
-      notes: '', createdAt: new Date().toISOString(),
-    }))];
-  }
-
-  if (key === 'offdeal') {
-    if (c.some(x => x.company === 'Offdeal')) { if (typeof window !== 'undefined') localStorage.setItem(flag, '1'); return { contacts: c, journal: j }; }
-    const today = localToday();
-    const people = [
-      { name: 'Alston Lin', role: 'CTO & Co-founder' },
-      { name: 'Luis Ruiz Morel', role: 'Founding Engineer' },
-    ];
-    c = [...c, ...people.map((p, i): NetworkContact => ({
-      id: `offdeal-${Date.now()}-${i}`, name: p.name, company: 'Offdeal', role: p.role,
-      category: 'awaiting-reply', urgency: 'waiting',
-      whatTheySaid: '', actionNeeded: 'Wait for reply',
-      whyReachOut: '', companyInfo: '', foundVia: 'LinkedIn',
-      scoutingStatus: 'ready', outreachStatus: 'dm-sent',
-      platform: 'LinkedIn', lastContactDate: today, nextAction: 'Wait for reply',
-      notes: 'Connection request sent with note', createdAt: new Date().toISOString(),
-    }))];
-  }
-
-  if (key === 'ostium') {
-    if (c.some(x => x.company === 'Ostium')) { if (typeof window !== 'undefined') localStorage.setItem(flag, '1'); return { contacts: c, journal: j }; }
-    const today = localToday();
-    const ostium: NetworkContact = {
-      id: `ostium-${Date.now()}-0`, name: 'Shrey Paharia', company: 'Ostium', role: 'Senior Developer',
-      category: 'awaiting-reply', urgency: 'waiting',
-      whatTheySaid: '', actionNeeded: 'Wait for reply',
-      whyReachOut: '', companyInfo: '$38B+ volume, backed by General Catalyst & Jump', foundVia: 'LinkedIn',
-      scoutingStatus: 'ready', outreachStatus: 'dm-sent',
-      platform: 'LinkedIn', lastContactDate: today, nextAction: 'Wait for reply',
-      notes: 'Connection request sent with note', createdAt: new Date().toISOString(),
-    };
-    c = [...c, ostium];
-  }
-
-  if (key === 'vivek-apr9') {
-    const apr9 = '2026-04-09';
-    const existing = j.find(e => e.date === apr9);
-    if (existing?.meetings?.some(m => m.person === 'Vivek')) { if (typeof window !== 'undefined') localStorage.setItem(flag, '1'); return { contacts: c, journal: j }; }
-    const vivekMeeting: Meeting = {
-      id: `vivek-${Date.now()}`, title: '30 min call', person: 'Vivek',
-      time: '7:00 PM', notes: '7:00 - 7:30pm ET',
-    };
-    const entry = j.find(e => e.date === apr9);
-    if (entry) {
-      j = j.map(e => e.date === apr9
-        ? { ...e, meetings: [...(e.meetings || []), vivekMeeting], updatedAt: new Date().toISOString() }
-        : e);
-    } else {
-      j = [...j, { id: apr9, date: apr9, body: '', tomorrow: '', meetings: [vivekMeeting], updatedAt: new Date().toISOString() }];
-    }
-  }
-
-  if (typeof window !== 'undefined') localStorage.setItem(flag, '1');
-  return { contacts: c, journal: j };
-}
-
-/* ═══════════════════════════════════════════════════════════
-   GOOGLE CALENDAR INTEGRATION
-   ═══════════════════════════════════════════════════════════
-   GOOGLE CALENDAR SETUP:
-   1. Go to https://console.cloud.google.com/
-   2. Create a new project (or select an existing one)
-   3. Enable the Google Calendar API
-   4. Create OAuth 2.0 credentials (Web application)
-   5. Add the following to "Authorized JavaScript origins":
-        - http://localhost:4321
-        - https://www.ronnielgandhe.com
-   6. Copy the Client ID and either:
-        a) set VITE_GOOGLE_CLIENT_ID in your .env, OR
-        b) replace 'PASTE_CLIENT_ID_HERE' below with the literal id
-*/
-const GOOGLE_CLIENT_ID =
-  (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_GOOGLE_CLIENT_ID) ||
-  'PASTE_CLIENT_ID_HERE';
-const GOOGLE_SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
-const GOOGLE_TOKEN_KEY = 'bb-google-token';
-
-interface GoogleEvent {
-  id: string; summary: string; start: string; end: string;
-  description?: string; htmlLink?: string;
-}
-
-interface GoogleTokenInfo {
-  access_token: string; expires_at: number;
-}
-
-// Loads gapi/gis scripts (idempotent)
-function loadGoogleScripts(): Promise<void> {
-  if (typeof window === 'undefined') return Promise.resolve();
-  const w = window as any;
-  if (w.__bbGapiLoaded) return Promise.resolve();
-  return new Promise((resolve, reject) => {
-    const ensure = (src: string) => new Promise<void>((res, rej) => {
-      if (document.querySelector(`script[src="${src}"]`)) { res(); return; }
-      const s = document.createElement('script');
-      s.src = src; s.async = true; s.defer = true;
-      s.onload = () => res();
-      s.onerror = () => rej(new Error('Failed to load ' + src));
-      document.head.appendChild(s);
+  const addMilestone = (g: Goal, text: string) => {
+    if (!text.trim()) return;
+    updateGoal(g.id, {
+      milestones: [...(g.milestones || []), text.trim()],
+      completedMilestones: [...(g.completedMilestones || []), false],
     });
-    Promise.all([
-      ensure('https://accounts.google.com/gsi/client'),
-      ensure('https://apis.google.com/js/api.js'),
-    ]).then(() => {
-      w.__bbGapiLoaded = true;
-      resolve();
-    }).catch(reject);
-  });
-}
+  };
 
-function useGoogleCalendar() {
-  const [token, setToken] = useState<GoogleTokenInfo | null>(() => {
-    try {
-      const raw = localStorage.getItem(GOOGLE_TOKEN_KEY);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw) as GoogleTokenInfo;
-      if (parsed.expires_at < Date.now()) return null;
-      return parsed;
-    } catch { return null; }
-  });
-  const [events, setEvents] = useState<GoogleEvent[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const tokenClientRef = useRef<any>(null);
+  return (
+    <div style={{ animation: 'bb-fade 0.32s cubic-bezier(.2,.8,.2,1) both' }}>
+      <PageHeader
+        title="Goals"
+        sub={`${active.length} active · ${dueThisMonth} due this month`}
+        right={<>
+          <Btn ghost>Archive</Btn>
+          <Btn primary onClick={() => setShowNew(true)}>+ Goal</Btn>
+        </>}
+      />
 
-  const isConfigured = GOOGLE_CLIENT_ID !== 'PASTE_CLIENT_ID_HERE' && !!GOOGLE_CLIENT_ID;
+      {showNew && (
+        <Card hero style={{ marginBottom: 14, padding: 18 }}>
+          <CardLabel>New goal</CardLabel>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+            <Input value={draft.title} onChange={v => setDraft({ ...draft, title: v })} placeholder="Title *" autoFocus />
+            <Input value={draft.scope} onChange={v => setDraft({ ...draft, scope: v })} placeholder="Scope (Health, Career…)" />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+            <Input value={draft.description} onChange={v => setDraft({ ...draft, description: v })} placeholder="Target / what success looks like" />
+            <Input value={draft.deadline} onChange={v => setDraft({ ...draft, deadline: v })} placeholder="Deadline (YYYY-MM-DD)" />
+          </div>
+          <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+            <Btn ghost onClick={() => { setShowNew(false); setDraft({ title: '', description: '', deadline: '', scope: '' }); }}>Cancel</Btn>
+            <Btn primary onClick={addGoal}>Add</Btn>
+          </div>
+        </Card>
+      )}
 
-  // Initialize the token client lazily
-  const ensureClient = useCallback(async () => {
-    if (!isConfigured) throw new Error('Google Client ID not configured');
-    await loadGoogleScripts();
-    const w = window as any;
-    if (!tokenClientRef.current && w.google?.accounts?.oauth2) {
-      tokenClientRef.current = w.google.accounts.oauth2.initTokenClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: GOOGLE_SCOPES,
-        callback: (resp: any) => {
-          if (resp.error) { setError(resp.error); return; }
-          const info: GoogleTokenInfo = {
-            access_token: resp.access_token,
-            expires_at: Date.now() + (resp.expires_in ?? 3000) * 1000,
-          };
-          localStorage.setItem(GOOGLE_TOKEN_KEY, JSON.stringify(info));
-          setToken(info);
-        },
-      });
-    }
-  }, [isConfigured]);
-
-  const connect = useCallback(async () => {
-    setError(null);
-    try {
-      await ensureClient();
-      tokenClientRef.current?.requestAccessToken();
-    } catch (e: any) {
-      setError(e?.message || 'Could not connect Google Calendar');
-    }
-  }, [ensureClient]);
-
-  const disconnect = useCallback(() => {
-    localStorage.removeItem(GOOGLE_TOKEN_KEY);
-    setToken(null);
-    setEvents([]);
-  }, []);
-
-  // Fetch the next 7 days of events whenever token changes
-  useEffect(() => {
-    if (!token) return;
-    let cancelled = false;
-    setLoading(true);
-    const now = new Date();
-    const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const url = new URL('https://www.googleapis.com/calendar/v3/calendars/primary/events');
-    url.searchParams.set('timeMin', now.toISOString());
-    url.searchParams.set('timeMax', weekFromNow.toISOString());
-    url.searchParams.set('singleEvents', 'true');
-    url.searchParams.set('orderBy', 'startTime');
-    url.searchParams.set('maxResults', '25');
-    fetch(url.toString(), {
-      headers: { Authorization: `Bearer ${token.access_token}` },
-    })
-      .then(r => {
-        if (r.status === 401) { disconnect(); throw new Error('Session expired'); }
-        return r.json();
-      })
-      .then(data => {
-        if (cancelled) return;
-        const items = (data?.items || []) as any[];
-        setEvents(items.map(e => ({
-          id: e.id,
-          summary: e.summary || '(No title)',
-          start: e.start?.dateTime || e.start?.date || '',
-          end: e.end?.dateTime || e.end?.date || '',
-          description: e.description,
-          htmlLink: e.htmlLink,
-        })));
-      })
-      .catch(e => { if (!cancelled) setError(e?.message || 'Calendar fetch failed'); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, [token, disconnect]);
-
-  return { token, events, loading, error, isConfigured, connect, disconnect };
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {active.length === 0 && !showNew && (
+          <Card>
+            <div style={{ padding: '32px 0', textAlign: 'center', color: TOK.ink3, fontFamily: FONT_TEXT }}>
+              No goals yet · click + Goal to add one
+            </div>
+          </Card>
+        )}
+        {active.map(g => {
+          const expanded = expandedId === g.id;
+          const dueText = g.deadline ? fmtDateShort(g.deadline) : 'no deadline';
+          return (
+            <Card key={g.id} style={{ padding: 22 }}>
+              <div onClick={() => setExpandedId(expanded ? null : g.id)} style={{
+                display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'start', cursor: 'pointer',
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4, whiteSpace: 'nowrap', flexWrap: 'wrap' }}>
+                    <CardLabel style={{ marginBottom: 0 }}>{g.scope || 'Goal'}</CardLabel>
+                    <span style={{ fontSize: 11, color: TOK.ink3, fontFamily: FONT_TEXT }}>· due {dueText}</span>
+                  </div>
+                  <div style={{ fontSize: 22, fontWeight: 500, letterSpacing: '-0.018em', marginBottom: 4, color: TOK.ink0, fontFamily: FONT_DISPLAY }}>{g.title}</div>
+                  {g.description && <div style={{ fontSize: 13, color: TOK.ink2, fontFamily: FONT_TEXT }}>{g.description}</div>}
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: 32, fontWeight: 300, letterSpacing: '-0.025em', fontVariantNumeric: 'tabular-nums', fontFamily: FONT_DISPLAY, color: TOK.ink0 }}>{g.progress}%</div>
+                  <div style={{ fontSize: 11, color: TOK.ink3, fontFamily: FONT_TEXT }}>complete</div>
+                </div>
+              </div>
+              <div style={{ height: 6, borderRadius: 999, background: 'rgba(20,16,12,0.06)', marginTop: 16, overflow: 'hidden' }}>
+                <div style={{ width: `${g.progress}%`, background: TOK.ink0, height: '100%', borderRadius: 999, transition: 'width 0.25s' }}></div>
+              </div>
+              {(g.milestones || []).length > 0 && (
+                <div style={{ display: 'flex', gap: 6, marginTop: 16, flexWrap: 'wrap' }}>
+                  {(g.milestones || []).map((m, i) => {
+                    const done = !!(g.completedMilestones || [])[i];
+                    return (
+                      <div key={i} onClick={(e) => { e.stopPropagation(); toggleMilestone(g, i); }} style={{
+                        display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px',
+                        background: done ? 'oklch(0.55 0.12 150 / 0.12)' : 'rgba(20,16,12,0.04)',
+                        borderRadius: TOK.rPill, fontSize: 12, cursor: 'pointer', fontFamily: FONT_TEXT,
+                      }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: done ? TOK.good : TOK.ink4 }}></span>
+                        <span style={{ color: done ? TOK.good : TOK.ink1, textDecoration: done ? 'line-through' : 'none' }}>{m}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {expanded && (
+                <div style={{ marginTop: 18, paddingTop: 18, borderTop: `0.5px solid ${TOK.hair}` }}>
+                  <CardLabel>Add milestone</CardLabel>
+                  <input
+                    placeholder="New milestone… ↵"
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        addMilestone(g, (e.target as HTMLInputElement).value);
+                        (e.target as HTMLInputElement).value = '';
+                      }
+                    }}
+                    style={{
+                      width: '100%', padding: '9px 12px', fontFamily: FONT_TEXT, fontSize: 13.5,
+                      background: 'rgba(255,253,249,0.7)', border: `1px solid ${TOK.hair}`,
+                      borderRadius: 10, color: TOK.ink0, outline: 'none', marginBottom: 12, boxSizing: 'border-box',
+                    }}
+                  />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+                    <input type="number" min="0" max="100" value={g.progress}
+                      onChange={e => updateGoal(g.id, { progress: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })}
+                      style={{
+                        padding: '7px 10px', fontFamily: FONT_TEXT, fontSize: 13,
+                        background: 'rgba(255,253,249,0.7)', border: `1px solid ${TOK.hair}`,
+                        borderRadius: 10, color: TOK.ink0, outline: 'none', boxSizing: 'border-box',
+                      }} />
+                    <Input value={g.deadline || ''} onChange={v => updateGoal(g.id, { deadline: v })} placeholder="Deadline" />
+                    <Input value={g.scope || ''} onChange={v => updateGoal(g.id, { scope: v })} placeholder="Scope" />
+                    <Btn onClick={() => updateGoal(g.id, { status: 'completed' })}>Mark complete</Btn>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <Btn ghost style={{ color: TOK.bad }} onClick={() => removeGoal(g.id)}>Delete goal</Btn>
+                  </div>
+                </div>
+              )}
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 /* ═══════════════════════════════════════════════════════════
-   FINANCE TAB
+   FINANCE
    ═══════════════════════════════════════════════════════════ */
 
-const ACCOUNT_TYPE_META: Record<AccountType, { label: string; icon: string }> = {
-  checking: { label: 'Checking', icon: 'C' },
-  savings: { label: 'Savings', icon: 'S' },
-  tfsa: { label: 'TFSA', icon: 'T' },
-  crypto: { label: 'Crypto', icon: '₿' },
-  cash: { label: 'Cash', icon: '$' },
-};
-
-const DEFAULT_CATEGORIES = ['food', 'rent', 'transport', 'subs', 'salary', 'shopping', 'travel', 'misc'];
-
-function fmtMoney(amount: number, currency: Currency): string {
-  const sign = amount < 0 ? '-' : '';
-  const abs = Math.abs(amount);
-  const formatted = abs.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: abs % 1 === 0 ? 0 : 2 });
-  return `${sign}${currency === 'USD' ? '$' : 'CA$'}${formatted}`;
-}
-
-// Parse "Coffee 6 USD food" → { note, amount, currency, category, type }
-function parseQuickTransaction(input: string): Omit<Transaction, 'id' | 'date' | 'createdAt'> | null {
-  const trimmed = input.trim();
-  if (!trimmed) return null;
-  // Look for amount (first number, possibly with decimal, optional leading + or -)
-  const amtMatch = trimmed.match(/(-?\$?\d+(?:\.\d{1,2})?)/);
-  if (!amtMatch) return null;
-  const rawAmt = amtMatch[1].replace('$', '');
-  const amount = parseFloat(rawAmt);
-  if (Number.isNaN(amount)) return null;
-  const type: 'income' | 'expense' = amount < 0 || /\b(spent|paid|bought)\b/i.test(trimmed) ? 'expense'
-    : /\b(income|earned|got|received|paid me)\b/i.test(trimmed) ? 'income' : 'expense';
-  const tokens = trimmed.split(/\s+/);
-  const currency: Currency = tokens.some(tok => /usd/i.test(tok)) ? 'USD'
-    : tokens.some(tok => /cad/i.test(tok)) ? 'CAD' : 'USD';
-  const noteParts: string[] = [];
-  let category = '';
-  for (const tok of tokens) {
-    if (tok === amtMatch[1] || /^\$?\d/.test(tok)) continue;
-    if (/^(usd|cad)$/i.test(tok)) continue;
-    if (!category && DEFAULT_CATEGORIES.includes(tok.toLowerCase())) {
-      category = tok.toLowerCase();
-    } else {
-      noteParts.push(tok);
-    }
-  }
-  if (!category) category = 'misc';
-  return {
-    amount: Math.abs(amount),
-    currency, type, category,
-    note: noteParts.join(' '),
-  };
-}
-
-function FinanceOverview({ finance, t }: { finance: FinanceData; t: Theme }) {
-  const month = thisMonthKey();
-  const monthlyTx = finance.transactions.filter(x => monthKey(x.date) === month);
-  const incomeCAD = monthlyTx.filter(x => x.type === 'income').reduce((s, x) => s + toCAD(x.amount, x.currency), 0);
-  const expenseCAD = monthlyTx.filter(x => x.type === 'expense').reduce((s, x) => s + toCAD(x.amount, x.currency), 0);
-  const savingsRate = incomeCAD > 0 ? Math.max(0, Math.round((1 - expenseCAD / incomeCAD) * 100)) : 0;
-  const netWorthCAD = finance.accounts.reduce((s, a) => s + toCAD(a.balance, a.currency), 0);
-  const tfsaGoal = finance.goals.find(g => /tfsa/i.test(g.name));
-
-  const Stat = ({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: 'pos' | 'neg' }) => (
-    <div style={{
-      flex: 1, minWidth: 140, padding: '14px 16px',
-      background: t.inputBg, border: `1px solid ${t.border}`, borderRadius: CARD_RADIUS_SM,
-    }}>
-      <div style={{ fontSize: 11, color: t.textMuted, fontFamily: FONT_MEDIUM, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>{label}</div>
-      <div style={{ fontSize: 22, fontFamily: FONT_MEDIUM, color: tone === 'pos' ? '#22c55e' : tone === 'neg' ? '#ef4444' : t.textStrong, letterSpacing: '-0.02em' }}>{value}</div>
-      {sub && <div style={{ fontSize: 12, color: t.textMuted, marginTop: 2 }}>{sub}</div>}
-    </div>
-  );
-
-  return (
-    <div style={{
-      background: t.cardBg, borderRadius: CARD_RADIUS, padding: 20,
-      border: `1px solid ${t.border}`, marginBottom: 20,
-    }}>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-        <Stat label="Net Worth" value={fmtMoney(Math.round(netWorthCAD), 'CAD')} sub={`across ${finance.accounts.length} accounts`} />
-        <Stat label="In (this month)" value={fmtMoney(Math.round(incomeCAD), 'CAD')} tone="pos" />
-        <Stat label="Out (this month)" value={fmtMoney(Math.round(expenseCAD), 'CAD')} tone="neg" />
-        <Stat label="Savings Rate" value={`${savingsRate}%`} sub={savingsRate >= 50 ? 'on track' : 'push harder'} />
-      </div>
-      {tfsaGoal && tfsaGoal.targetAmount > 0 && (
-        <div style={{ marginTop: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-            <span style={{ fontSize: 13, fontFamily: FONT_MEDIUM, color: t.textStrong }}>{tfsaGoal.name}</span>
-            <span style={{ fontSize: 12, color: t.textMuted }}>
-              {fmtMoney(tfsaGoal.currentAmount, tfsaGoal.currency)} of {fmtMoney(tfsaGoal.targetAmount, tfsaGoal.currency)}
-            </span>
-          </div>
-          <div style={{ height: 8, background: t.accentSubtle, borderRadius: 4, overflow: 'hidden' }}>
-            <div style={{
-              width: `${Math.min(100, Math.max(0, (tfsaGoal.currentAmount / tfsaGoal.targetAmount) * 100))}%`,
-              height: '100%', background: '#22c55e',
-              transition: APPLE_TRANSITION,
-            }} />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function FinanceAccounts({ finance, setFinance, t }: {
-  finance: FinanceData; setFinance: (fn: (prev: FinanceData) => FinanceData) => void; t: Theme;
+function Finance({ finance, setFinance }: {
+  finance: FinanceData;
+  setFinance: (fn: (prev: FinanceData) => FinanceData) => void;
 }) {
-  const updateAccount = (id: string, patch: Partial<Account>) => {
-    setFinance(prev => ({
-      ...prev,
-      accounts: prev.accounts.map(a => a.id === id
-        ? { ...a, ...patch, updatedAt: new Date().toISOString() } : a),
-    }));
-  };
-  const addAccount = () => {
-    setFinance(prev => ({
-      ...prev,
-      accounts: [...prev.accounts, {
-        id: Date.now().toString(), name: '', type: 'checking',
-        currency: 'CAD', balance: 0, updatedAt: new Date().toISOString(),
-      }],
-    }));
-  };
-  const removeAccount = (id: string) => {
-    setFinance(prev => ({ ...prev, accounts: prev.accounts.filter(a => a.id !== id) }));
-  };
+  const monthStart = thisMonthKey();
+  const monthTx = finance.transactions.filter(t => monthKey(t.date) === monthStart);
+  const incomeTx = monthTx.filter(t => t.type === 'income');
+  const expenseTx = monthTx.filter(t => t.type === 'expense');
+  const income = incomeTx.reduce((s, t) => s + toCAD(t.amount, t.currency), 0);
+  const spending = expenseTx.reduce((s, t) => s + toCAD(t.amount, t.currency), 0);
+  const net = income - spending;
+  const savedPct = income > 0 ? Math.max(0, Math.round((net / income) * 100)) : 0;
 
-  return (
-    <div style={{
-      background: t.cardBg, borderRadius: CARD_RADIUS, padding: 20,
-      border: `1px solid ${t.border}`, marginBottom: 20,
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-        <span style={{ fontSize: 17, fontFamily: FONT_MEDIUM, color: t.textStrong, letterSpacing: '-0.01em' }}>Accounts</span>
-        <button onClick={addAccount} style={{
-          background: t.accentSubtle, border: 'none', color: t.textStrong,
-          padding: '6px 12px', borderRadius: 8, cursor: 'pointer',
-          fontFamily: FONT_MEDIUM, fontSize: 12, transition: APPLE_TRANSITION,
-        }}>+ Account</button>
-      </div>
-      {finance.accounts.length === 0 && (
-        <p style={{ color: t.textMuted, fontSize: 13, padding: 20, textAlign: 'center' }}>No accounts yet. Add your first.</p>
-      )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {finance.accounts.map(a => (
-          <div key={a.id} style={{
-            display: 'grid', gridTemplateColumns: '32px 1.5fr 1fr 80px 1fr 24px',
-            gap: 10, alignItems: 'center', padding: '10px 12px',
-            background: t.inputBg, borderRadius: CARD_RADIUS_SM,
-            border: `1px solid ${t.border}`,
-          }}>
-            <div style={{
-              width: 28, height: 28, borderRadius: 8, background: t.accentSubtle,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 13, fontFamily: FONT_MEDIUM, color: t.textMuted,
-            }}>{ACCOUNT_TYPE_META[a.type].icon}</div>
-            <input value={a.name} onChange={e => updateAccount(a.id, { name: e.target.value })}
-              placeholder="Account name" style={{
-                background: 'transparent', border: 'none', color: t.textStrong,
-                fontFamily: FONT_MEDIUM, fontSize: 13, outline: 'none', padding: 0,
-              }} />
-            <select value={a.type} onChange={e => updateAccount(a.id, { type: e.target.value as AccountType })}
-              style={{
-                background: 'transparent', border: 'none', color: t.textMuted,
-                fontFamily: FONT, fontSize: 12, outline: 'none', cursor: 'pointer',
-              }}>
-              {(Object.keys(ACCOUNT_TYPE_META) as AccountType[]).map(k => (
-                <option key={k} value={k}>{ACCOUNT_TYPE_META[k].label}</option>
-              ))}
-            </select>
-            <select value={a.currency} onChange={e => updateAccount(a.id, { currency: e.target.value as Currency })}
-              style={{
-                background: 'transparent', border: 'none', color: t.textMuted,
-                fontFamily: FONT, fontSize: 12, outline: 'none', cursor: 'pointer',
-              }}>
-              <option value="CAD">CAD</option>
-              <option value="USD">USD</option>
-            </select>
-            <input value={a.balance} onChange={e => updateAccount(a.id, { balance: parseFloat(e.target.value) || 0 })}
-              type="number" step="0.01" style={{
-                background: 'transparent', border: 'none', color: t.textStrong,
-                fontFamily: FONT_MEDIUM, fontSize: 13, outline: 'none', padding: 0,
-                textAlign: 'right',
-              }} />
-            <button onClick={() => removeAccount(a.id)} style={{
-              background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer',
-              fontSize: 14, opacity: 0.5,
-            }}>&times;</button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+  // Compare vs last month
+  const lastMonth = (() => {
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() - 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  })();
+  const lastMonthTx = finance.transactions.filter(t => monthKey(t.date) === lastMonth);
+  const lastNet = lastMonthTx.reduce((s, t) => {
+    const v = toCAD(t.amount, t.currency);
+    return s + (t.type === 'income' ? v : -v);
+  }, 0);
+  const netDelta = lastNet !== 0 ? Math.round(((net - lastNet) / Math.abs(lastNet)) * 100) : 0;
 
-function FinanceTransactions({ finance, setFinance, t }: {
-  finance: FinanceData; setFinance: (fn: (prev: FinanceData) => FinanceData) => void; t: Theme;
-}) {
-  const [quickInput, setQuickInput] = useState('');
-  const [filterCat, setFilterCat] = useState<string>('all');
-  const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
+  // Recent activity
+  const recent = [...finance.transactions]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 8);
 
-  const addTransaction = (tx: Omit<Transaction, 'id' | 'createdAt' | 'date'>) => {
-    const now = new Date().toISOString();
-    const t: Transaction = {
-      id: Date.now().toString(), date: localToday(),
-      createdAt: now, ...tx,
+  // Budgets (with progress this month)
+  const budgetsWithProgress = finance.budgets.map(b => {
+    const spent = monthTx
+      .filter(t => t.type === 'expense' && t.category === b.category)
+      .reduce((s, t) => s + toCAD(t.amount, t.currency), 0);
+    return { ...b, spent };
+  });
+
+  // Quick add
+  const [quickTx, setQuickTx] = useState('');
+  const [showAddTx, setShowAddTx] = useState(false);
+  const [draft, setDraft] = useState({
+    type: 'expense' as 'income' | 'expense',
+    amount: '', category: '', note: '', date: localToday(), currency: 'CAD' as Currency,
+  });
+
+  const addTransaction = () => {
+    const amt = parseFloat(draft.amount);
+    if (!amt || !draft.category) return;
+    const tx: Transaction = {
+      id: uid(), date: draft.date, amount: Math.abs(amt),
+      currency: draft.currency, type: draft.type,
+      category: draft.category, note: draft.note,
+      createdAt: new Date().toISOString(),
     };
-    setFinance(prev => ({ ...prev, transactions: [t, ...prev.transactions] }));
-  };
-  const updateTransaction = (id: string, patch: Partial<Transaction>) => {
-    setFinance(prev => ({
-      ...prev, transactions: prev.transactions.map(x => x.id === id ? { ...x, ...patch } : x),
-    }));
-  };
-  const removeTransaction = (id: string) => {
-    setFinance(prev => ({ ...prev, transactions: prev.transactions.filter(x => x.id !== id) }));
+    setFinance(prev => ({ ...prev, transactions: [tx, ...prev.transactions] }));
+    setDraft({ type: 'expense', amount: '', category: '', note: '', date: localToday(), currency: 'CAD' });
+    setShowAddTx(false);
   };
 
-  const handleQuickAdd = () => {
-    if (!quickInput.trim()) return;
-    const parsed = parseQuickTransaction(quickInput);
-    if (parsed) {
-      addTransaction(parsed);
-      setQuickInput('');
+  // Quick add parser: "Coffee 7.50 expense food" or "Stripe 2400 income"
+  const addQuickTx = () => {
+    const parts = quickTx.trim().split(/\s+/);
+    if (parts.length < 2) return;
+    let type: 'income' | 'expense' = 'expense';
+    let category = 'misc';
+    let amount = 0;
+    const noteParts: string[] = [];
+    for (const p of parts) {
+      if (/^-?\d+(\.\d+)?$/.test(p)) {
+        amount = Math.abs(parseFloat(p));
+      } else if (p === 'income' || p === 'in' || p === '+') {
+        type = 'income';
+      } else if (p === 'expense' || p === 'out' || p === '-') {
+        type = 'expense';
+      } else if (['food','rent','transport','subs','salary','shopping','travel','misc','groceries','coffee'].includes(p.toLowerCase())) {
+        category = p.toLowerCase();
+      } else {
+        noteParts.push(p);
+      }
     }
+    if (!amount) return;
+    const tx: Transaction = {
+      id: uid(), date: localToday(), amount, currency: 'CAD',
+      type, category, note: noteParts.join(' '),
+      createdAt: new Date().toISOString(),
+    };
+    setFinance(prev => ({ ...prev, transactions: [tx, ...prev.transactions] }));
+    setQuickTx('');
   };
 
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - 30);
-  const cutoffStr = cutoff.toISOString().slice(0, 10);
-  let visible = finance.transactions
-    .filter(x => x.date >= cutoffStr)
-    .sort((a, b) => b.date.localeCompare(a.date));
-  if (filterCat !== 'all') visible = visible.filter(x => x.category === filterCat);
-  if (filterType !== 'all') visible = visible.filter(x => x.type === filterType);
-
-  const allCategories = Array.from(new Set([...DEFAULT_CATEGORIES, ...finance.transactions.map(x => x.category).filter(Boolean)]));
-
-  return (
-    <div style={{
-      background: t.cardBg, borderRadius: CARD_RADIUS, padding: 20,
-      border: `1px solid ${t.border}`, marginBottom: 20,
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-        <span style={{ fontSize: 17, fontFamily: FONT_MEDIUM, color: t.textStrong, letterSpacing: '-0.01em' }}>Transactions</span>
-        <span style={{ fontSize: 12, color: t.textMuted }}>last 30 days</span>
-      </div>
-
-      {/* Quick add */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-        <input value={quickInput} onChange={e => setQuickInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleQuickAdd()}
-          placeholder="e.g. Coffee 6 USD food"
-          style={{
-            flex: 1, background: t.inputBg, border: `1px solid ${t.border}`, color: t.text,
-            padding: '10px 14px', borderRadius: 10, fontFamily: FONT, fontSize: 13,
-            outline: 'none', transition: APPLE_TRANSITION,
-          }} />
-        <button onClick={handleQuickAdd} style={{
-          background: t.accentSubtle, border: 'none', color: t.textStrong,
-          padding: '0 16px', borderRadius: 10, cursor: 'pointer',
-          fontFamily: FONT_MEDIUM, fontSize: 13,
-        }}>Add</button>
-      </div>
-
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12, fontSize: 12 }}>
-        <select value={filterType} onChange={e => setFilterType(e.target.value as any)} style={{
-          background: t.inputBg, border: `1px solid ${t.border}`, color: t.text,
-          padding: '6px 10px', borderRadius: 8, fontFamily: FONT, fontSize: 12, outline: 'none',
-        }}>
-          <option value="all">All</option>
-          <option value="income">Income</option>
-          <option value="expense">Expense</option>
-        </select>
-        <select value={filterCat} onChange={e => setFilterCat(e.target.value)} style={{
-          background: t.inputBg, border: `1px solid ${t.border}`, color: t.text,
-          padding: '6px 10px', borderRadius: 8, fontFamily: FONT, fontSize: 12, outline: 'none',
-        }}>
-          <option value="all">All categories</option>
-          {allCategories.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-      </div>
-
-      {/* List */}
-      {visible.length === 0 && (
-        <p style={{ color: t.textMuted, fontSize: 13, padding: 20, textAlign: 'center' }}>No transactions in this range.</p>
-      )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {visible.map(x => (
-          <div key={x.id} style={{
-            display: 'grid', gridTemplateColumns: '70px 1fr 80px 100px 24px',
-            gap: 10, alignItems: 'center', padding: '8px 10px',
-            borderRadius: 8, transition: APPLE_TRANSITION,
-          }}
-            onMouseEnter={e => { e.currentTarget.style.background = t.accentSubtle; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-          >
-            <input type="date" value={x.date} onChange={e => updateTransaction(x.id, { date: e.target.value })}
-              style={{
-                background: 'transparent', border: 'none', color: t.textMuted,
-                fontFamily: FONT, fontSize: 12, outline: 'none',
-              }} />
-            <input value={x.note} onChange={e => updateTransaction(x.id, { note: e.target.value })}
-              placeholder="note" style={{
-                background: 'transparent', border: 'none', color: t.text,
-                fontFamily: FONT, fontSize: 13, outline: 'none', padding: 0,
-              }} />
-            <select value={x.category} onChange={e => updateTransaction(x.id, { category: e.target.value })}
-              style={{
-                background: 'transparent', border: 'none', color: t.textMuted,
-                fontFamily: FONT, fontSize: 12, outline: 'none', cursor: 'pointer',
-              }}>
-              {allCategories.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <span style={{
-              fontFamily: FONT_MEDIUM, fontSize: 13, textAlign: 'right',
-              color: x.type === 'income' ? '#22c55e' : t.text,
-            }}>
-              {x.type === 'income' ? '+' : '-'}{fmtMoney(x.amount, x.currency)}
-            </span>
-            <button onClick={() => removeTransaction(x.id)} style={{
-              background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer',
-              fontSize: 14, opacity: 0.4,
-            }}>&times;</button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function FinanceBudgets({ finance, setFinance, t }: {
-  finance: FinanceData; setFinance: (fn: (prev: FinanceData) => FinanceData) => void; t: Theme;
-}) {
-  const month = thisMonthKey();
-  const updateBudget = (id: string, patch: Partial<Budget>) => {
-    setFinance(prev => ({
-      ...prev, budgets: prev.budgets.map(b => b.id === id ? { ...b, ...patch } : b),
-    }));
+  const removeTx = (id: string) => {
+    setFinance(prev => ({ ...prev, transactions: prev.transactions.filter(t => t.id !== id) }));
   };
+
+  // Budget controls
+  const [showAddBudget, setShowAddBudget] = useState(false);
+  const [bDraft, setBDraft] = useState({ category: '', monthlyTarget: '' });
+
   const addBudget = () => {
-    setFinance(prev => ({
-      ...prev, budgets: [...prev.budgets, {
-        id: Date.now().toString(), category: 'misc', monthlyTarget: 0, currency: 'CAD',
-      }],
-    }));
+    if (!bDraft.category.trim() || !parseFloat(bDraft.monthlyTarget)) return;
+    const b: Budget = {
+      id: uid(), category: bDraft.category.trim(),
+      monthlyTarget: parseFloat(bDraft.monthlyTarget), currency: 'CAD',
+    };
+    setFinance(prev => ({ ...prev, budgets: [...prev.budgets, b] }));
+    setBDraft({ category: '', monthlyTarget: '' });
+    setShowAddBudget(false);
   };
+
   const removeBudget = (id: string) => {
     setFinance(prev => ({ ...prev, budgets: prev.budgets.filter(b => b.id !== id) }));
   };
 
+  const monthName = new Date().toLocaleDateString('en', { month: 'long' });
+  const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+
   return (
-    <div style={{
-      background: t.cardBg, borderRadius: CARD_RADIUS, padding: 20,
-      border: `1px solid ${t.border}`, marginBottom: 20,
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-        <span style={{ fontSize: 17, fontFamily: FONT_MEDIUM, color: t.textStrong, letterSpacing: '-0.01em' }}>Budgets</span>
-        <button onClick={addBudget} style={{
-          background: t.accentSubtle, border: 'none', color: t.textStrong,
-          padding: '6px 12px', borderRadius: 8, cursor: 'pointer',
-          fontFamily: FONT_MEDIUM, fontSize: 12,
-        }}>+ Budget</button>
-      </div>
-      {finance.budgets.length === 0 && (
-        <p style={{ color: t.textMuted, fontSize: 13, padding: 20, textAlign: 'center' }}>No budgets yet.</p>
+    <div style={{ animation: 'bb-fade 0.32s cubic-bezier(.2,.8,.2,1) both' }}>
+      <PageHeader
+        title="Finance"
+        sub={`${monthName} · ${daysInMonth} days · ${savedPct}% saved`}
+        right={<>
+          <Btn ghost>Export</Btn>
+          <Btn primary onClick={() => setShowAddTx(true)}>+ Transaction</Btn>
+        </>}
+      />
+
+      {/* Net hero */}
+      <Card hero style={{ padding: 26, marginBottom: 14 }}>
+        <CardLabel>Net this month</CardLabel>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 2, flexWrap: 'wrap' }}>
+          <span style={{
+            fontSize: 52, fontWeight: 300, letterSpacing: '-0.035em', fontVariantNumeric: 'tabular-nums',
+            fontFamily: FONT_DISPLAY, color: TOK.ink0,
+          }}>
+            {net >= 0 ? '+' : '−'}${Math.abs(Math.round(net)).toLocaleString()}
+          </span>
+          {lastNet !== 0 && (
+            <span style={{ color: netDelta >= 0 ? TOK.good : TOK.bad, fontSize: 13, fontFamily: FONT_TEXT }}>
+              · {netDelta >= 0 ? 'up' : 'down'} {Math.abs(netDelta)}% vs last month
+            </span>
+          )}
+        </div>
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24,
+          marginTop: 24, paddingTop: 20, borderTop: `0.5px solid ${TOK.hair}`,
+        }}>
+          <FinanceStat label="Income" value={`$${Math.round(income).toLocaleString()}`}
+            sub={`${incomeTx.length} ${incomeTx.length === 1 ? 'source' : 'sources'}`} tone={TOK.good} />
+          <FinanceStat label="Spending" value={`$${Math.round(spending).toLocaleString()}`}
+            sub={`${expenseTx.length} transactions`} tone={TOK.bad} />
+          <FinanceStat label="Saved" value={`${savedPct}%`} sub="of income" />
+        </div>
+      </Card>
+
+      {/* Quick add */}
+      <Card style={{ marginBottom: 14, padding: 14 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <span style={{ fontSize: 18, color: TOK.ink3 }}>+</span>
+          <input value={quickTx} onChange={e => setQuickTx(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && addQuickTx()}
+            placeholder="Quick add — e.g. 'Coffee 7.50 food' or 'Stripe 2400 income salary'"
+            style={{
+              flex: 1, background: 'transparent', border: 0, padding: 0, fontSize: 14,
+              fontFamily: FONT_TEXT, color: TOK.ink0, outline: 'none',
+            }} />
+          <span style={{ fontSize: 11, color: TOK.ink3, fontFamily: FONT_TEXT }}>↵ to add</span>
+        </div>
+      </Card>
+
+      {showAddTx && (
+        <Card hero style={{ marginBottom: 14, padding: 18 }}>
+          <CardLabel>New transaction</CardLabel>
+          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr 1fr 1fr 1fr', gap: 8, alignItems: 'center' }}>
+            <select value={draft.type} onChange={e => setDraft({ ...draft, type: e.target.value as 'income' | 'expense' })}
+              style={{
+                padding: '7px 10px', fontFamily: FONT_TEXT, fontSize: 13,
+                background: 'rgba(255,253,249,0.7)', border: `1px solid ${TOK.hair}`,
+                borderRadius: 10, color: TOK.ink0, outline: 'none', cursor: 'pointer',
+              }}>
+              <option value="expense">Expense</option><option value="income">Income</option>
+            </select>
+            <Input value={draft.amount} onChange={v => setDraft({ ...draft, amount: v })} placeholder="0.00" type="number" />
+            <Input value={draft.category} onChange={v => setDraft({ ...draft, category: v })} placeholder="Category" />
+            <Input value={draft.note} onChange={v => setDraft({ ...draft, note: v })} placeholder="Note" />
+            <Input value={draft.date} onChange={v => setDraft({ ...draft, date: v })} placeholder="YYYY-MM-DD" />
+          </div>
+          <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', marginTop: 10 }}>
+            <Btn ghost onClick={() => setShowAddTx(false)}>Cancel</Btn>
+            <Btn primary onClick={addTransaction}>Add</Btn>
+          </div>
+        </Card>
       )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {finance.budgets.map(b => {
-          const spent = finance.transactions
-            .filter(x => x.category === b.category && monthKey(x.date) === month && x.type === 'expense')
-            .reduce((s, x) => s + (x.currency === b.currency ? x.amount : toCAD(x.amount, x.currency) / (b.currency === 'USD' ? FX_USD_TO_CAD : 1)), 0);
-          const pct = b.monthlyTarget > 0 ? Math.min(100, (spent / b.monthlyTarget) * 100) : 0;
-          const color = pct < 80 ? '#22c55e' : pct < 100 ? '#eab308' : '#ef4444';
-          return (
-            <div key={b.id} style={{ position: 'relative' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <input value={b.category} onChange={e => updateBudget(b.id, { category: e.target.value })}
-                  style={{
-                    background: 'transparent', border: 'none', color: t.textStrong,
-                    fontFamily: FONT_MEDIUM, fontSize: 13, outline: 'none', padding: 0, flex: 1,
-                  }} />
-                <span style={{ fontFamily: FONT, fontSize: 12, color: t.textMuted }}>
-                  {fmtMoney(Math.round(spent), b.currency)} /
-                </span>
-                <input value={b.monthlyTarget} onChange={e => updateBudget(b.id, { monthlyTarget: parseFloat(e.target.value) || 0 })}
-                  type="number" step="1" style={{
-                    background: 'transparent', border: 'none', color: t.text,
-                    fontFamily: FONT_MEDIUM, fontSize: 13, outline: 'none', padding: 0, width: 80,
-                    textAlign: 'right',
-                  }} />
-                <select value={b.currency} onChange={e => updateBudget(b.id, { currency: e.target.value as Currency })}
-                  style={{
-                    background: 'transparent', border: 'none', color: t.textMuted,
-                    fontFamily: FONT, fontSize: 12, outline: 'none',
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 14 }}>
+        {/* Recent activity */}
+        <Card style={{ padding: 0 }}>
+          <div style={{ padding: '16px 20px 6px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <CardLabel style={{ marginBottom: 0 }}>Recent activity</CardLabel>
+            <span style={{ fontSize: 11, color: TOK.ink3, fontFamily: FONT_TEXT }}>{finance.transactions.length} total</span>
+          </div>
+          {recent.length === 0 ? (
+            <div style={{ padding: '32px 20px', color: TOK.ink3, textAlign: 'center', fontFamily: FONT_TEXT, fontSize: 13 }}>
+              No transactions yet — add one ↑
+            </div>
+          ) : (
+            <div style={{ padding: '0 20px 14px' }}>
+              {recent.map(x => (
+                <div key={x.id} style={{
+                  display: 'grid', gridTemplateColumns: '60px 1fr auto auto auto', gap: 14,
+                  alignItems: 'center', padding: '10px 0',
+                  borderTop: `0.5px solid ${TOK.hair}`, fontFamily: FONT_TEXT,
+                }}>
+                  <span style={{ fontSize: 11.5, color: TOK.ink3, fontVariantNumeric: 'tabular-nums' }}>{fmtDateShort(x.date)}</span>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 13.5, color: TOK.ink0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {x.note || x.category}
+                    </div>
+                  </div>
+                  <Chip>{x.category}</Chip>
+                  <span style={{
+                    fontSize: 13.5, fontWeight: 500,
+                    color: x.type === 'income' ? TOK.good : TOK.ink0,
+                    textAlign: 'right', minWidth: 84,
+                    fontVariantNumeric: 'tabular-nums',
                   }}>
-                  <option value="CAD">CAD</option>
-                  <option value="USD">USD</option>
-                </select>
-                <button onClick={() => removeBudget(b.id)} style={{
-                  background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer',
-                  fontSize: 14, opacity: 0.4,
-                }}>&times;</button>
-              </div>
-              <div style={{ height: 6, background: t.accentSubtle, borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{
-                  width: `${pct}%`, height: '100%', background: color,
-                  transition: APPLE_TRANSITION,
-                }} />
-              </div>
+                    {x.type === 'income' ? '+' : '−'}{fmtMoney(x.amount, x.currency)}
+                  </span>
+                  <button onClick={() => removeTx(x.id)} style={{
+                    appearance: 'none', border: 0, background: 'transparent', cursor: 'pointer',
+                    color: TOK.ink3, fontSize: 14, padding: '2px 6px', fontFamily: FONT_TEXT,
+                  }}>×</button>
+                </div>
+              ))}
             </div>
-          );
-        })}
+          )}
+        </Card>
+
+        {/* Budgets */}
+        <Card>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
+            <CardLabel style={{ marginBottom: 0 }}>Budgets</CardLabel>
+            <button onClick={() => setShowAddBudget(true)} style={{
+              appearance: 'none', border: 0, background: 'transparent', cursor: 'pointer',
+              fontSize: 12, color: TOK.ink2, padding: '4px 8px', borderRadius: 6, fontFamily: FONT_TEXT,
+            }}>+ add</button>
+          </div>
+          {showAddBudget && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px auto', gap: 6, marginBottom: 14 }}>
+              <Input value={bDraft.category} onChange={v => setBDraft({ ...bDraft, category: v })} placeholder="Category" autoFocus />
+              <Input value={bDraft.monthlyTarget} onChange={v => setBDraft({ ...bDraft, monthlyTarget: v })} placeholder="$" type="number" />
+              <Btn primary onClick={addBudget}>Add</Btn>
+            </div>
+          )}
+          {budgetsWithProgress.length === 0 && !showAddBudget ? (
+            <div style={{ padding: '20px 0', color: TOK.ink3, textAlign: 'center', fontFamily: FONT_TEXT, fontSize: 13 }}>
+              No budgets yet
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {budgetsWithProgress.map(b => {
+                const pct = b.monthlyTarget > 0 ? Math.min(100, (b.spent / b.monthlyTarget) * 100) : 0;
+                const over = b.spent > b.monthlyTarget;
+                return (
+                  <div key={b.id}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, fontFamily: FONT_TEXT }}>
+                      <span style={{ fontSize: 13, color: TOK.ink0 }}>{b.category}</span>
+                      <span style={{
+                        fontSize: 12, color: over ? TOK.bad : TOK.ink2,
+                        fontVariantNumeric: 'tabular-nums', display: 'flex', gap: 6, alignItems: 'center',
+                      }}>
+                        ${b.spent.toFixed(0)} / ${b.monthlyTarget.toFixed(0)}
+                        <button onClick={() => removeBudget(b.id)} style={{
+                          appearance: 'none', border: 0, background: 'transparent', cursor: 'pointer',
+                          color: TOK.ink3, fontSize: 12, padding: 0,
+                        }}>×</button>
+                      </span>
+                    </div>
+                    <div style={{ height: 4, borderRadius: 999, background: 'rgba(20,16,12,0.06)', overflow: 'hidden' }}>
+                      <div style={{ width: `${pct}%`, background: over ? TOK.bad : TOK.good, height: '100%', transition: 'width 0.25s' }}></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Card>
       </div>
     </div>
   );
 }
 
-function FinanceGoals({ finance, setFinance, t }: {
-  finance: FinanceData; setFinance: (fn: (prev: FinanceData) => FinanceData) => void; t: Theme;
-}) {
-  const updateGoal = (id: string, patch: Partial<FinancialGoal>) => {
-    setFinance(prev => ({
-      ...prev, goals: prev.goals.map(g => g.id === id ? { ...g, ...patch } : g),
-    }));
-  };
-  const addGoal = () => {
-    setFinance(prev => ({
-      ...prev, goals: [...prev.goals, {
-        id: Date.now().toString(), name: '', targetAmount: 0, currentAmount: 0, currency: 'CAD',
-      }],
-    }));
-  };
-  const removeGoal = (id: string) => {
-    setFinance(prev => ({ ...prev, goals: prev.goals.filter(g => g.id !== id) }));
-  };
-
-  return (
+const FinanceStat = ({ label, value, sub, tone }: { label: string; value: string; sub: string; tone?: string }) => (
+  <div>
+    <div style={{ fontSize: 11, color: TOK.ink2, fontFamily: FONT_TEXT }}>{label}</div>
     <div style={{
-      background: t.cardBg, borderRadius: CARD_RADIUS, padding: 20,
-      border: `1px solid ${t.border}`, marginBottom: 20,
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-        <span style={{ fontSize: 17, fontFamily: FONT_MEDIUM, color: t.textStrong, letterSpacing: '-0.01em' }}>Financial Goals</span>
-        <button onClick={addGoal} style={{
-          background: t.accentSubtle, border: 'none', color: t.textStrong,
-          padding: '6px 12px', borderRadius: 8, cursor: 'pointer',
-          fontFamily: FONT_MEDIUM, fontSize: 12,
-        }}>+ Goal</button>
-      </div>
-      {finance.goals.length === 0 && (
-        <p style={{ color: t.textMuted, fontSize: 13, padding: 20, textAlign: 'center' }}>No financial goals yet.</p>
-      )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {finance.goals.map(g => {
-          const pct = g.targetAmount > 0 ? Math.min(100, (g.currentAmount / g.targetAmount) * 100) : 0;
-          return (
-            <div key={g.id} style={{
-              padding: 14, background: t.inputBg, borderRadius: CARD_RADIUS_SM,
-              border: `1px solid ${t.border}`,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <input value={g.name} onChange={e => updateGoal(g.id, { name: e.target.value })}
-                  placeholder="e.g. TFSA 2026" style={{
-                    flex: 1, background: 'transparent', border: 'none', color: t.textStrong,
-                    fontFamily: FONT_MEDIUM, fontSize: 14, outline: 'none', padding: 0,
-                  }} />
-                <button onClick={() => removeGoal(g.id)} style={{
-                  background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer',
-                  fontSize: 14, opacity: 0.4,
-                }}>&times;</button>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 90px 1fr', gap: 8, marginBottom: 8 }}>
-                <div>
-                  <label style={{ fontSize: 10, color: t.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Current</label>
-                  <input value={g.currentAmount} onChange={e => updateGoal(g.id, { currentAmount: parseFloat(e.target.value) || 0 })}
-                    type="number" step="1" style={{
-                      width: '100%', background: 'transparent', border: 'none', color: t.text,
-                      fontFamily: FONT_MEDIUM, fontSize: 13, outline: 'none', padding: 0,
-                    }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: 10, color: t.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Target</label>
-                  <input value={g.targetAmount} onChange={e => updateGoal(g.id, { targetAmount: parseFloat(e.target.value) || 0 })}
-                    type="number" step="1" style={{
-                      width: '100%', background: 'transparent', border: 'none', color: t.text,
-                      fontFamily: FONT_MEDIUM, fontSize: 13, outline: 'none', padding: 0,
-                    }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: 10, color: t.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Currency</label>
-                  <select value={g.currency} onChange={e => updateGoal(g.id, { currency: e.target.value as Currency })}
-                    style={{
-                      width: '100%', background: 'transparent', border: 'none', color: t.text,
-                      fontFamily: FONT, fontSize: 12, outline: 'none', padding: 0,
-                    }}>
-                    <option value="CAD">CAD</option>
-                    <option value="USD">USD</option>
-                  </select>
-                </div>
-                <div>
-                  <label style={{ fontSize: 10, color: t.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Deadline</label>
-                  <input type="date" value={g.deadline || ''} onChange={e => updateGoal(g.id, { deadline: e.target.value })}
-                    style={{
-                      width: '100%', background: 'transparent', border: 'none', color: t.text,
-                      fontFamily: FONT, fontSize: 12, outline: 'none', padding: 0,
-                    }} />
-                </div>
-              </div>
-              <div style={{ height: 6, background: t.accentSubtle, borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{
-                  width: `${pct}%`, height: '100%',
-                  background: pct >= 100 ? '#22c55e' : '#3b82f6',
-                  transition: APPLE_TRANSITION,
-                }} />
-              </div>
-              <div style={{ fontSize: 11, color: t.textMuted, marginTop: 4, textAlign: 'right' }}>{Math.round(pct)}%</div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function FinanceTab({ finance, setFinance, t }: {
-  finance: FinanceData; setFinance: (fn: (prev: FinanceData) => FinanceData) => void; t: Theme;
-}) {
-  return (
-    <div>
-      <FinanceOverview finance={finance} t={t} />
-      <FinanceAccounts finance={finance} setFinance={setFinance} t={t} />
-      <FinanceTransactions finance={finance} setFinance={setFinance} t={t} />
-      <FinanceBudgets finance={finance} setFinance={setFinance} t={t} />
-      <FinanceGoals finance={finance} setFinance={setFinance} t={t} />
-    </div>
-  );
-}
+      fontSize: 22, fontWeight: 500, color: tone || TOK.ink0, marginTop: 2,
+      fontVariantNumeric: 'tabular-nums', fontFamily: FONT_DISPLAY,
+    }}>{value}</div>
+    <div style={{ fontSize: 11, color: TOK.ink3, marginTop: 2, fontFamily: FONT_TEXT }}>{sub}</div>
+  </div>
+);
 
 /* ═══════════════════════════════════════════════════════════
-   DASHBOARD HOME — unified widget grid
+   BLACKBOOK DASHBOARD (chrome + tab routing)
    ═══════════════════════════════════════════════════════════ */
 
-interface DashboardProps {
-  journal: JournalEntry[];
-  setJournal: (fn: (prev: JournalEntry[]) => JournalEntry[]) => void;
-  contacts: NetworkContact[];
-  tasks: Task[];
-  goals: Goal[];
-  finance: FinanceData;
-  onNavigate: (tab: BlackbookTab) => void;
-  t: Theme;
-}
+type BlackbookTab = 'dashboard' | 'journal' | 'network' | 'tasks' | 'goals' | 'finance';
+const TABS: BlackbookTab[] = ['dashboard', 'journal', 'network', 'tasks', 'goals', 'finance'];
 
-type BlackbookTab = 'dashboard' | 'journal' | 'network' | 'tasks' | 'goals' | 'ideas' | 'finance';
-
-function Widget({ title, onClick, t, children, span }: {
-  title: string; onClick?: () => void; t: Theme; children: ReactNode; span?: number;
+export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }: {
+  onClose: () => void; onLogout?: () => void; passHash: string; transparent?: boolean;
 }) {
-  return (
-    <button onClick={onClick} style={{
-      gridColumn: span ? `span ${span}` : undefined,
-      background: t.cardBg, border: `1px solid ${t.border}`,
-      borderRadius: CARD_RADIUS, padding: 18,
-      textAlign: 'left', cursor: onClick ? 'pointer' : 'default',
-      transition: APPLE_TRANSITION, fontFamily: FONT,
-      boxShadow: CARD_SHADOW, display: 'flex', flexDirection: 'column',
-      minHeight: 130,
-    }}
-      onMouseEnter={e => { if (onClick) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.10)'; } }}
-      onMouseLeave={e => { if (onClick) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = CARD_SHADOW; } }}
-    >
-      <div style={{
-        fontSize: 11, fontFamily: FONT_MEDIUM, color: t.textMuted,
-        textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10,
-      }}>{title}</div>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        {children}
-      </div>
-    </button>
-  );
-}
-
-function TodayWidget({ t }: { t: Theme }) {
-  const now = new Date();
-  const day = now.toLocaleDateString('en', { weekday: 'long' });
-  const dateStr = now.toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric' });
-  return (
-    <Widget title="Today" t={t}>
-      <div style={{ fontSize: 36, fontFamily: FONT_MEDIUM, color: t.textStrong, letterSpacing: '-0.03em', lineHeight: 1 }}>
-        {now.getDate()}
-      </div>
-      <div style={{ fontSize: 13, color: t.text, marginTop: 4, fontFamily: FONT_MEDIUM }}>{day}</div>
-      <div style={{ fontSize: 12, color: t.textMuted, marginTop: 'auto' }}>{dateStr}</div>
-    </Widget>
-  );
-}
-
-function WeatherWidget({ t }: { t: Theme }) {
-  // Static stub for now. TODO: wire OpenWeather or similar.
-  return (
-    <Widget title="Weather · SF" t={t}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{ fontSize: 36, lineHeight: 1 }}>☀</div>
-        <div>
-          <div style={{ fontSize: 28, fontFamily: FONT_MEDIUM, color: t.textStrong, letterSpacing: '-0.03em' }}>72°</div>
-          <div style={{ fontSize: 12, color: t.textMuted }}>Clear</div>
-        </div>
-      </div>
-      <div style={{ fontSize: 11, color: t.textMuted, marginTop: 'auto' }}>Stubbed — connect API</div>
-    </Widget>
-  );
-}
-
-function FinanceWidget({ finance, onClick, t }: { finance: FinanceData; onClick: () => void; t: Theme }) {
-  const month = thisMonthKey();
-  const monthlyTx = finance.transactions.filter(x => monthKey(x.date) === month);
-  const incomeCAD = monthlyTx.filter(x => x.type === 'income').reduce((s, x) => s + toCAD(x.amount, x.currency), 0);
-  const expenseCAD = monthlyTx.filter(x => x.type === 'expense').reduce((s, x) => s + toCAD(x.amount, x.currency), 0);
-  const saved = incomeCAD > 0 ? Math.max(0, Math.round((1 - expenseCAD / incomeCAD) * 100)) : 0;
-  return (
-    <Widget title="Finance · This Month" onClick={onClick} t={t}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ color: t.textMuted }}>In</span>
-          <span style={{ color: '#22c55e', fontFamily: FONT_MEDIUM }}>{fmtMoney(Math.round(incomeCAD), 'CAD')}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ color: t.textMuted }}>Out</span>
-          <span style={{ color: t.text, fontFamily: FONT_MEDIUM }}>{fmtMoney(Math.round(expenseCAD), 'CAD')}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-          <span style={{ color: t.textMuted }}>Saved</span>
-          <span style={{ color: saved >= 50 ? '#22c55e' : '#eab308', fontFamily: FONT_MEDIUM }}>{saved}%</span>
-        </div>
-      </div>
-    </Widget>
-  );
-}
-
-function CalendarWidget({ journal, googleEvents, googleConfigured, googleConnected, googleLoading, onConnectGoogle, onClick, t }: {
-  journal: JournalEntry[]; googleEvents: GoogleEvent[]; googleConfigured: boolean;
-  googleConnected: boolean; googleLoading: boolean;
-  onConnectGoogle: () => void; onClick: () => void; t: Theme;
-}) {
-  const today = localToday();
-  // Local meetings from journal: next 7 days
-  const localMeetings = journal
-    .filter(e => e.date >= today)
-    .flatMap(e => e.meetings.map(m => ({
-      id: m.id, title: m.title || 'Untitled', date: e.date, time: m.time, source: 'local' as const,
-    })))
-    .filter(x => {
-      const d = new Date(x.date + 'T12:00');
-      const diff = (d.getTime() - new Date(today + 'T00:00').getTime()) / (1000 * 60 * 60 * 24);
-      return diff >= 0 && diff <= 7;
-    });
-  const googleItems = googleEvents.map(e => ({
-    id: e.id, title: e.summary, date: e.start.slice(0, 10),
-    time: e.start.includes('T') ? new Date(e.start).toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit' }) : '',
-    source: 'google' as const,
-  }));
-  const all = [...localMeetings, ...googleItems]
-    .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
-    .slice(0, 6);
-  return (
-    <Widget title="Calendar · Next 7 Days" onClick={onClick} t={t} span={2}>
-      {!googleConfigured && (
-        <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 8 }}>
-          Google Calendar: paste Client ID in code (see comment near top of file)
-        </div>
-      )}
-      {googleConfigured && !googleConnected && (
-        <button onClick={(e) => { e.stopPropagation(); onConnectGoogle(); }} style={{
-          background: t.accentSubtle, border: `1px solid ${t.border}`, color: t.textStrong,
-          padding: '6px 12px', borderRadius: 8, cursor: 'pointer',
-          fontFamily: FONT_MEDIUM, fontSize: 12, marginBottom: 8, alignSelf: 'flex-start',
-        }}>Connect Google Calendar</button>
-      )}
-      {googleLoading && <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 4 }}>Loading…</div>}
-      {all.length === 0 && (
-        <div style={{ fontSize: 12, color: t.textMuted, opacity: 0.6 }}>Nothing scheduled.</div>
-      )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {all.map(m => {
-          const isToday = m.date === today;
-          const dateLabel = isToday ? 'Today' : new Date(m.date + 'T12:00').toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' });
-          return (
-            <div key={m.source + m.id} style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 12 }}>
-              <span style={{ color: isToday ? '#22c55e' : t.textMuted, fontFamily: FONT_MEDIUM, minWidth: 90 }}>
-                {dateLabel}{m.time ? ` · ${m.time}` : ''}
-              </span>
-              <span style={{ color: t.text, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {m.title}
-              </span>
-              {m.source === 'google' && <span style={{ fontSize: 9, color: t.textMuted, fontFamily: FONT_MEDIUM, textTransform: 'uppercase' }}>cal</span>}
-            </div>
-          );
-        })}
-      </div>
-    </Widget>
-  );
-}
-
-function PrioritiesWidget({ tasks, setTasks, onClick, t }: {
-  tasks: Task[]; setTasks: (fn: (prev: Task[]) => Task[]) => void; onClick: () => void; t: Theme;
-}) {
-  const top = tasks
-    .filter(x => x.status === 'todo' && x.priority === 'high')
-    .slice(0, 3);
-  const fallback = top.length === 0
-    ? tasks.filter(x => x.status === 'todo').slice(0, 3)
-    : top;
-  return (
-    <Widget title="Today's Priorities" onClick={onClick} t={t}>
-      {fallback.length === 0 && (
-        <div style={{ fontSize: 12, color: t.textMuted, opacity: 0.6 }}>No tasks yet.</div>
-      )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {fallback.map(task => (
-          <div key={task.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-            onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => {
-              setTasks(prev => prev.map(t => t.id === task.id
-                ? { ...t, status: t.status === 'done' ? 'todo' : 'done', updatedAt: new Date().toISOString() } : t));
-            }} style={{
-              width: 16, height: 16, borderRadius: 4, flexShrink: 0,
-              border: `1.5px solid ${task.status === 'done' ? 'rgba(48,180,98,0.5)' : t.border}`,
-              background: task.status === 'done' ? 'rgba(48,180,98,0.15)' : 'transparent',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#2d8a56', fontSize: 11,
-            }}>{task.status === 'done' ? '✓' : ''}</button>
-            <span style={{
-              fontSize: 12, color: task.status === 'done' ? t.textMuted : t.text,
-              textDecoration: task.status === 'done' ? 'line-through' : 'none',
-              flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}>{task.title}</span>
-          </div>
-        ))}
-      </div>
-    </Widget>
-  );
-}
-
-function GoalsWidget({ goals, onClick, t }: { goals: Goal[]; onClick: () => void; t: Theme }) {
-  const active = goals.filter(g => g.status === 'active').slice(0, 3);
-  return (
-    <Widget title="Active Goals" onClick={onClick} t={t}>
-      {active.length === 0 && (
-        <div style={{ fontSize: 12, color: t.textMuted, opacity: 0.6 }}>No active goals.</div>
-      )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {active.map(g => {
-          const checklist = g.checklist || [];
-          const doneCount = checklist.filter(c => c.done).length;
-          const pct = checklist.length > 0 ? Math.round((doneCount / checklist.length) * 100) : (g.progress || 0);
-          return (
-            <div key={g.id}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                <span style={{ fontSize: 12, color: t.text, fontFamily: FONT_MEDIUM, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '70%' }}>{g.title || 'Untitled'}</span>
-                <span style={{ fontSize: 11, color: t.textMuted }}>{pct}%</span>
-              </div>
-              <div style={{ height: 4, background: t.accentSubtle, borderRadius: 2, overflow: 'hidden' }}>
-                <div style={{
-                  width: `${pct}%`, height: '100%',
-                  background: pct === 100 ? '#22c55e' : '#3b82f6', transition: APPLE_TRANSITION,
-                }} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </Widget>
-  );
-}
-
-function NetworkWidget({ contacts, onClick, t }: { contacts: NetworkContact[]; onClick: () => void; t: Theme }) {
-  const replyNeeded = contacts.filter(c => c.category === 'reply-needed').length;
-  const callsBooked = contacts.filter(c => c.category === 'call-booked').length;
-  const awaiting = contacts.filter(c => c.category === 'awaiting-reply').length;
-  return (
-    <Widget title="Network Pulse" onClick={onClick} t={t}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ color: t.textMuted }}>Replies needed</span>
-          <span style={{ color: replyNeeded > 0 ? '#ef4444' : t.text, fontFamily: FONT_MEDIUM }}>{replyNeeded}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ color: t.textMuted }}>Calls booked</span>
-          <span style={{ color: t.text, fontFamily: FONT_MEDIUM }}>{callsBooked}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ color: t.textMuted }}>Awaiting reply</span>
-          <span style={{ color: t.text, fontFamily: FONT_MEDIUM }}>{awaiting}</span>
-        </div>
-      </div>
-    </Widget>
-  );
-}
-
-function JournalWidget({ journal, setJournal, onClick, t }: {
-  journal: JournalEntry[]; setJournal: (fn: (prev: JournalEntry[]) => JournalEntry[]) => void;
-  onClick: () => void; t: Theme;
-}) {
-  const today = localToday();
-  const entry = journal.find(e => e.date === today);
-  const update = (body: string) => {
-    if (entry) {
-      setJournal(prev => prev.map(e => e.date === today
-        ? { ...e, body, updatedAt: new Date().toISOString() } : e));
-    } else {
-      setJournal(prev => [...prev, {
-        id: today, date: today, body, tomorrow: '', meetings: [],
-        updatedAt: new Date().toISOString(),
-      }]);
-    }
-  };
-  return (
-    <div onClick={onClick} style={{
-      gridColumn: 'span 4',
-      background: t.cardBg, border: `1px solid ${t.border}`,
-      borderRadius: CARD_RADIUS, padding: 18, cursor: 'pointer',
-      transition: APPLE_TRANSITION, fontFamily: FONT, boxShadow: CARD_SHADOW,
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
-        <span style={{
-          fontSize: 11, fontFamily: FONT_MEDIUM, color: t.textMuted,
-          textTransform: 'uppercase', letterSpacing: '0.06em',
-        }}>Journal · Today</span>
-        <span style={{ fontSize: 11, color: t.textMuted }}>tap to expand</span>
-      </div>
-      <textarea
-        value={entry?.body || ''}
-        onChange={e => update(e.target.value)}
-        onClick={e => e.stopPropagation()}
-        placeholder="What did you do today? Wins, blockers, ideas..."
-        rows={3}
-        style={{
-          width: '100%', background: t.inputBg, border: `1px solid ${t.border}`,
-          color: t.text, padding: '10px 12px', borderRadius: 10,
-          fontFamily: FONT, fontSize: 13, outline: 'none',
-          boxSizing: 'border-box', resize: 'vertical', lineHeight: 1.5,
-          letterSpacing: '-0.005em',
-        }}
-      />
-    </div>
-  );
-}
-
-function DashboardTab({
-  journal, setJournal, contacts, tasks, setTasks, goals, finance, onNavigate,
-  googleEvents, googleConfigured, googleConnected, googleLoading, onConnectGoogle, t,
-}: DashboardProps & {
-  setTasks: (fn: (prev: Task[]) => Task[]) => void;
-  googleEvents: GoogleEvent[]; googleConfigured: boolean;
-  googleConnected: boolean; googleLoading: boolean;
-  onConnectGoogle: () => void;
-}) {
-  const now = new Date();
-  const heading = now.toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-  return (
-    <div>
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 28, fontFamily: FONT_MEDIUM, color: t.textStrong, letterSpacing: '-0.025em' }}>Today</div>
-        <div style={{ fontSize: 13, color: t.textMuted, marginTop: 2 }}>{heading}</div>
-      </div>
-      <div style={{
-        display: 'grid', gap: 14,
-        gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-      }}>
-        <TodayWidget t={t} />
-        <WeatherWidget t={t} />
-        <FinanceWidget finance={finance} onClick={() => onNavigate('finance')} t={t} />
-        <NetworkWidget contacts={contacts} onClick={() => onNavigate('network')} t={t} />
-        <CalendarWidget
-          journal={journal}
-          googleEvents={googleEvents}
-          googleConfigured={googleConfigured}
-          googleConnected={googleConnected}
-          googleLoading={googleLoading}
-          onConnectGoogle={onConnectGoogle}
-          onClick={() => onNavigate('journal')}
-          t={t}
-        />
-        <PrioritiesWidget tasks={tasks} setTasks={setTasks} onClick={() => onNavigate('tasks')} t={t} />
-        <GoalsWidget goals={goals} onClick={() => onNavigate('goals')} t={t} />
-        <JournalWidget journal={journal} setJournal={setJournal} onClick={() => onNavigate('journal')} t={t} />
-      </div>
-    </div>
-  );
-}
-
-// ── Main Dashboard ──
-export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }: { onClose: () => void; onLogout?: () => void; passHash: string; transparent?: boolean }) {
-  const baseTheme = useBlackbookTheme();
-  // When transparent, override backgrounds to be see-through
-  // Apple Control Center style: dark overlay bg, light frosted cards, dark text
-  const t = transparent ? {
-    ...baseTheme,
-    bg: 'rgba(0,0,0,0.35)',
-    cardBg: 'rgba(255,255,255,0.7)',
-    inputBg: 'rgba(255,255,255,0.55)',
-    border: 'rgba(0,0,0,0.12)',
-    text: '#1c1917',
-    textStrong: '#0c0a09',
-    textMuted: 'rgba(0,0,0,0.6)',
-    accentSubtle: 'rgba(0,0,0,0.08)',
-  } : baseTheme;
   const [tab, setTab] = useState<BlackbookTab>('dashboard');
   const [journal, setJournal] = useState<JournalEntry[]>(() => load('journal', []));
   const [contacts, setContacts] = useState<NetworkContact[]>(() => load('contacts', DEFAULT_CONTACTS));
@@ -3309,13 +2327,10 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
   const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const saveQueueRef = useRef(new SaveQueue());
 
-  // Google Calendar
   const gcal = useGoogleCalendar();
 
-  // Per-section timestamps — tracks when each section was last edited locally
   const sectionTs = useRef({ journal: '', contacts: '', ideas: '', tasks: '', goals: '', finance: '' });
 
-  // Refs that always hold the latest state — used by sync and beforeunload
   const journalRef = useRef(journal);
   const contactsRef = useRef(contacts);
   const ideasRef = useRef(ideas);
@@ -3329,16 +2344,14 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
   useEffect(() => { goalsRef.current = goals; }, [goals]);
   useEffect(() => { financeRef.current = finance; }, [finance]);
 
-  // Wire up save queue status
   useEffect(() => {
     saveQueueRef.current.onStatusChange = setSaveStatus;
     return () => { saveQueueRef.current.cancel(); };
   }, []);
 
-  // Run migration once
   useEffect(() => { migrateIfNeeded(); migrateContactsV3(); migrateFinance(); }, []);
 
-  // Load from cloud on mount — merge with localStorage using per-field timestamps
+  // Load from cloud + merge
   useEffect(() => {
     loadFromCloud(passHash).then(cloud => {
       const localData: BlackbookData = {
@@ -3356,7 +2369,6 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
         financeUpdatedAt: load('financeUpdatedAt', ''),
       };
 
-      // Per-field merge: newest timestamp wins per section
       const merged = mergeCloudLocal(cloud, localData);
       let loadedJournal = merged.journal ?? [];
       let loadedContacts = merged.contacts ?? [];
@@ -3366,7 +2378,6 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
       const loadedFinance = (merged.finance && typeof merged.finance === 'object' && Array.isArray((merged.finance as any).accounts))
         ? merged.finance : DEFAULT_FINANCE;
 
-      // Track section timestamps
       const now = new Date().toISOString();
       sectionTs.current = {
         journal: merged.journalUpdatedAt || now,
@@ -3377,14 +2388,7 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
         finance: merged.financeUpdatedAt || now,
       };
 
-      // One-time seeds — only inject if this device hasn't seeded yet
-      for (const key of ['linear', 'offdeal', 'ostium', 'vivek-apr9']) {
-        const result = runOneTimeSeed(key, loadedContacts, loadedJournal);
-        loadedContacts = result.contacts;
-        loadedJournal = result.journal;
-      }
-
-      // Deduplicate before applying — prevents dirty cloud/localStorage data from showing dupes
+      // Dedup
       for (const entry of loadedJournal) {
         if (entry.meetings?.length > 1) {
           const seen = new Set<string>();
@@ -3396,51 +2400,29 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
           });
         }
       }
-      {
-        const seen = new Set<string>();
-        loadedContacts = loadedContacts.filter(c => {
-          if (!c.name?.trim()) return false;
-          const k = `${c.name}|${c.company}`;
-          if (seen.has(k)) return false;
-          seen.add(k);
-          return true;
-        });
-      }
-
-      // Migrate contacts to v3 format if needed
-      loadedContacts = loadedContacts.map((c: any) => {
-        if (c.category) return c;
-        let category: ContactCategory = 'warm';
-        let urgency: Urgency = 'later';
-        const os = c.outreachStatus as string;
-        if (os === 'dm-sent') { category = 'awaiting-reply'; urgency = 'waiting'; }
-        else if (os === 'replied') { category = 'reply-needed'; urgency = 'soon'; }
-        else if (os === 'call-scheduled') { category = 'call-booked'; urgency = 'now'; }
-        else if (os === 'connected') { category = 'connected'; urgency = 'later'; }
-        return { ...c, category, urgency, whatTheySaid: c.whatTheySaid || c.notes || '', actionNeeded: c.actionNeeded || c.nextAction || '' };
+      const seen = new Set<string>();
+      loadedContacts = loadedContacts.filter(c => {
+        if (!c.name?.trim()) return false;
+        const k = `${c.name}|${c.company}`;
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
       });
 
-      // Apply to state and cache locally
       setJournal(loadedJournal);
       setContacts(loadedContacts);
       setIdeas(loadedIdeas);
       setTasks(loadedTasks);
       setGoals(loadedGoals);
       setFinance(loadedFinance);
+
       save('journal', loadedJournal);
       save('contacts', loadedContacts);
       save('ideas', loadedIdeas);
       save('tasks', loadedTasks);
       save('goals', loadedGoals);
       save('finance', loadedFinance);
-      save('journalUpdatedAt', sectionTs.current.journal);
-      save('contactsUpdatedAt', sectionTs.current.contacts);
-      save('ideasUpdatedAt', sectionTs.current.ideas);
-      save('tasksUpdatedAt', sectionTs.current.tasks);
-      save('goalsUpdatedAt', sectionTs.current.goals);
-      save('financeUpdatedAt', sectionTs.current.finance);
 
-      // Sync back to cloud (seeds/dedup may have cleaned data)
       const payload: BlackbookData = {
         journal: loadedJournal, contacts: loadedContacts, ideas: loadedIdeas,
         tasks: loadedTasks, goals: loadedGoals, finance: loadedFinance,
@@ -3457,14 +2439,9 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
     });
   }, [passHash]);
 
-  // Build the full payload from current refs + timestamps
   const buildPayload = useCallback((): BlackbookData => ({
-    journal: journalRef.current,
-    contacts: contactsRef.current,
-    ideas: ideasRef.current,
-    tasks: tasksRef.current,
-    goals: goalsRef.current,
-    finance: financeRef.current,
+    journal: journalRef.current, contacts: contactsRef.current, ideas: ideasRef.current,
+    tasks: tasksRef.current, goals: goalsRef.current, finance: financeRef.current,
     journalUpdatedAt: sectionTs.current.journal,
     contactsUpdatedAt: sectionTs.current.contacts,
     ideasUpdatedAt: sectionTs.current.ideas,
@@ -3473,7 +2450,6 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
     financeUpdatedAt: sectionTs.current.finance,
   }), []);
 
-  // Debounced sync with retry queue
   const syncToCloud = useCallback(() => {
     save('journal', journalRef.current);
     save('contacts', contactsRef.current);
@@ -3494,22 +2470,16 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
     }, 800);
   }, [passHash, buildPayload]);
 
-  // Flush to cloud immediately — used on beforeunload / visibilitychange
   const flushToCloud = useCallback(() => {
-    // Save to localStorage immediately (guaranteed)
-    save('journal', journalRef.current);
-    save('contacts', contactsRef.current);
-    save('ideas', ideasRef.current);
-    save('tasks', tasksRef.current);
-    save('goals', goalsRef.current);
-    save('finance', financeRef.current);
+    save('journal', journalRef.current); save('contacts', contactsRef.current);
+    save('ideas', ideasRef.current); save('tasks', tasksRef.current);
+    save('goals', goalsRef.current); save('finance', financeRef.current);
     save('journalUpdatedAt', sectionTs.current.journal);
     save('contactsUpdatedAt', sectionTs.current.contacts);
     save('ideasUpdatedAt', sectionTs.current.ideas);
     save('tasksUpdatedAt', sectionTs.current.tasks);
     save('goalsUpdatedAt', sectionTs.current.goals);
     save('financeUpdatedAt', sectionTs.current.finance);
-    // Fire-and-forget cloud save via fetch with keepalive
     const payload = buildPayload();
     fetch(`${SUPABASE_URL}/rest/v1/blackbook?pass_hash=eq.${passHash}`, {
       method: 'PATCH',
@@ -3524,7 +2494,6 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
     }).catch(() => {});
   }, [passHash, buildPayload]);
 
-  // Warn user if they try to close with unsaved changes
   const handleBeforeUnload = useCallback((e: BeforeUnloadEvent) => {
     flushToCloud();
     if (saveQueueRef.current.hasPending() || saveStatus === 'saving' || saveStatus === 'retrying') {
@@ -3532,16 +2501,14 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
     }
   }, [flushToCloud, saveStatus]);
 
-  // Save to cloud on tab close / navigate away / mobile Safari pagehide
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === 'hidden') flushToCloud();
     };
     const handlePageHide = () => flushToCloud();
-
     window.addEventListener('beforeunload', handleBeforeUnload);
     document.addEventListener('visibilitychange', handleVisibility);
-    window.addEventListener('pagehide', handlePageHide); // mobile Safari
+    window.addEventListener('pagehide', handlePageHide);
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibility);
@@ -3549,37 +2516,15 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
     };
   }, [handleBeforeUnload, flushToCloud]);
 
-  // Trigger sync when any data changes — update per-section timestamps
-  useEffect(() => {
-    if (!synced) return;
-    sectionTs.current.journal = new Date().toISOString();
-    syncToCloud();
-  }, [journal]);
-  useEffect(() => {
-    if (!synced) return;
-    sectionTs.current.contacts = new Date().toISOString();
-    syncToCloud();
-  }, [contacts]);
-  useEffect(() => {
-    if (!synced) return;
-    sectionTs.current.ideas = new Date().toISOString();
-    syncToCloud();
-  }, [ideas]);
-  useEffect(() => {
-    if (!synced) return;
-    sectionTs.current.tasks = new Date().toISOString();
-    syncToCloud();
-  }, [tasks]);
-  useEffect(() => {
-    if (!synced) return;
-    sectionTs.current.goals = new Date().toISOString();
-    syncToCloud();
-  }, [goals]);
-  useEffect(() => {
-    if (!synced) return;
-    sectionTs.current.finance = new Date().toISOString();
-    syncToCloud();
-  }, [finance]);
+  useEffect(() => { if (synced) { sectionTs.current.journal = new Date().toISOString(); syncToCloud(); } }, [journal]);
+  useEffect(() => { if (synced) { sectionTs.current.contacts = new Date().toISOString(); syncToCloud(); } }, [contacts]);
+  useEffect(() => { if (synced) { sectionTs.current.ideas = new Date().toISOString(); syncToCloud(); } }, [ideas]);
+  useEffect(() => { if (synced) { sectionTs.current.tasks = new Date().toISOString(); syncToCloud(); } }, [tasks]);
+  useEffect(() => { if (synced) { sectionTs.current.goals = new Date().toISOString(); syncToCloud(); } }, [goals]);
+  useEffect(() => { if (synced) { sectionTs.current.finance = new Date().toISOString(); syncToCloud(); } }, [finance]);
+
+  const today = new Date();
+  const dateLine = today.toLocaleDateString('en', { weekday: 'long', month: 'short', day: 'numeric' }) + ' · ' + today.getFullYear();
 
   return (
     <div style={{
@@ -3588,123 +2533,146 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
       width: transparent ? '100%' : undefined,
       height: transparent ? '100%' : undefined,
       zIndex: transparent ? undefined : 10001,
-      background: t.bg, color: t.text, fontFamily: FONT,
-      fontSize: 15, overflow: 'auto',
-      backdropFilter: transparent ? 'blur(40px)' : undefined,
-      WebkitBackdropFilter: transparent ? 'blur(40px)' : undefined,
+      color: TOK.ink0, fontFamily: FONT_TEXT,
+      fontSize: 14, overflow: 'hidden',
+      background: TOK.paper,
     }}>
-      {/* Header — Apple-style top bar */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: transparent
-          ? 'rgba(255,255,255,0.55)'
-          : t.bg,
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        borderBottom: transparent ? '0.5px solid rgba(0,0,0,0.08)' : `1px solid ${t.border}`,
+      <Wallpaper />
+
+      {/* Top chrome */}
+      <header style={{
+        position: 'relative', zIndex: 5,
+        height: 52, display: 'grid', gridTemplateColumns: '1fr auto 1fr',
+        alignItems: 'center', padding: '0 22px',
+        background: 'rgba(245,240,232,0.55)',
+        backdropFilter: 'saturate(180%) blur(26px)',
+        WebkitBackdropFilter: 'saturate(180%) blur(26px)',
+        borderBottom: `1px solid ${TOK.hair}`,
       }}>
-        <div style={{
-          padding: '14px 24px',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{
-              fontSize: 17, fontFamily: FONT_MEDIUM,
-              color: t.textStrong, letterSpacing: '-0.02em',
-            }}>Blackbook</span>
-            <span style={{
-              color: t.textMuted, fontSize: 12,
-              fontFamily: FONT, letterSpacing: '-0.005em',
-            }}>
-              {new Date().toLocaleDateString('en', { weekday: 'long', month: 'short', day: 'numeric' })}
-            </span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <SaveIndicator status={saveStatus} t={t} />
-            {onLogout && <button onClick={onLogout} style={{
-              background: t.accentSubtle, border: 'none',
-              color: t.textMuted, cursor: 'pointer',
-              padding: '6px 14px', borderRadius: 8,
-              fontSize: 12, fontFamily: FONT_MEDIUM,
-              transition: APPLE_TRANSITION,
-            }}>Lock</button>}
-            <button onClick={onClose} style={{
-              background: t.accentSubtle, border: 'none',
-              color: t.textMuted, cursor: 'pointer',
-              padding: '6px 14px', borderRadius: 8,
-              fontSize: 12, fontFamily: FONT_MEDIUM,
-              transition: APPLE_TRANSITION,
-            }}>Done</button>
-          </div>
-        </div>
-
-        {/* Tabs — macOS segmented control */}
-        <div style={{
-          padding: '4px 24px 14px',
-          display: 'flex', justifyContent: 'center',
-        }}>
-          <div style={{
-            display: 'inline-flex',
-            background: t.accentSubtle, padding: 3, borderRadius: 10,
-            border: `0.5px solid ${t.border}`,
+        {/* Brand */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontWeight: 600, letterSpacing: '-0.01em' }}>
+          <span aria-hidden style={{
+            width: 18, height: 18, borderRadius: 5,
+            background: 'linear-gradient(160deg, #2a2320, #100c0a)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), 0 1px 2px rgba(0,0,0,0.15)',
+            position: 'relative', flexShrink: 0,
           }}>
-            {(['dashboard', 'journal', 'network', 'tasks', 'goals', 'ideas', 'finance'] as const).map(tb => {
-              const active = tab === tb;
-              return (
-                <button key={tb} onClick={() => setTab(tb)} style={{
-                  background: active ? t.cardBg : 'transparent',
-                  border: 'none', cursor: 'pointer',
-                  color: active ? t.textStrong : t.textMuted,
-                  padding: '6px 14px', borderRadius: 8,
-                  fontSize: 12, fontFamily: FONT_MEDIUM,
-                  transition: APPLE_TRANSITION,
-                  letterSpacing: '-0.005em',
-                  boxShadow: active ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
-                }}>
-                  {tb.charAt(0).toUpperCase() + tb.slice(1)}
-                </button>
-              );
-            })}
+            <span aria-hidden style={{
+              position: 'absolute', left: 4, top: 4,
+              width: 6, height: 6, borderRadius: 2, background: TOK.accent,
+            }} />
+          </span>
+          <span style={{ fontFamily: FONT_TEXT, fontSize: 14, color: TOK.ink0 }}>Blackbook</span>
+          <span style={{
+            color: TOK.ink3, fontWeight: 500, fontSize: 12.5,
+            marginLeft: 8, fontFamily: FONT_TEXT,
+          }}>{dateLine}</span>
+        </div>
+
+        {/* Tab pill */}
+        <nav style={{
+          display: 'flex', gap: 2, padding: 3,
+          background: 'rgba(20,16,12,0.05)',
+          border: `1px solid ${TOK.hair}`,
+          borderRadius: TOK.rPill,
+        }}>
+          {TABS.map(tb => {
+            const active = tab === tb;
+            return (
+              <button key={tb} onClick={() => setTab(tb)} style={{
+                appearance: 'none', border: 0,
+                background: active ? 'rgba(255,253,249,0.95)' : 'transparent',
+                color: active ? TOK.ink0 : TOK.ink2,
+                fontFamily: FONT_TEXT, fontSize: 12.5, padding: '6px 14px',
+                borderRadius: TOK.rPill, cursor: 'pointer',
+                transition: 'background 0.15s, color 0.15s',
+                boxShadow: active ? '0 1px 2px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.04)' : undefined,
+              }}>
+                {tb.charAt(0).toUpperCase() + tb.slice(1)}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Right chrome */}
+        <div style={{ justifySelf: 'end', display: 'flex', alignItems: 'center', gap: 12, color: TOK.ink3, fontSize: 12 }}>
+          <span style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '5px 11px', borderRadius: TOK.rPill,
+            background: 'rgba(20,16,12,0.05)', color: TOK.ink2, fontWeight: 500, fontFamily: FONT_TEXT,
+          }}>
+            <span aria-hidden style={{
+              width: 6, height: 6, borderRadius: '50%',
+              background: saveStatus === 'error' ? TOK.bad : saveStatus === 'retrying' ? TOK.warn : TOK.good,
+            }}></span>
+            {saveStatus === 'saved' ? 'All synced' :
+             saveStatus === 'saving' ? 'Saving…' :
+             saveStatus === 'retrying' ? 'Retrying…' :
+             saveStatus === 'error' ? 'Save failed' : 'Synced'}
+          </span>
+          {onLogout && <button onClick={onLogout} style={{
+            appearance: 'none', cursor: 'pointer', fontFamily: FONT_TEXT,
+            fontSize: 12, padding: '5px 12px', borderRadius: TOK.rPill,
+            background: 'transparent', border: `1px solid ${TOK.hair}`, color: TOK.ink2,
+          }}>Lock</button>}
+          <button onClick={onClose} style={{
+            appearance: 'none', cursor: 'pointer', fontFamily: FONT_TEXT,
+            fontSize: 12, padding: '5px 12px', borderRadius: TOK.rPill,
+            background: 'transparent', border: `1px solid ${TOK.hair}`, color: TOK.ink2,
+          }}>Done</button>
+        </div>
+      </header>
+
+      {/* Stage */}
+      <main style={{
+        position: 'relative', zIndex: 1,
+        height: 'calc(100% - 52px)',
+        overflowY: 'auto', overflowX: 'hidden',
+      }}>
+        <div style={{ padding: '32px 40px 80px' }}>
+          <div style={{ maxWidth: 1080, margin: '0 auto' }}>
+            {tab === 'dashboard' && (
+              <Dashboard
+                journal={journal} setJournal={setJournal}
+                contacts={contacts} tasks={tasks} setTasks={setTasks}
+                goals={goals} finance={finance}
+                googleEvents={gcal.events}
+                googleConfigured={gcal.isConfigured}
+                googleConnected={!!gcal.token}
+                googleLoading={gcal.loading}
+                onConnectGoogle={gcal.connect}
+                onNavigate={setTab}
+              />
+            )}
+            {tab === 'journal' && (
+              <Journal
+                journal={journal} setJournal={setJournal} contacts={contacts}
+                googleEvents={gcal.events} googleConnected={!!gcal.token}
+                googleConfigured={gcal.isConfigured} onConnectGoogle={gcal.connect}
+              />
+            )}
+            {tab === 'network' && <Network contacts={contacts} setContacts={setContacts} journal={journal} />}
+            {tab === 'tasks' && <Tasks tasks={tasks} setTasks={setTasks} />}
+            {tab === 'goals' && <Goals goals={goals} setGoals={setGoals} />}
+            {tab === 'finance' && <Finance finance={finance} setFinance={setFinance} />}
           </div>
         </div>
-      </div>
+      </main>
 
-      {/* Content */}
-      <div style={{ padding: 24, maxWidth: 1100, margin: '0 auto' }}>
-        {tab === 'dashboard' && (
-          <DashboardTab
-            journal={journal} setJournal={setJournal}
-            contacts={contacts} tasks={tasks} setTasks={setTasks}
-            goals={goals} finance={finance}
-            googleEvents={gcal.events}
-            googleConfigured={gcal.isConfigured}
-            googleConnected={!!gcal.token}
-            googleLoading={gcal.loading}
-            onConnectGoogle={gcal.connect}
-            onNavigate={setTab}
-            t={t}
-          />
-        )}
-        {tab === 'journal' && <JournalTab journal={journal} setJournal={setJournal} contacts={contacts} t={t} />}
-        {tab === 'network' && <NetworkTab contacts={contacts} setContacts={setContacts} journal={journal} t={t} />}
-        {tab === 'tasks' && <TasksTab tasks={tasks} setTasks={setTasks} t={t} />}
-        {tab === 'goals' && <GoalsTab goals={goals} setGoals={setGoals} t={t} />}
-        {tab === 'ideas' && <IdeasTab ideas={ideas} setIdeas={setIdeas} t={t} />}
-        {tab === 'finance' && <FinanceTab finance={finance} setFinance={setFinance} t={t} />}
-      </div>
-      {transparent && <style>{`
-        input::placeholder, textarea::placeholder {
-          color: rgba(0,0,0,0.55) !important;
-          opacity: 1 !important;
+      <style>{`
+        @keyframes bb-fade {
+          from { opacity: 0; transform: translateY(4px); }
+          to { opacity: 1; transform: none; }
         }
-        select { color: rgba(0,0,0,0.8) !important; }
-        option { background: #fff; color: #1d1d1f; }
-      `}</style>}
+      `}</style>
     </div>
   );
 }
 
-// ── Main Export ──
+/* ═══════════════════════════════════════════════════════════
+   MAIN EXPORT
+   ═══════════════════════════════════════════════════════════ */
+
 export default function Blackbook() {
   const [state, setState] = useState<'hidden' | 'password' | 'open'>('hidden');
   const [passHash, setPassHash] = useState('');
@@ -3717,7 +2685,6 @@ export default function Blackbook() {
     return () => window.removeEventListener('keydown', handler);
   }, [state]);
 
-  // Hide page peel when blackbook is active
   useEffect(() => {
     if (state !== 'hidden') {
       document.body.classList.add('blackbook-active');
