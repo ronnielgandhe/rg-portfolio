@@ -79,13 +79,13 @@ function Face({ logo, p }: { logo: THREE.Texture; p: Palette }) {
           map={logo}
           alphaTest={0.5}
           metalness={1}
-          roughness={0.04}
+          roughness={0.08}
           iridescence={1}
           iridescenceIOR={1.35}
           iridescenceThicknessRange={[130, 420]}
           clearcoat={1}
           clearcoatRoughness={0.08}
-          envMapIntensity={1.7}
+          envMapIntensity={2.3}
           emissive={p.emissive}
           emissiveMap={logo}
           emissiveIntensity={p.emissiveInt}
@@ -281,6 +281,8 @@ function Studio() {
       <Lightformer form="rect" intensity={2.4} color="#8ea6ff" position={[3, 1.5, 2]} scale={[3, 4, 1]} />
       <Lightformer form="rect" intensity={2.2} color="#ff9ecb" position={[-1, -2.5, 2.5]} scale={[4, 3, 1]} />
       <Lightformer form="ring" intensity={3} color="#ffffff" position={[0, 0.5, 4.5]} scale={[2.4, 2.4, 1]} />
+      {/* bright diagonal key: its reflection sweeps a shimmer across the logo */}
+      <Lightformer form="rect" intensity={7} color="#ffffff" position={[1.4, 2.2, 5]} scale={[1.6, 7, 1]} rotation={[0, -0.35, 0.5]} />
     </Environment>
   );
 }
