@@ -23,7 +23,7 @@ export const PASS = 'vaishali123!';
 const FONT_TEXT = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif";
 const FONT_DISPLAY = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', system-ui, sans-serif";
 
-const FX_USD_TO_CAD = 1.37;
+const FX_USD_TO_CAD = 1.4073;
 
 /* ───────── Design tokens (paper warm) ───────── */
 const TOK = {
@@ -139,18 +139,73 @@ interface FinanceData {
   accounts: Account[]; transactions: Transaction[];
   budgets: Budget[]; goals: FinancialGoal[];
 }
+interface HabitDay {
+  water?: boolean; steps?: boolean; pushups?: boolean;
+  protein?: boolean; sleep?: boolean; lift?: boolean; weight?: number;
+}
+type HabitsMap = { [date: string]: HabitDay };
+interface FinancePlan {
+  checksTotal: number; checksConfirmed: string[]; perCheck: number;
+  startBalanceUSD: number; targetUSD: number; targetCAD: number;
+}
+type TradeStatus = 'planned' | 'open' | 'closed';
+interface OptionTrade {
+  id: string;
+  symbol: string; kind: 'call' | 'put';
+  strike: number; expiry: string; contracts: number;
+  entryPrice: number;        // premium per share
+  entryDate: string;
+  entryIV?: number;          // decimal, used for model marks when the chain is down
+  exitBy?: string;           // hard exit date, non-negotiable
+  targetPrice?: number;      // underlying thesis target
+  stopPct?: number;          // alert when premium loses this % (negative)
+  takePct?: number;          // alert when premium gains this %
+  exitPrice?: number; exitDate?: string;
+  status: TradeStatus;
+  thesis?: string;
+  createdAt: string;
+}
+interface TradingData {
+  budgetUSD: number;         // fun money, hard-walled from the vault
+  trades: OptionTrade[];
+}
 interface BlackbookData {
   journal: JournalEntry[]; contacts: NetworkContact[]; ideas: ProjectIdea[];
   tasks: Task[]; goals: Goal[]; finance: FinanceData;
+  habits?: HabitsMap; plan?: FinancePlan; trading?: TradingData;
   journalUpdatedAt?: string; contactsUpdatedAt?: string; ideasUpdatedAt?: string;
   tasksUpdatedAt?: string; goalsUpdatedAt?: string; financeUpdatedAt?: string;
+  habitsUpdatedAt?: string; planUpdatedAt?: string; tradingUpdatedAt?: string;
 }
 const DEFAULT_FINANCE: FinanceData = { accounts: [], transactions: [], budgets: [], goals: [] };
 const DEFAULT_CONTACTS: NetworkContact[] = [];
+const DEFAULT_PLAN: FinancePlan = {
+  // monk mode 60: vault-only counting. the ~$7k aunt fund is ring-fenced
+  // (tracked as an account, never in the plan) so worst case can't touch this bar.
+  checksTotal: 18, checksConfirmed: [], perCheck: 3000,
+  startBalanceUSD: 0, targetUSD: 54000, targetCAD: 76000,
+};
+const DEFAULT_TRADING: TradingData = {
+  // $1,000 fun budget, hard-walled from the vault. stable seed id so
+  // devices that open before first sync don't duplicate the planned trade.
+  budgetUSD: 1000,
+  trades: [{
+    id: 'seed-qqq-740c-20260814',
+    symbol: 'QQQ', kind: 'call', strike: 740, expiry: '2026-08-14', contracts: 3,
+    entryPrice: 1.45, entryDate: '', entryIV: 0.183,
+    exitBy: '2026-08-13', targetPrice: 748.65, stopPct: -50, takePct: 100,
+    status: 'planned',
+    thesis: 'ATH tag: 748.65 needs +3.5% in 5 sessions. CPI Wed 8/12 8:30am ET is the catalyst. Sell into the move, out Thursday regardless.',
+    createdAt: '2026-08-08T00:00:00.000Z',
+  }],
+};
 
 /* ───────── Helpers ───────── */
 function toCAD(amount: number, currency: Currency): number {
   return currency === 'USD' ? amount * FX_USD_TO_CAD : amount;
+}
+function toUSD(amount: number, currency: Currency): number {
+  return currency === 'CAD' ? amount / FX_USD_TO_CAD : amount;
 }
 function monthKey(dateStr: string): string { return dateStr.slice(0, 7); }
 function thisMonthKey(): string {
@@ -176,6 +231,59 @@ function fmtDateShort(date: string): string {
 function daysBetween(from: Date, to: Date): number {
   const diff = to.getTime() - from.getTime();
   return Math.round(diff / (1000 * 60 * 60 * 24));
+}
+
+/* ───────── Options math (Black-Scholes) ───────── */
+const RISK_FREE = 0.04;
+function erfApprox(x: number): number {
+  // Abramowitz-Stegun 7.1.26, good to ~1.5e-7
+  const sign = x < 0 ? -1 : 1;
+  const ax = Math.abs(x);
+  const t = 1 / (1 + 0.3275911 * ax);
+  const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-ax * ax);
+  return sign * y;
+}
+const normCdf = (x: number) => 0.5 * (1 + erfApprox(x / Math.SQRT2));
+const normPdf = (x: number) => Math.exp(-x * x / 2) / Math.sqrt(2 * Math.PI);
+interface Greeks { price: number; delta: number; gamma: number; theta: number; vega: number; }
+function bsGreeks(S: number, K: number, T: number, sigma: number, isCall: boolean): Greeks {
+  if (T <= 0 || sigma <= 0) {
+    const intrinsic = Math.max(0, isCall ? S - K : K - S);
+    return { price: intrinsic, delta: isCall ? (S > K ? 1 : 0) : (S < K ? -1 : 0), gamma: 0, theta: 0, vega: 0 };
+  }
+  const sqT = Math.sqrt(T);
+  const d1 = (Math.log(S / K) + (RISK_FREE + sigma * sigma / 2) * T) / (sigma * sqT);
+  const d2 = d1 - sigma * sqT;
+  const disc = Math.exp(-RISK_FREE * T);
+  const price = isCall
+    ? S * normCdf(d1) - K * disc * normCdf(d2)
+    : K * disc * normCdf(-d2) - S * normCdf(-d1);
+  const delta = isCall ? normCdf(d1) : normCdf(d1) - 1;
+  const gamma = normPdf(d1) / (S * sigma * sqT);
+  const thetaYear = isCall
+    ? -(S * normPdf(d1) * sigma) / (2 * sqT) - RISK_FREE * K * disc * normCdf(d2)
+    : -(S * normPdf(d1) * sigma) / (2 * sqT) + RISK_FREE * K * disc * normCdf(-d2);
+  return { price, delta, gamma, theta: thetaYear / 365, vega: (S * normPdf(d1) * sqT) / 100 };
+}
+// options expire at 4pm ET; years remaining measured to that moment
+function yearsToExpiry(expiry: string, asOf = new Date()): number {
+  const t = Date.parse(`${expiry}T16:00:00-04:00`) - asOf.getTime();
+  return Math.max(0, t / (365 * 24 * 3600 * 1000));
+}
+function tradingDaysThrough(expiry: string): string[] {
+  // today through expiry, weekends skipped
+  const out: string[] = [];
+  const d = new Date();
+  d.setHours(12, 0, 0, 0);
+  const end = new Date(`${expiry}T12:00:00`);
+  while (d.getTime() <= end.getTime() && out.length < 15) {
+    const dow = d.getDay();
+    if (dow !== 0 && dow !== 6) {
+      out.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  return out;
 }
 
 /* ───────── Storage ───────── */
@@ -296,12 +404,18 @@ function mergeCloudLocal(cloud: BlackbookData | null, local: BlackbookData): Bla
     tasks: pick(cloud.tasks, cloud.tasksUpdatedAt, local.tasks, local.tasksUpdatedAt, []),
     goals: pick(cloud.goals, cloud.goalsUpdatedAt, local.goals, local.goalsUpdatedAt, []),
     finance: pick(cloud.finance, cloud.financeUpdatedAt, local.finance, local.financeUpdatedAt, DEFAULT_FINANCE),
+    habits: pick(cloud.habits, cloud.habitsUpdatedAt, local.habits, local.habitsUpdatedAt, {}),
+    plan: pick(cloud.plan, cloud.planUpdatedAt, local.plan, local.planUpdatedAt, DEFAULT_PLAN),
+    trading: pick(cloud.trading, cloud.tradingUpdatedAt, local.trading, local.tradingUpdatedAt, DEFAULT_TRADING),
     journalUpdatedAt: [cloud.journalUpdatedAt, local.journalUpdatedAt].filter(Boolean).sort().pop(),
     contactsUpdatedAt: [cloud.contactsUpdatedAt, local.contactsUpdatedAt].filter(Boolean).sort().pop(),
     ideasUpdatedAt: [cloud.ideasUpdatedAt, local.ideasUpdatedAt].filter(Boolean).sort().pop(),
     tasksUpdatedAt: [cloud.tasksUpdatedAt, local.tasksUpdatedAt].filter(Boolean).sort().pop(),
     goalsUpdatedAt: [cloud.goalsUpdatedAt, local.goalsUpdatedAt].filter(Boolean).sort().pop(),
     financeUpdatedAt: [cloud.financeUpdatedAt, local.financeUpdatedAt].filter(Boolean).sort().pop(),
+    habitsUpdatedAt: [cloud.habitsUpdatedAt, local.habitsUpdatedAt].filter(Boolean).sort().pop(),
+    planUpdatedAt: [cloud.planUpdatedAt, local.planUpdatedAt].filter(Boolean).sort().pop(),
+    tradingUpdatedAt: [cloud.tradingUpdatedAt, local.tradingUpdatedAt].filter(Boolean).sort().pop(),
   };
 }
 
@@ -730,75 +844,110 @@ function uid(): string {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   DASHBOARD
+   TODAY
    ═══════════════════════════════════════════════════════════ */
 
-interface DashboardProps {
-  journal: JournalEntry[];
-  setJournal: (fn: (prev: JournalEntry[]) => JournalEntry[]) => void;
-  contacts: NetworkContact[];
-  tasks: Task[];
-  setTasks: (fn: (prev: Task[]) => Task[]) => void;
-  goals: Goal[];
-  finance: FinanceData;
-  googleEvents: GCalEvent[];
-  googleConfigured: boolean;
-  googleConnected: boolean;
-  googleLoading: boolean;
-  onConnectGoogle: () => void;
-  onNavigate: (tab: BlackbookTab) => void;
+type HabitKey = 'water' | 'steps' | 'pushups' | 'protein' | 'sleep' | 'lift';
+const HABIT_DEFS: { key: HabitKey; label: string; sub: string }[] = [
+  { key: 'water', label: '3L water', sub: 'sip all day' },
+  { key: 'steps', label: '10k steps', sub: 'walk it off' },
+  { key: 'pushups', label: 'pushups', sub: 'daily set' },
+  { key: 'protein', label: '180g protein', sub: 'hit the number' },
+  { key: 'sleep', label: 'lights out 11:45', sub: 'no scroll' },
+];
+const LIFT_DEF = { key: 'lift' as HabitKey, label: 'lift', sub: 'Tue Thu Sat Sun' };
+
+function isLiftDay(iso: string): boolean {
+  const d = new Date(iso + 'T12:00').getDay();
+  return d === 0 || d === 2 || d === 4 || d === 6;
+}
+function habitKeysFor(iso: string): HabitKey[] {
+  const base: HabitKey[] = ['water', 'steps', 'pushups', 'protein', 'sleep'];
+  return isLiftDay(iso) ? [...base, 'lift'] : base;
+}
+function dayCompletion(habits: HabitsMap, iso: string): { done: number; total: number } {
+  const keys = habitKeysFor(iso);
+  const day = habits[iso] || {};
+  return { done: keys.filter(k => !!day[k]).length, total: keys.length };
+}
+function habitStreak(habits: HabitsMap, today: string): number {
+  const isoOf = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const complete = (iso: string) => {
+    const c = dayCompletion(habits, iso);
+    return c.total > 0 && c.done === c.total;
+  };
+  const cursor = new Date(today + 'T12:00');
+  if (!complete(today)) cursor.setDate(cursor.getDate() - 1);
+  let count = 0;
+  while (complete(isoOf(cursor))) { count++; cursor.setDate(cursor.getDate() - 1); }
+  return count;
+}
+function streakLine(n: number): string {
+  if (n === 0) return 'day zero. start now';
+  if (n < 3) return 'started. do not break it';
+  if (n < 7) return 'stacking days';
+  if (n < 14) return 'a week deep. locked in';
+  if (n < 30) return 'two weeks plus. keep pushing';
+  return 'machine mode';
 }
 
-function Dashboard({
-  journal, setJournal, contacts, tasks, setTasks, goals, finance,
-  googleEvents, googleConfigured, googleConnected, googleLoading, onConnectGoogle,
-  onNavigate,
-}: DashboardProps) {
+function Today({ habits, setHabits, tasks, setTasks, onNavigate }: {
+  habits: HabitsMap;
+  setHabits: (fn: (prev: HabitsMap) => HabitsMap) => void;
+  tasks: Task[];
+  setTasks: (fn: (prev: Task[]) => Task[]) => void;
+  onNavigate: (tab: BlackbookTab) => void;
+}) {
   const today = localToday();
-  const todayEntry = journal.find(e => e.date === today);
-  const monthStart = today.slice(0, 7);
+  const day = habits[today] || {};
+  const liftDay = isLiftDay(today);
+  const { done: habitsDone, total: habitsTotal } = dayCompletion(habits, today);
+  const streak = useMemo(() => habitStreak(habits, today), [habits, today]);
 
-  // Today's tasks (open + done)
-  const todaysTasks = tasks.filter(t => t.dueDate === today || (!t.dueDate && t.status !== 'done'));
-  const open = todaysTasks.filter(t => t.status !== 'done').length;
-  const done = todaysTasks.filter(t => t.status === 'done').length;
+  const toggleHabit = (key: HabitKey) => {
+    setHabits(prev => ({ ...prev, [today]: { ...prev[today], [key]: !prev[today]?.[key] } }));
+  };
 
-  // Network counts
-  const needs = contacts.filter(c => c.category === 'reply-needed').length;
-  const callsBooked = contacts.filter(c => c.category === 'call-booked').length;
-  const awaiting = contacts.filter(c => c.category === 'awaiting-reply').length;
-  const active = contacts.filter(c => ['call-booked', 'reply-needed', 'warm'].includes(c.category)).length;
-  const cold = contacts.filter(c => c.category === 'archived').length;
+  const [weightDraft, setWeightDraft] = useState(day.weight != null ? String(day.weight) : '');
+  useEffect(() => { setWeightDraft(day.weight != null ? String(day.weight) : ''); }, [day.weight]);
+  const commitWeight = () => {
+    const w = parseFloat(weightDraft);
+    setHabits(prev => {
+      const d = { ...prev[today] };
+      if (isNaN(w) || w <= 0) delete d.weight; else d.weight = Math.round(w * 10) / 10;
+      return { ...prev, [today]: d };
+    });
+  };
 
-  // 7-day strip
-  const days = useMemo(() => {
-    const out: { d: string; n: number; iso: string; today: boolean; weekday: string }[] = [];
+  // 30-day heat strip
+  const heat = useMemo(() => {
+    const out: { iso: string; ratio: number; label: string }[] = [];
     const base = new Date(today + 'T12:00');
-    for (let i = 0; i < 7; i++) {
-      const dt = new Date(base);
-      dt.setDate(base.getDate() + i);
-      const iso = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
-      out.push({
-        d: dt.toLocaleDateString('en', { weekday: 'short' }).slice(0, 3),
-        n: dt.getDate(),
-        iso,
-        today: iso === today,
-        weekday: dt.toLocaleDateString('en', { weekday: 'long' }),
-      });
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(base);
+      d.setDate(base.getDate() - i);
+      const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const c = dayCompletion(habits, iso);
+      out.push({ iso, ratio: c.total > 0 ? c.done / c.total : 0, label: `${fmtDateShort(iso)} · ${c.done}/${c.total}` });
     }
     return out;
-  }, [today]);
+  }, [habits, today]);
 
-  // Active goals — top 2 by progress
-  const activeGoals = goals.filter(g => g.status === 'active').slice(0, 2);
+  // Weight series
+  const weights = useMemo(() =>
+    Object.entries(habits)
+      .filter(([, v]) => typeof v.weight === 'number')
+      .map(([date, v]) => ({ date, w: v.weight as number }))
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(-30),
+  [habits]);
+  const latestW = weights[weights.length - 1];
 
-  // Finance month
-  const monthTx = finance.transactions.filter(t => monthKey(t.date) === monthStart);
-  const income = monthTx.filter(t => t.type === 'income').reduce((s, t) => s + toCAD(t.amount, t.currency), 0);
-  const spending = monthTx.filter(t => t.type === 'expense').reduce((s, t) => s + toCAD(t.amount, t.currency), 0);
-  const saved = income > 0 ? Math.max(0, Math.round(((income - spending) / income) * 100)) : 0;
+  // Today's focus: due today, or high priority still open
+  const focus = tasks.filter(t => t.dueDate === today || (t.priority === 'high' && t.status !== 'done'));
+  const openCount = focus.filter(t => t.status !== 'done').length;
 
-  // Toggle task
   const toggleTask = (id: string) => {
     setTasks(prev => prev.map(t => t.id === id ? {
       ...t, status: t.status === 'done' ? 'todo' : 'done',
@@ -806,29 +955,13 @@ function Dashboard({
     } : t));
   };
 
-  // Today journal body
-  const updateJournal = (patch: Partial<JournalEntry>) => {
-    setJournal(prev => {
-      const exists = prev.find(e => e.date === today);
-      if (exists) {
-        return prev.map(e => e.date === today ? { ...e, ...patch, updatedAt: new Date().toISOString() } : e);
-      }
-      return [...prev, {
-        id: today, date: today, body: '', tomorrow: '', meetings: [],
-        updatedAt: new Date().toISOString(), ...patch,
-      }];
-    });
-  };
-
-  // Quick add task
   const [quickTask, setQuickTask] = useState('');
   const addQuickTask = () => {
     if (!quickTask.trim()) return;
     const now = new Date().toISOString();
     setTasks(prev => [...prev, {
       id: uid(), title: quickTask.trim(), status: 'todo', priority: 'medium',
-      dueDate: today, list: 'personal',
-      createdAt: now, updatedAt: now,
+      dueDate: today, createdAt: now, updatedAt: now,
     }]);
     setQuickTask('');
   };
@@ -839,23 +972,17 @@ function Dashboard({
   const weekday = dateObj.toLocaleDateString('en', { weekday: 'long' });
   const fullDate = dateObj.toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' });
 
-  // Get user first name
-  const greetName = 'Ronniel';
-  const greeting = (() => {
-    const h = new Date().getHours();
-    if (h < 12) return 'Good morning';
-    if (h < 18) return 'Good afternoon';
-    return 'Good evening';
-  })();
+  const habitTiles = liftDay ? [...HABIT_DEFS, LIFT_DEF] : HABIT_DEFS;
+  const goodA = (a: number) => `oklch(0.55 0.10 150 / ${a})`;
 
   return (
     <div style={{ animation: 'bb-fade 0.32s cubic-bezier(.2,.8,.2,1) both' }}>
       <PageHeader
-        title={`${greeting}, ${greetName}`}
-        sub={`${fullDate} · ${open} ${open === 1 ? 'thing' : 'things'} on the list today`}
+        title="Today"
+        sub={`${fullDate} · ${habitsDone}/${habitsTotal} habits · ${openCount} on the list`}
       />
 
-      {/* Top hero row */}
+      {/* Hero: date + streak */}
       <div style={{ display: 'grid', gridTemplateColumns: '1.45fr 1fr', gap: 14, marginBottom: 14 }}>
         <Card hero style={{ padding: 22, display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 26, alignItems: 'center' }}>
           <div style={{ textAlign: 'center', minWidth: 100 }}>
@@ -864,65 +991,132 @@ function Dashboard({
             <div style={{ fontSize: 12, color: TOK.ink2, marginTop: 4, fontFamily: FONT_TEXT }}>{weekday}</div>
           </div>
           <div style={{ borderLeft: `0.5px solid ${TOK.hairStrong}`, paddingLeft: 24 }}>
-            <CardLabel style={{ marginBottom: 4 }}>Today</CardLabel>
+            <CardLabel style={{ marginBottom: 4 }}>Streak</CardLabel>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, fontFamily: FONT_DISPLAY }}>
-              <span style={{ fontSize: 40, fontWeight: 300, letterSpacing: '-0.03em', color: TOK.ink0 }}>
-                {googleConnected ? googleEvents.length : todaysTasks.length}
-              </span>
-              <span style={{ color: TOK.ink2, fontSize: 13, fontFamily: FONT_TEXT }}>
-                · {googleConnected ? 'events on calendar' : 'open tasks'}
-              </span>
+              <span style={{ fontSize: 40, fontWeight: 300, letterSpacing: '-0.03em', color: TOK.ink0, fontVariantNumeric: 'tabular-nums' }}>{streak}</span>
+              <span style={{ color: TOK.ink2, fontSize: 13, fontFamily: FONT_TEXT }}>· {streak === 1 ? 'day' : 'days'} all habits done</span>
             </div>
-            <div style={{ display: 'flex', gap: 14, marginTop: 8, fontSize: 12, color: TOK.ink2, fontFamily: FONT_TEXT }}>
-              <span>{open} open</span><span>{done} done</span>
-              <span style={{ color: TOK.ink3 }}>· {todayEntry?.body ? 'journaled' : 'no journal yet'}</span>
-            </div>
-            {!googleConnected && googleConfigured && (
-              <button onClick={onConnectGoogle}
-                style={{
-                  marginTop: 12, fontSize: 12, color: TOK.ink0, background: 'rgba(20,16,12,0.05)',
-                  border: 'none', padding: '5px 11px', borderRadius: TOK.rPill, cursor: 'pointer',
-                  fontFamily: FONT_TEXT,
-                }}>
-                {googleLoading ? 'Loading…' : 'Connect Google Calendar'}
-              </button>
-            )}
-            {!googleConfigured && (
-              <div style={{ marginTop: 12, fontSize: 11, color: TOK.ink3, fontFamily: FONT_TEXT }}>
-                Add <span style={{ color: TOK.ink1, fontFamily: 'monospace' }}>PUBLIC_GOOGLE_CLIENT_ID</span> to .env to connect calendar
+            <div style={{ marginTop: 8, fontSize: 13, color: TOK.ink2, fontFamily: FONT_TEXT }}>{streakLine(streak)}</div>
+            {liftDay && (
+              <div style={{ marginTop: 10 }}>
+                <Chip tone={day.lift ? 'good' : 'warn'}>{day.lift ? 'lifted' : 'lift day'}</Chip>
               </div>
             )}
           </div>
         </Card>
 
         <Card hero style={{ padding: 22 }}>
-          <CardLabel>Network pulse</CardLabel>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 2 }}>
-            <span style={{ fontSize: 44, fontWeight: 300, letterSpacing: '-0.03em', fontFamily: FONT_DISPLAY, color: TOK.ink0 }}>{needs}</span>
-            <span style={{ color: TOK.ink2, fontSize: 13, fontFamily: FONT_TEXT }}>
-              {needs === 1 ? 'reply needed' : 'replies needed'}
-            </span>
+          <CardLabel>Last 30 days</CardLabel>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(15, 1fr)', gap: 4, marginTop: 6 }}>
+            {heat.map(h => (
+              <div key={h.iso} title={h.label} style={{
+                aspectRatio: '1', borderRadius: 4,
+                background: h.ratio === 0 ? 'rgba(20,16,12,0.06)' : goodA(0.18 + 0.72 * h.ratio),
+                border: h.iso === today ? `1px solid ${TOK.ink3}` : `1px solid transparent`,
+                boxSizing: 'border-box',
+              }} />
+            ))}
           </div>
-          <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px', fontSize: 12.5, fontFamily: FONT_TEXT }}>
-            <PulseRow label="Calls booked" v={callsBooked} />
-            <PulseRow label="Awaiting reply" v={awaiting} />
-            <PulseRow label="Active" v={active} />
-            <PulseRow label="Archived" v={cold} tone={cold > 5 ? 'bad' : undefined} />
+          <div style={{
+            marginTop: 12, paddingTop: 12, borderTop: `0.5px solid ${TOK.hair}`,
+            display: 'flex', justifyContent: 'space-between', fontSize: 12, color: TOK.ink2, fontFamily: FONT_TEXT,
+          }}>
+            <span>Today</span>
+            <span style={{ color: TOK.ink0, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{habitsDone} of {habitsTotal} done</span>
           </div>
-          <button onClick={() => onNavigate('network')} style={{
-            marginTop: 14, fontSize: 12, color: TOK.ink2, background: 'transparent',
-            border: 'none', cursor: 'pointer', padding: 0, fontFamily: FONT_TEXT, textDecoration: 'underline',
-            textUnderlineOffset: 3, textDecorationColor: TOK.ink3,
-          }}>open network →</button>
         </Card>
       </div>
 
-      {/* Today's focus */}
+      {/* Habit checklist */}
       <Card style={{ marginBottom: 14, padding: 22 }}>
+        <CardLabel>Habits</CardLabel>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+          {habitTiles.map(h => {
+            const on = !!day[h.key];
+            return (
+              <button key={h.key} onClick={() => toggleHabit(h.key)} style={{
+                appearance: 'none', cursor: 'pointer', textAlign: 'left',
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '14px 16px', borderRadius: 14,
+                background: on ? 'oklch(0.55 0.10 150 / 0.10)' : 'rgba(255,253,249,0.7)',
+                border: `1px solid ${on ? 'oklch(0.55 0.10 150 / 0.25)' : TOK.hair}`,
+                transition: 'all 0.15s', fontFamily: FONT_TEXT,
+              }}>
+                <span style={{
+                  width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                  border: on ? '0' : `1.5px solid ${TOK.ink3}`,
+                  background: on ? TOK.good : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {on && <span style={{ color: '#fff', fontSize: 11, fontWeight: 700 }}>✓</span>}
+                </span>
+                <span style={{ minWidth: 0 }}>
+                  <span style={{ display: 'block', fontSize: 14, fontWeight: 500, color: TOK.ink0 }}>{h.label}</span>
+                  <span style={{ display: 'block', fontSize: 11.5, color: TOK.ink3, marginTop: 1 }}>{h.sub}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10, marginTop: 14,
+          paddingTop: 14, borderTop: `0.5px solid ${TOK.hair}`, fontFamily: FONT_TEXT,
+        }}>
+          <span style={{ fontSize: 12.5, color: TOK.ink2 }}>Weight</span>
+          <input value={weightDraft} type="number" inputMode="decimal"
+            onChange={e => setWeightDraft(e.target.value)}
+            onBlur={commitWeight}
+            onKeyDown={e => e.key === 'Enter' && commitWeight()}
+            placeholder="195.0"
+            style={{
+              width: 90, padding: '6px 10px', fontSize: 13, fontFamily: FONT_TEXT,
+              background: 'rgba(255,253,249,0.7)', border: `1px solid ${TOK.hair}`,
+              borderRadius: 10, color: TOK.ink0, outline: 'none',
+              fontVariantNumeric: 'tabular-nums',
+            }} />
+          <span style={{ fontSize: 12.5, color: TOK.ink3 }}>lbs</span>
+          {latestW && (
+            <span style={{ marginLeft: 'auto', fontSize: 12.5, color: TOK.ink2, fontVariantNumeric: 'tabular-nums' }}>
+              {latestW.w} lbs · {latestW.w > 185 ? `${(latestW.w - 185).toFixed(1)} to 185` : 'at target'}
+            </span>
+          )}
+        </div>
+        {weights.length >= 2 && (
+          <div style={{ marginTop: 12 }}>
+            <svg viewBox="0 0 300 56" preserveAspectRatio="none" style={{ width: '100%', height: 56, display: 'block' }}>
+              {(() => {
+                const lo = Math.min(185, ...weights.map(p => p.w)) - 1;
+                const hi = Math.max(185, ...weights.map(p => p.w)) + 1;
+                const span = hi - lo || 1;
+                const x = (i: number) => weights.length === 1 ? 150 : (i / (weights.length - 1)) * 300;
+                const y = (w: number) => 50 - ((w - lo) / span) * 44;
+                const pts = weights.map((p, i) => `${x(i).toFixed(1)},${y(p.w).toFixed(1)}`).join(' ');
+                return (
+                  <>
+                    <line x1="0" y1={y(185)} x2="300" y2={y(185)}
+                      stroke={TOK.good} strokeWidth="1" strokeDasharray="4 4" opacity="0.5"
+                      vectorEffect="non-scaling-stroke" />
+                    <polyline points={pts} fill="none" stroke={TOK.ink0} strokeWidth="1.5"
+                      vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
+                  </>
+                );
+              })()}
+            </svg>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: TOK.ink3, fontFamily: FONT_TEXT, marginTop: 4 }}>
+              <span>{fmtDateShort(weights[0].date)} · {weights[0].w} lbs</span>
+              <span style={{ color: TOK.good }}>185 target</span>
+              <span>{fmtDateShort(latestW!.date)} · {latestW!.w} lbs</span>
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* Today's focus */}
+      <Card style={{ padding: 22 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
           <div>
             <CardLabel style={{ marginBottom: 2 }}>Today's focus</CardLabel>
-            <div style={{ fontSize: 13, color: TOK.ink2, fontFamily: FONT_TEXT }}>{open} open · {done} done</div>
+            <div style={{ fontSize: 13, color: TOK.ink2, fontFamily: FONT_TEXT }}>due today or high priority</div>
           </div>
           <button onClick={() => onNavigate('tasks')} style={{
             appearance: 'none', border: 0, background: 'transparent', fontFamily: FONT_TEXT,
@@ -930,7 +1124,6 @@ function Dashboard({
           }}>open tasks →</button>
         </div>
 
-        {/* Quick add */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
           <span style={{ fontSize: 14, color: TOK.ink3 }}>+</span>
           <input value={quickTask} onChange={e => setQuickTask(e.target.value)}
@@ -942,13 +1135,13 @@ function Dashboard({
             }} />
         </div>
 
-        {todaysTasks.length === 0 ? (
+        {focus.length === 0 ? (
           <div style={{ padding: '24px 0', textAlign: 'center', color: TOK.ink3, fontSize: 13, fontFamily: FONT_TEXT }}>
             All clear. Add a task above ↑
           </div>
         ) : (
           <div>
-            {todaysTasks.slice(0, 8).map(item => (
+            {focus.slice(0, 10).map(item => (
               <div key={item.id} onClick={() => toggleTask(item.id)}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(20,16,12,0.025)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
@@ -978,117 +1171,9 @@ function Dashboard({
           </div>
         )}
       </Card>
-
-      {/* 3-up: 7-day · goals · finance */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr', gap: 14, marginBottom: 14 }}>
-        <Card>
-          <CardLabel>Next 7 days</CardLabel>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
-            {days.map((x, i) => (
-              <div key={i} style={{
-                textAlign: 'center', padding: '8px 0', borderRadius: 10,
-                background: x.today ? TOK.ink0 : 'transparent',
-                color: x.today ? '#fffaf2' : TOK.ink1,
-                fontFamily: FONT_TEXT,
-              }}>
-                <div style={{ fontSize: 10, opacity: 0.7, fontWeight: 500 }}>{x.d}</div>
-                <div style={{ fontSize: 16, fontWeight: 500, marginTop: 2 }}>{x.n}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{
-            fontSize: 12.5, color: TOK.ink2, padding: '10px 0 0',
-            borderTop: `0.5px solid ${TOK.hair}`, marginTop: 12, fontFamily: FONT_TEXT,
-          }}>
-            {googleConnected ? `${googleEvents.length} upcoming events` : 'No calendar connected · '}
-            {!googleConnected && googleConfigured && (
-              <span onClick={onConnectGoogle} style={{
-                color: TOK.ink0, textDecoration: 'underline', textDecorationColor: TOK.ink3,
-                textUnderlineOffset: 3, cursor: 'pointer',
-              }}>connect calendar</span>
-            )}
-          </div>
-        </Card>
-
-        <Card>
-          <CardLabel>Active goals</CardLabel>
-          {activeGoals.length === 0 ? (
-            <div style={{ fontSize: 13, color: TOK.ink3, padding: '20px 0', textAlign: 'center', fontFamily: FONT_TEXT }}>
-              No active goals · <span onClick={() => onNavigate('goals')} style={{ color: TOK.ink0, cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 3 }}>add one</span>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 4 }}>
-              {activeGoals.map(g => <GoalRow key={g.id} title={g.title} pct={g.progress} />)}
-            </div>
-          )}
-        </Card>
-
-        <Card>
-          <CardLabel>This month</CardLabel>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
-            <Mini label="In" v={`$${income.toFixed(0)}`} tone={TOK.good} />
-            <Mini label="Out" v={`$${spending.toFixed(0)}`} tone={TOK.bad} />
-            <Mini label="Saved" v={`${saved}%`} />
-          </div>
-          <div style={{ marginTop: 14, height: 5, borderRadius: 999, background: 'rgba(20,16,12,0.06)', overflow: 'hidden' }}>
-            <div style={{ width: `${Math.min(100, saved)}%`, background: TOK.good, height: '100%' }}></div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Today's journal */}
-      <Card style={{ padding: 22 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <CardLabel style={{ marginBottom: 0 }}>Journal · today</CardLabel>
-          <span style={{ fontSize: 11, color: TOK.ink3, fontFamily: FONT_TEXT }}>private · auto-saving</span>
-        </div>
-        <textarea
-          value={todayEntry?.body || ''}
-          onChange={e => updateJournal({ body: e.target.value })}
-          rows={3}
-          placeholder="What did you do today? Wins, blockers, threads to pull tomorrow…"
-          style={{
-            width: '100%', background: 'transparent', border: 0, padding: 0,
-            fontSize: 14, lineHeight: 1.6, fontFamily: FONT_TEXT, color: TOK.ink0,
-            outline: 'none', resize: 'vertical', minHeight: 60,
-          }}
-        />
-      </Card>
     </div>
   );
 }
-
-const Mini = ({ label, v, tone }: { label: string; v: string; tone?: string }) => (
-  <div>
-    <div style={{ fontSize: 11, color: TOK.ink2, fontFamily: FONT_TEXT }}>{label}</div>
-    <div style={{
-      fontSize: 17, fontWeight: 500, color: tone || TOK.ink0, fontFamily: FONT_TEXT,
-      fontVariantNumeric: 'tabular-nums',
-    }}>{v}</div>
-  </div>
-);
-
-const PulseRow = ({ label, v, tone }: { label: string; v: number | string; tone?: 'bad' }) => (
-  <div style={{ display: 'flex', justifyContent: 'space-between', color: TOK.ink1 }}>
-    <span>{label}</span>
-    <span style={{
-      color: tone === 'bad' ? TOK.bad : TOK.ink0, fontWeight: 500,
-      fontVariantNumeric: 'tabular-nums',
-    }}>{v}</span>
-  </div>
-);
-
-const GoalRow = ({ title, pct }: { title: string; pct: number }) => (
-  <div>
-    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-      <span style={{ fontSize: 13, fontFamily: FONT_TEXT, color: TOK.ink0 }}>{title}</span>
-      <span style={{ fontSize: 12, color: TOK.ink2, fontVariantNumeric: 'tabular-nums', fontFamily: FONT_TEXT }}>{pct}%</span>
-    </div>
-    <div style={{ height: 4, borderRadius: 999, background: 'rgba(20,16,12,0.06)', overflow: 'hidden' }}>
-      <div style={{ width: `${pct}%`, background: TOK.ink0, height: '100%' }}></div>
-    </div>
-  </div>
-);
 
 /* ═══════════════════════════════════════════════════════════
    JOURNAL
@@ -1818,10 +1903,40 @@ function Tasks({ tasks, setTasks }: {
    GOALS
    ═══════════════════════════════════════════════════════════ */
 
+function seed2026Goals(): Goal[] {
+  const now = new Date().toISOString();
+  const mk = (
+    title: string, description: string, scope: string,
+    timeframe: GoalTimeframe, deadline: string | undefined, milestones: string[],
+  ): Goal => ({
+    id: uid(), title, description, status: 'active', timeframe, deadline,
+    progress: 0, checklist: [], log: [],
+    milestones, completedMilestones: milestones.map(() => false),
+    scope, createdAt: now, updatedAt: now,
+  });
+  return [
+    mk('File Laurier late-withdrawal petition', 'submit by Aug 8, then decision pending', 'School',
+      'short', '2026-08-08', ['draft petition', 'gather docs', 'submit', 'decision pending']),
+    mk('Lock Bluejay extension + raise', 'extension signed, $4,500 per check', 'Career',
+      'short', '2026-08-31', ['make the ask', 'get it in writing']),
+    mk('185 lb lean', 'cut from 195, keep strength', 'Health',
+      'short', '2026-11-30', ['192', '189', '187', '185']),
+    mk('$60k+ USD banked', '$7,666 start + 18 checks x $3,000', 'Money',
+      'long', '2027-04-30', ['$20k', '$35k', '$50k', '$61.7k']),
+    mk('Waterloo Spring 2027', 'CP213 + CP214 in person', 'School',
+      'long', '2027-05-04', ['enroll for spring', 'CP213', 'CP214']),
+    mk('Degree conferred, then TN at border', 'paper in hand, status sorted', 'School',
+      'long', '2027-09-30', ['finish courses', 'degree conferred', 'TN letter', 'cross']),
+    mk('Next role at Whop / Polymarket / Kalshi tier', 'undeniable work, warm intros, pick the offer', 'Career',
+      'long', undefined, ['ship undeniable work', 'warm intros', 'interview loop']),
+  ];
+}
+
 function Goals({ goals, setGoals }: {
   goals: Goal[]; setGoals: (fn: (prev: Goal[]) => Goal[]) => void;
 }) {
   const [showNew, setShowNew] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const [draft, setDraft] = useState<{ title: string; description: string; deadline: string; scope: string }>({
     title: '', description: '', deadline: '', scope: '',
   });
@@ -1832,6 +1947,11 @@ function Goals({ goals, setGoals }: {
     if (!g.deadline) return false;
     return monthKey(g.deadline) === thisMonthKey();
   }).length;
+
+  const seedPlan = () => {
+    setGoals(prev => [...prev, ...seed2026Goals()]);
+    setShowMenu(false);
+  };
 
   const addGoal = () => {
     if (!draft.title.trim()) return;
@@ -1881,7 +2001,28 @@ function Goals({ goals, setGoals }: {
         title="Goals"
         sub={`${active.length} active · ${dueThisMonth} due this month`}
         right={<>
-          <Btn ghost>Archive</Btn>
+          <div style={{ position: 'relative' }}>
+            <Btn ghost onClick={() => setShowMenu(m => !m)}>⋯</Btn>
+            {showMenu && (
+              <div style={{
+                position: 'absolute', right: 0, top: '100%', marginTop: 6, zIndex: 20,
+                background: TOK.glass2, backdropFilter: 'saturate(160%) blur(20px)',
+                WebkitBackdropFilter: 'saturate(160%) blur(20px)',
+                border: `1px solid ${TOK.hairStrong}`, borderRadius: 12,
+                boxShadow: TOK.shadow, padding: 4, minWidth: 160,
+              }}>
+                <button onClick={seedPlan} style={{
+                  appearance: 'none', border: 0, background: 'transparent', cursor: 'pointer',
+                  display: 'block', width: '100%', textAlign: 'left',
+                  padding: '8px 12px', borderRadius: 8, fontFamily: FONT_TEXT,
+                  fontSize: 12.5, color: TOK.ink0, whiteSpace: 'nowrap',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(20,16,12,0.05)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                >seed 2026 plan</button>
+              </div>
+            )}
+          </div>
           <Btn primary onClick={() => setShowNew(true)}>+ Goal</Btn>
         </>}
       />
@@ -1908,7 +2049,8 @@ function Goals({ goals, setGoals }: {
         {active.length === 0 && !showNew && (
           <Card>
             <div style={{ padding: '32px 0', textAlign: 'center', color: TOK.ink3, fontFamily: FONT_TEXT }}>
-              No goals yet · click + Goal to add one
+              <div style={{ marginBottom: goals.length === 0 ? 12 : 0 }}>No goals yet · click + Goal to add one</div>
+              {goals.length === 0 && <Btn onClick={seedPlan}>seed 2026 plan</Btn>}
             </div>
           </Card>
         )}
@@ -1999,9 +2141,13 @@ function Goals({ goals, setGoals }: {
    FINANCE
    ═══════════════════════════════════════════════════════════ */
 
-function Finance({ finance, setFinance }: {
+function Finance({ finance, setFinance, plan, setPlan, trading, setTrading }: {
   finance: FinanceData;
   setFinance: (fn: (prev: FinanceData) => FinanceData) => void;
+  plan: FinancePlan;
+  setPlan: (fn: (prev: FinancePlan) => FinancePlan) => void;
+  trading: TradingData;
+  setTrading: (fn: (prev: TradingData) => TradingData) => void;
 }) {
   const monthStart = thisMonthKey();
   const monthTx = finance.transactions.filter(t => monthKey(t.date) === monthStart);
@@ -2011,6 +2157,34 @@ function Finance({ finance, setFinance }: {
   const spending = expenseTx.reduce((s, t) => s + toCAD(t.amount, t.currency), 0);
   const net = income - spending;
   const savedPct = income > 0 ? Math.max(0, Math.round((net / income) * 100)) : 0;
+
+  // The Plan
+  const confirmed = plan.checksConfirmed.length;
+  const vaulted = confirmed * plan.perCheck;
+  const currentUSD = plan.startBalanceUSD + vaulted;
+  const currentCAD = currentUSD * FX_USD_TO_CAD;
+  const projectedUSD = plan.startBalanceUSD + plan.checksTotal * plan.perCheck;
+  const planPct = plan.checksTotal > 0 ? (confirmed / plan.checksTotal) * 100 : 0;
+  const lastConfirm = plan.checksConfirmed[confirmed - 1];
+  const allConfirmed = confirmed >= plan.checksTotal;
+  const confirmCheck = () => {
+    setPlan(prev => prev.checksConfirmed.length >= prev.checksTotal
+      ? prev
+      : { ...prev, checksConfirmed: [...prev.checksConfirmed, localToday()] });
+  };
+  const undoCheck = () => {
+    setPlan(prev => ({ ...prev, checksConfirmed: prev.checksConfirmed.slice(0, -1) }));
+  };
+
+  // This-month burn vs $2,000 budget (USD)
+  const BURN_BUDGET_USD = 1400;
+  const burnUSD = expenseTx.reduce((s, t) => s + toUSD(t.amount, t.currency), 0);
+  const burnPct = Math.min(100, (burnUSD / BURN_BUDGET_USD) * 100);
+  const overBurn = burnUSD > BURN_BUDGET_USD;
+
+  // Accounts
+  const accountsUSD = finance.accounts.reduce((s, a) => s + toUSD(a.balance, a.currency), 0);
+  const accountsCAD = accountsUSD * FX_USD_TO_CAD;
 
   // Compare vs last month
   const lastMonth = (() => {
@@ -2100,6 +2274,24 @@ function Finance({ finance, setFinance }: {
   const [showAddBudget, setShowAddBudget] = useState(false);
   const [bDraft, setBDraft] = useState({ category: '', monthlyTarget: '' });
 
+  // Account controls
+  const [showAddAccount, setShowAddAccount] = useState(false);
+  const [aDraft, setADraft] = useState({ name: '', balance: '', currency: 'USD' as Currency, type: 'checking' as AccountType });
+  const addAccount = () => {
+    if (!aDraft.name.trim() || isNaN(parseFloat(aDraft.balance))) return;
+    const a: Account = {
+      id: uid(), name: aDraft.name.trim(), type: aDraft.type,
+      currency: aDraft.currency, balance: parseFloat(aDraft.balance),
+      updatedAt: new Date().toISOString(),
+    };
+    setFinance(prev => ({ ...prev, accounts: [...prev.accounts, a] }));
+    setADraft({ name: '', balance: '', currency: 'USD', type: 'checking' });
+    setShowAddAccount(false);
+  };
+  const removeAccount = (id: string) => {
+    setFinance(prev => ({ ...prev, accounts: prev.accounts.filter(a => a.id !== id) }));
+  };
+
   const addBudget = () => {
     if (!bDraft.category.trim() || !parseFloat(bDraft.monthlyTarget)) return;
     const b: Budget = {
@@ -2129,8 +2321,70 @@ function Finance({ finance, setFinance }: {
         </>}
       />
 
-      {/* Net hero */}
+      {/* The Plan */}
       <Card hero style={{ padding: 26, marginBottom: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <CardLabel style={{ marginBottom: 4 }}>The Plan · $3,000 every check</CardLabel>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+              <span style={{
+                fontSize: 52, fontWeight: 300, letterSpacing: '-0.035em', fontVariantNumeric: 'tabular-nums',
+                fontFamily: FONT_DISPLAY, color: TOK.ink0,
+              }}>${currentUSD.toLocaleString()}</span>
+              <span style={{ color: TOK.ink2, fontSize: 13, fontFamily: FONT_TEXT, fontVariantNumeric: 'tabular-nums' }}>
+                USD · C${Math.round(currentCAD).toLocaleString()}
+              </span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            {confirmed > 0 && <Btn ghost onClick={undoCheck}>undo</Btn>}
+            <Btn primary onClick={confirmCheck} disabled={allConfirmed}>
+              {allConfirmed ? 'all 18 in the vault' : 'confirm check + $3,000 moved'}
+            </Btn>
+          </div>
+        </div>
+        <div style={{ marginTop: 18, height: 8, borderRadius: 999, background: 'rgba(20,16,12,0.06)', overflow: 'hidden' }}>
+          <div style={{ width: `${planPct}%`, background: TOK.ink0, height: '100%', borderRadius: 999, transition: 'width 0.25s' }}></div>
+        </div>
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24,
+          marginTop: 20, paddingTop: 20, borderTop: `0.5px solid ${TOK.hair}`,
+        }}>
+          <FinanceStat label="Checks in" value={`${confirmed} / ${plan.checksTotal}`}
+            sub={lastConfirm ? `last ${fmtDateShort(lastConfirm)}` : 'none yet'} />
+          <FinanceStat label="Vaulted" value={`$${vaulted.toLocaleString()}`}
+            sub={plan.startBalanceUSD > 0 ? `+ $${plan.startBalanceUSD.toLocaleString()} start` : 'vault only, aunt fund fenced'} tone={TOK.good} />
+          <FinanceStat label="Projected Apr 2027" value={`$${projectedUSD.toLocaleString()}`}
+            sub={`target $${plan.targetUSD.toLocaleString()}`} />
+          <FinanceStat label="In CAD" value={`C$${Math.round(currentCAD).toLocaleString()}`}
+            sub={`target C$${plan.targetCAD.toLocaleString()}`} />
+        </div>
+      </Card>
+
+      {/* Trading desk: fun money lives beside the vault, never inside it */}
+      <TradingDesk trading={trading} setTrading={setTrading} />
+
+      {/* This-month burn */}
+      <Card style={{ padding: 20, marginBottom: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+          <CardLabel style={{ marginBottom: 0 }}>{monthName} burn</CardLabel>
+          <span style={{
+            fontSize: 13, fontFamily: FONT_TEXT, fontVariantNumeric: 'tabular-nums',
+            color: overBurn ? TOK.bad : TOK.ink2, fontWeight: 500,
+          }}>
+            ${Math.round(burnUSD).toLocaleString()} / ${BURN_BUDGET_USD.toLocaleString()}{overBurn ? ' · over' : ''}
+          </span>
+        </div>
+        <div style={{ height: 6, borderRadius: 999, background: 'rgba(20,16,12,0.06)', overflow: 'hidden' }}>
+          <div style={{
+            width: `${burnPct}%`, height: '100%', borderRadius: 999,
+            background: overBurn ? TOK.bad : TOK.ink0, transition: 'width 0.25s',
+          }}></div>
+        </div>
+      </Card>
+
+      {/* Net this month */}
+      <Card style={{ padding: 26, marginBottom: 14 }}>
         <CardLabel>Net this month</CardLabel>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 2, flexWrap: 'wrap' }}>
           <span style={{
@@ -2290,6 +2544,75 @@ function Finance({ finance, setFinance }: {
           )}
         </Card>
       </div>
+
+      {/* Accounts */}
+      <Card style={{ marginTop: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
+          <CardLabel style={{ marginBottom: 0 }}>Accounts</CardLabel>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'baseline' }}>
+            {finance.accounts.length > 0 && (
+              <span style={{ fontSize: 12, color: TOK.ink2, fontFamily: FONT_TEXT, fontVariantNumeric: 'tabular-nums' }}>
+                ≈ ${Math.round(accountsUSD).toLocaleString()} USD · C${Math.round(accountsCAD).toLocaleString()}
+              </span>
+            )}
+            <button onClick={() => setShowAddAccount(true)} style={{
+              appearance: 'none', border: 0, background: 'transparent', cursor: 'pointer',
+              fontSize: 12, color: TOK.ink2, padding: '4px 8px', borderRadius: 6, fontFamily: FONT_TEXT,
+            }}>+ add</button>
+          </div>
+        </div>
+        {showAddAccount && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px auto auto auto', gap: 6, marginBottom: 14 }}>
+            <Input value={aDraft.name} onChange={v => setADraft({ ...aDraft, name: v })} placeholder="Name" autoFocus />
+            <Input value={aDraft.balance} onChange={v => setADraft({ ...aDraft, balance: v })} placeholder="0.00" type="number" />
+            <select value={aDraft.currency} onChange={e => setADraft({ ...aDraft, currency: e.target.value as Currency })}
+              style={{
+                padding: '7px 10px', fontFamily: FONT_TEXT, fontSize: 13,
+                background: 'rgba(255,253,249,0.7)', border: `1px solid ${TOK.hair}`,
+                borderRadius: 10, color: TOK.ink0, outline: 'none', cursor: 'pointer',
+              }}>
+              <option value="USD">USD</option><option value="CAD">CAD</option>
+            </select>
+            <select value={aDraft.type} onChange={e => setADraft({ ...aDraft, type: e.target.value as AccountType })}
+              style={{
+                padding: '7px 10px', fontFamily: FONT_TEXT, fontSize: 13,
+                background: 'rgba(255,253,249,0.7)', border: `1px solid ${TOK.hair}`,
+                borderRadius: 10, color: TOK.ink0, outline: 'none', cursor: 'pointer',
+              }}>
+              <option value="checking">Checking</option><option value="savings">Savings</option>
+              <option value="tfsa">TFSA</option><option value="crypto">Crypto</option>
+              <option value="cash">Cash</option>
+            </select>
+            <Btn primary onClick={addAccount}>Add</Btn>
+          </div>
+        )}
+        {finance.accounts.length === 0 && !showAddAccount ? (
+          <div style={{ padding: '20px 0', color: TOK.ink3, textAlign: 'center', fontFamily: FONT_TEXT, fontSize: 13 }}>
+            No accounts yet
+          </div>
+        ) : (
+          <div>
+            {finance.accounts.map((a, i) => (
+              <div key={a.id} style={{
+                display: 'grid', gridTemplateColumns: '1fr auto auto auto', gap: 12,
+                alignItems: 'center', padding: '10px 0',
+                borderTop: i === 0 ? '0' : `0.5px solid ${TOK.hair}`, fontFamily: FONT_TEXT,
+              }}>
+                <span style={{ fontSize: 13.5, color: TOK.ink0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</span>
+                <Chip>{a.type}</Chip>
+                <span style={{
+                  fontSize: 13.5, fontWeight: 500, color: TOK.ink0,
+                  textAlign: 'right', minWidth: 90, fontVariantNumeric: 'tabular-nums',
+                }}>{fmtMoney(a.balance, a.currency)}</span>
+                <button onClick={() => removeAccount(a.id)} style={{
+                  appearance: 'none', border: 0, background: 'transparent', cursor: 'pointer',
+                  color: TOK.ink3, fontSize: 14, padding: '2px 6px', fontFamily: FONT_TEXT,
+                }}>×</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
     </div>
   );
 }
@@ -2306,22 +2629,560 @@ const FinanceStat = ({ label, value, sub, tone }: { label: string; value: string
 );
 
 /* ═══════════════════════════════════════════════════════════
+   TRADING DESK · fun money, hard-walled from the vault
+   ═══════════════════════════════════════════════════════════ */
+
+interface ChainOpt {
+  strike: number; bid: number | null; ask: number | null; mid: number | null;
+  last: number | null; iv: number | null; volume: number | null; openInterest: number | null;
+}
+interface ChainQuote {
+  symbol: string; spot: number; prevClose: number | null; marketTime: number | null;
+  source: 'chain' | 'spot-only'; calls: ChainOpt[]; puts: ChainOpt[];
+}
+
+function tradeLabel(t: OptionTrade): string {
+  const exp = fmtDateShort(t.expiry);
+  return `${t.symbol} ${t.strike}${t.kind === 'call' ? 'C' : 'P'} ${exp} ×${t.contracts}`;
+}
+
+function TradingDesk({ trading, setTrading }: {
+  trading: TradingData;
+  setTrading: (fn: (prev: TradingData) => TradingData) => void;
+}) {
+  const [live, setLive] = useState<Record<string, ChainQuote>>({});
+  const [fetchedAt, setFetchedAt] = useState<Date | null>(null);
+  const [fetching, setFetching] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [gridId, setGridId] = useState<string | null>(null);
+  const [fillId, setFillId] = useState<string | null>(null);
+  const [fillPrice, setFillPrice] = useState('');
+  const [closeId, setCloseId] = useState<string | null>(null);
+  const [closePrice, setClosePrice] = useState('');
+  const [tDraft, setTDraft] = useState({
+    symbol: 'QQQ', kind: 'call' as 'call' | 'put', strike: '', expiry: '',
+    contracts: '1', entryPrice: '', iv: '', exitBy: '', status: 'open' as 'open' | 'planned', thesis: '',
+  });
+
+  const active = trading.trades.filter(t => t.status !== 'closed');
+  const closed = trading.trades.filter(t => t.status === 'closed')
+    .sort((a, b) => (b.exitDate || '').localeCompare(a.exitDate || ''));
+
+  const fetchLive = useCallback(async () => {
+    const keys = Array.from(new Set(active.map(t => `${t.symbol}|${t.expiry}`)));
+    if (keys.length === 0) return;
+    setFetching(true);
+    try {
+      const results = await Promise.all(keys.map(async k => {
+        const [symbol, expiry] = k.split('|');
+        const res = await fetch(`/api/options-chain?symbol=${symbol}&expiry=${expiry}`);
+        if (!res.ok) return null;
+        return { k, q: await res.json() as ChainQuote };
+      }));
+      setLive(prev => {
+        const next = { ...prev };
+        for (const r of results) if (r?.q?.spot) next[r.k] = r.q;
+        return next;
+      });
+      setFetchedAt(new Date());
+    } catch { /* keep last snapshot */ }
+    setFetching(false);
+  }, [trading.trades]);
+
+  useEffect(() => {
+    fetchLive();
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible') fetchLive();
+    }, 60000);
+    return () => clearInterval(timer);
+  }, [fetchLive]);
+
+  // per-trade live view: mark, iv, greeks. chain mid wins, model price is the fallback
+  const view = (t: OptionTrade) => {
+    const q = live[`${t.symbol}|${t.expiry}`];
+    const spot = q?.spot ?? null;
+    const chainList = q ? (t.kind === 'call' ? q.calls : q.puts) : [];
+    const opt = chainList.find(o => Math.abs(o.strike - t.strike) < 0.001);
+    const iv = opt?.iv ?? t.entryIV ?? 0.2;
+    const T = yearsToExpiry(t.expiry);
+    const g = spot != null ? bsGreeks(spot, t.strike, T, iv, t.kind === 'call') : null;
+    const mark = opt?.mid ?? opt?.last ?? (g ? g.price : null);
+    const markSource = opt?.mid != null ? 'mid' : opt?.last != null ? 'last' : g ? 'model' : null;
+    return { q, spot, opt, iv, T, g, mark, markSource };
+  };
+
+  // fun-money accounting
+  const realized = closed.reduce((s, t) => s + ((t.exitPrice ?? 0) - t.entryPrice) * 100 * t.contracts, 0);
+  const openTrades = active.filter(t => t.status === 'open');
+  const openCost = openTrades.reduce((s, t) => s + t.entryPrice * 100 * t.contracts, 0);
+  const openValue = openTrades.reduce((s, t) => {
+    const v = view(t);
+    return s + (v.mark != null ? v.mark * 100 * t.contracts : t.entryPrice * 100 * t.contracts);
+  }, 0);
+  const cash = trading.budgetUSD + realized - openCost;
+  const equity = cash + openValue;
+  const openPnl = openValue - openCost;
+  const deployedPct = Math.min(100, Math.max(0, (openCost / Math.max(1, trading.budgetUSD + realized)) * 100));
+
+  // win-rate stats, the number everything else hinges on
+  const results = closed.map(t => ((t.exitPrice ?? 0) - t.entryPrice) / t.entryPrice * 100);
+  const wins = results.filter(r => r > 0);
+  const losses = results.filter(r => r <= 0);
+  const wr = results.length ? wins.length / results.length : 0;
+  const avgWin = wins.length ? wins.reduce((a, b) => a + b, 0) / wins.length : 0;
+  const avgLoss = losses.length ? Math.abs(losses.reduce((a, b) => a + b, 0) / losses.length) : 0;
+  const expectancy = results.length ? wr * avgWin - (1 - wr) * avgLoss : 0;
+
+  const patch = (id: string, p: Partial<OptionTrade>) =>
+    setTrading(prev => ({ ...prev, trades: prev.trades.map(t => t.id === id ? { ...t, ...p } : t) }));
+  const removeTrade = (id: string) =>
+    setTrading(prev => ({ ...prev, trades: prev.trades.filter(t => t.id !== id) }));
+
+  const addTrade = () => {
+    const strike = parseFloat(tDraft.strike);
+    const contracts = parseInt(tDraft.contracts);
+    const entry = parseFloat(tDraft.entryPrice);
+    if (!tDraft.symbol.trim() || !strike || !contracts || !entry || !/^\d{4}-\d{2}-\d{2}$/.test(tDraft.expiry)) return;
+    const t: OptionTrade = {
+      id: uid(), symbol: tDraft.symbol.trim().toUpperCase(), kind: tDraft.kind,
+      strike, expiry: tDraft.expiry, contracts, entryPrice: entry,
+      entryDate: tDraft.status === 'open' ? localToday() : '',
+      entryIV: tDraft.iv ? parseFloat(tDraft.iv) / 100 : undefined,
+      exitBy: tDraft.exitBy || undefined,
+      stopPct: -50, takePct: 100,
+      status: tDraft.status, thesis: tDraft.thesis || undefined,
+      createdAt: new Date().toISOString(),
+    };
+    setTrading(prev => ({ ...prev, trades: [t, ...prev.trades] }));
+    setTDraft({ symbol: 'QQQ', kind: 'call', strike: '', expiry: '', contracts: '1', entryPrice: '', iv: '', exitBy: '', status: 'open', thesis: '' });
+    setShowAdd(false);
+  };
+
+  const fmtUsd = (v: number, dec = 0) => `${v < 0 ? '-' : ''}$${Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec })}`;
+  const fmtSigned = (v: number, dec = 0) => `${v >= 0 ? '+' : '-'}$${Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec })}`;
+
+  const spotChips = Array.from(new Map(Object.values(live).map(q => [q.symbol, q])).values());
+
+  return (
+    <Card style={{ padding: 22, marginBottom: 14, border: `1px solid oklch(0.62 0.13 28 / 0.35)` }}>
+      {/* header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <CardLabel style={{ marginBottom: 0 }}>Trading Desk</CardLabel>
+          <Chip tone="bad">fun money · walled from vault</Chip>
+          {spotChips.map(q => {
+            const chg = q.prevClose ? (q.spot - q.prevClose) / q.prevClose * 100 : null;
+            return (
+              <Chip key={q.symbol}>
+                {q.symbol} ${q.spot.toFixed(2)}{chg != null ? ` · ${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%` : ''}
+              </Chip>
+            );
+          })}
+          {fetchedAt && (
+            <span style={{ fontSize: 11, color: TOK.ink3, fontFamily: FONT_TEXT }}>
+              as of {fetchedAt.toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit' })}
+            </span>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <Btn ghost onClick={fetchLive} disabled={fetching}>{fetching ? 'refreshing…' : 'refresh'}</Btn>
+          <Btn primary onClick={() => setShowAdd(s => !s)}>+ Trade</Btn>
+        </div>
+      </div>
+
+      {/* equity strip */}
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24,
+        marginTop: 18, paddingTop: 18, borderTop: `0.5px solid ${TOK.hair}`,
+      }}>
+        <FinanceStat label="Fun-money equity" value={fmtUsd(equity)} sub={`of $${trading.budgetUSD.toLocaleString()} budget`}
+          tone={equity >= trading.budgetUSD ? TOK.good : undefined} />
+        <FinanceStat label="Dry powder" value={fmtUsd(cash)} sub={`${Math.round(deployedPct)}% deployed`} />
+        <FinanceStat label="Open P&L" value={openTrades.length ? fmtSigned(openPnl) : '·'}
+          sub={openTrades.length ? `${openTrades.length} open` : 'no open positions'}
+          tone={openPnl > 0 ? TOK.good : openPnl < 0 ? TOK.bad : undefined} />
+        <FinanceStat label="Realized" value={closed.length ? fmtSigned(realized) : '·'}
+          sub={`${closed.length} closed`} tone={realized > 0 ? TOK.good : realized < 0 ? TOK.bad : undefined} />
+      </div>
+
+      {/* budget wall */}
+      <div style={{ marginTop: 14, height: 6, borderRadius: 999, background: 'rgba(20,16,12,0.06)', overflow: 'hidden' }}>
+        <div style={{
+          width: `${deployedPct}%`, height: '100%', borderRadius: 999,
+          background: deployedPct > 85 ? TOK.bad : TOK.accent, transition: 'width 0.25s',
+        }}></div>
+      </div>
+
+      {/* add form */}
+      {showAdd && (
+        <div style={{ marginTop: 16, paddingTop: 14, borderTop: `0.5px solid ${TOK.hair}` }}>
+          <CardLabel>New trade</CardLabel>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr', gap: 8 }}>
+            <Input value={tDraft.symbol} onChange={v => setTDraft({ ...tDraft, symbol: v })} placeholder="QQQ" />
+            <select value={tDraft.kind} onChange={e => setTDraft({ ...tDraft, kind: e.target.value as 'call' | 'put' })}
+              style={{ padding: '7px 10px', fontFamily: FONT_TEXT, fontSize: 13, background: 'rgba(255,253,249,0.7)', border: `1px solid ${TOK.hair}`, borderRadius: 10, color: TOK.ink0, outline: 'none', cursor: 'pointer' }}>
+              <option value="call">Call</option><option value="put">Put</option>
+            </select>
+            <Input value={tDraft.strike} onChange={v => setTDraft({ ...tDraft, strike: v })} placeholder="Strike" type="number" />
+            <Input value={tDraft.expiry} onChange={v => setTDraft({ ...tDraft, expiry: v })} placeholder="Expiry YYYY-MM-DD" />
+            <Input value={tDraft.contracts} onChange={v => setTDraft({ ...tDraft, contracts: v })} placeholder="Contracts" type="number" />
+            <Input value={tDraft.entryPrice} onChange={v => setTDraft({ ...tDraft, entryPrice: v })} placeholder="Fill (per share)" type="number" />
+            <Input value={tDraft.iv} onChange={v => setTDraft({ ...tDraft, iv: v })} placeholder="IV % (opt.)" type="number" />
+            <Input value={tDraft.exitBy} onChange={v => setTDraft({ ...tDraft, exitBy: v })} placeholder="Exit by YYYY-MM-DD" />
+            <select value={tDraft.status} onChange={e => setTDraft({ ...tDraft, status: e.target.value as 'open' | 'planned' })}
+              style={{ padding: '7px 10px', fontFamily: FONT_TEXT, fontSize: 13, background: 'rgba(255,253,249,0.7)', border: `1px solid ${TOK.hair}`, borderRadius: 10, color: TOK.ink0, outline: 'none', cursor: 'pointer' }}>
+              <option value="open">Filled</option><option value="planned">Planned</option>
+            </select>
+            <Input value={tDraft.thesis} onChange={v => setTDraft({ ...tDraft, thesis: v })} placeholder="Thesis" />
+          </div>
+          <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', marginTop: 10 }}>
+            <Btn ghost onClick={() => setShowAdd(false)}>Cancel</Btn>
+            <Btn primary onClick={addTrade}>Add</Btn>
+          </div>
+        </div>
+      )}
+
+      {/* positions */}
+      {active.length === 0 && (
+        <div style={{ padding: '24px 0 8px', color: TOK.ink3, textAlign: 'center', fontFamily: FONT_TEXT, fontSize: 13 }}>
+          Flat · no positions
+        </div>
+      )}
+      {active.map(t => {
+        const v = view(t);
+        const costBasis = t.entryPrice * 100 * t.contracts;
+        const markValue = v.mark != null ? v.mark * 100 * t.contracts : null;
+        const pnl = markValue != null ? markValue - costBasis : null;
+        const pnlPct = pnl != null ? (pnl / costBasis) * 100 : null;
+        const dte = Math.max(0, Math.ceil((Date.parse(`${t.expiry}T16:00:00-04:00`) - Date.now()) / 86400000));
+        const posTheta = v.g ? v.g.theta * 100 * t.contracts : null;
+        const alerts: { text: string; tone: 'good' | 'warn' | 'bad' | 'neutral' }[] = [];
+        if (t.exitBy) {
+          const exitDays = Math.ceil((Date.parse(`${t.exitBy}T16:00:00-04:00`) - Date.now()) / 86400000);
+          if (exitDays < 0) alerts.push({ text: 'PAST EXIT · close it', tone: 'bad' });
+          else if (exitDays === 0) alerts.push({ text: 'EXIT TODAY', tone: 'bad' });
+          else if (exitDays === 1) alerts.push({ text: 'exit tomorrow', tone: 'warn' });
+          else alerts.push({ text: `exit in ${exitDays}d`, tone: 'neutral' });
+        }
+        if (t.status === 'open' && v.mark != null) {
+          if (t.takePct != null && v.mark >= t.entryPrice * (1 + t.takePct / 100)) alerts.push({ text: `+${t.takePct}% hit · sell into it`, tone: 'good' });
+          if (t.stopPct != null && v.mark <= t.entryPrice * (1 + t.stopPct / 100)) alerts.push({ text: `${t.stopPct}% stop · cut it`, tone: 'bad' });
+        }
+        if (t.status === 'open' && posTheta != null && markValue != null && markValue > 0 && Math.abs(posTheta) > 0.25 * markValue) {
+          alerts.push({ text: 'decay dominating', tone: 'warn' });
+        }
+        const gridOpen = gridId === t.id;
+        return (
+          <div key={t.id} style={{ marginTop: 16, paddingTop: 14, borderTop: `0.5px solid ${TOK.hair}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <Chip tone={t.status === 'open' ? 'good' : 'warn'}>{t.status}</Chip>
+                <span style={{ fontSize: 14.5, fontWeight: 600, color: TOK.ink0, fontFamily: FONT_DISPLAY, letterSpacing: '-0.01em' }}>
+                  {tradeLabel(t)}
+                </span>
+                <span style={{ fontSize: 12.5, color: TOK.ink2, fontFamily: FONT_TEXT, fontVariantNumeric: 'tabular-nums' }}>
+                  {t.status === 'open' ? `in ${t.entryPrice.toFixed(2)} · ${fmtUsd(costBasis)}` : `plan ${t.entryPrice.toFixed(2)} · ${fmtUsd(costBasis)}`}
+                </span>
+                {v.mark != null && (
+                  <span style={{ fontSize: 12.5, color: TOK.ink1, fontFamily: FONT_TEXT, fontVariantNumeric: 'tabular-nums' }}>
+                    mark {v.mark.toFixed(2)}{v.markSource !== 'mid' ? ` (${v.markSource})` : ''}
+                  </span>
+                )}
+                {t.status === 'open' && pnl != null && (
+                  <span style={{
+                    fontSize: 13.5, fontWeight: 600, fontVariantNumeric: 'tabular-nums', fontFamily: FONT_TEXT,
+                    color: pnl >= 0 ? TOK.good : TOK.bad,
+                  }}>
+                    {fmtSigned(pnl)} ({pnlPct! >= 0 ? '+' : ''}{pnlPct!.toFixed(0)}%)
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                {t.status === 'planned' && (
+                  fillId === t.id ? (
+                    <>
+                      <div style={{ width: 90 }}>
+                        <Input value={fillPrice} onChange={setFillPrice} placeholder="fill" type="number" autoFocus />
+                      </div>
+                      <Btn primary onClick={() => {
+                        const p = parseFloat(fillPrice);
+                        if (p > 0) { patch(t.id, { status: 'open', entryPrice: p, entryDate: localToday() }); setFillId(null); setFillPrice(''); }
+                      }}>Filled</Btn>
+                      <Btn ghost onClick={() => { setFillId(null); setFillPrice(''); }}>×</Btn>
+                    </>
+                  ) : (
+                    <Btn primary onClick={() => { setFillId(t.id); setFillPrice(String(v.mark?.toFixed(2) ?? t.entryPrice)); }}>Mark filled</Btn>
+                  )
+                )}
+                {t.status === 'open' && (
+                  closeId === t.id ? (
+                    <>
+                      <div style={{ width: 90 }}>
+                        <Input value={closePrice} onChange={setClosePrice} placeholder="exit" type="number" autoFocus />
+                      </div>
+                      <Btn primary onClick={() => {
+                        const p = parseFloat(closePrice);
+                        if (p >= 0) { patch(t.id, { status: 'closed', exitPrice: p, exitDate: localToday() }); setCloseId(null); setClosePrice(''); }
+                      }}>Close</Btn>
+                      <Btn ghost onClick={() => { setCloseId(null); setClosePrice(''); }}>×</Btn>
+                    </>
+                  ) : (
+                    <Btn ghost onClick={() => { setCloseId(t.id); setClosePrice(String(v.mark?.toFixed(2) ?? '')); }}>Close</Btn>
+                  )
+                )}
+                <Btn ghost onClick={() => setGridId(gridOpen ? null : t.id)}>{gridOpen ? 'hide grid' : 'P&L grid'}</Btn>
+                <button onClick={() => removeTrade(t.id)} style={{
+                  appearance: 'none', border: 0, background: 'transparent', cursor: 'pointer',
+                  color: TOK.ink3, fontSize: 14, padding: '2px 6px', fontFamily: FONT_TEXT,
+                }}>×</button>
+              </div>
+            </div>
+
+            {/* greeks + alerts */}
+            <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginTop: 8, fontFamily: FONT_TEXT, fontSize: 12, color: TOK.ink2, fontVariantNumeric: 'tabular-nums' }}>
+              {v.g && (
+                <>
+                  <span>Δ {(v.g.delta * t.contracts * 100).toFixed(0)}sh ({v.g.delta.toFixed(3)})</span>
+                  <span>Γ {v.g.gamma.toFixed(4)}</span>
+                  <span style={{ color: posTheta != null && posTheta < 0 ? TOK.bad : undefined }}>
+                    θ {posTheta != null ? `${fmtSigned(posTheta)}/day` : '·'}
+                  </span>
+                  <span>ν {fmtUsd(v.g.vega * 100 * t.contracts)}/IVpt</span>
+                  <span>IV {(v.iv * 100).toFixed(1)}%</span>
+                </>
+              )}
+              <span>{dte === 0 ? 'expires today' : `${dte}d to expiry`}</span>
+              {t.targetPrice && v.spot != null && (
+                <span>target {t.targetPrice.toFixed(2)} ({((t.targetPrice / v.spot - 1) * 100).toFixed(1)}% away)</span>
+              )}
+              {alerts.map((a, i) => <Chip key={i} tone={a.tone}>{a.text}</Chip>)}
+            </div>
+            {t.thesis && (
+              <div style={{ marginTop: 6, fontSize: 12, color: TOK.ink3, fontFamily: FONT_TEXT, lineHeight: 1.5 }}>{t.thesis}</div>
+            )}
+
+            {/* P&L grid: value at close of each remaining session, across underlying levels */}
+            {gridOpen && v.spot != null && (
+              <PnlGrid trade={t} spot={v.spot} iv={v.iv} />
+            )}
+          </div>
+        );
+      })}
+
+      {/* the record */}
+      <div style={{ marginTop: 18, paddingTop: 16, borderTop: `0.5px solid ${TOK.hair}` }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
+          <CardLabel style={{ marginBottom: 0 }}>The record</CardLabel>
+          <span style={{ fontSize: 11.5, color: TOK.ink3, fontFamily: FONT_TEXT }}>
+            {closed.length}/30 measured · size stays flat till 30
+          </span>
+        </div>
+        <div style={{ marginTop: 10, height: 5, borderRadius: 999, background: 'rgba(20,16,12,0.06)', overflow: 'hidden' }}>
+          <div style={{ width: `${Math.min(100, closed.length / 30 * 100)}%`, background: TOK.ink0, height: '100%', borderRadius: 999 }}></div>
+        </div>
+        {closed.length > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24, marginTop: 14 }}>
+            <FinanceStat label="Win rate" value={`${Math.round(wr * 100)}%`} sub={`${wins.length}W · ${losses.length}L`} />
+            <FinanceStat label="Avg win" value={`+${avgWin.toFixed(0)}%`} sub="of premium" tone={TOK.good} />
+            <FinanceStat label="Avg loss" value={`-${avgLoss.toFixed(0)}%`} sub="of premium" tone={TOK.bad} />
+            <FinanceStat label="Expectancy" value={`${expectancy >= 0 ? '+' : ''}${expectancy.toFixed(1)}%`} sub="per trade"
+              tone={expectancy > 0 ? TOK.good : TOK.bad} />
+          </div>
+        )}
+        {closed.slice(0, 5).map(t => {
+          const pnl = ((t.exitPrice ?? 0) - t.entryPrice) * 100 * t.contracts;
+          const pct = ((t.exitPrice ?? 0) - t.entryPrice) / t.entryPrice * 100;
+          return (
+            <div key={t.id} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '8px 0', borderTop: `0.5px solid ${TOK.hair}`, marginTop: 8,
+              fontFamily: FONT_TEXT, fontSize: 12.5,
+            }}>
+              <span style={{ color: TOK.ink1 }}>{tradeLabel(t)}</span>
+              <span style={{ color: TOK.ink3, fontVariantNumeric: 'tabular-nums' }}>
+                {t.entryPrice.toFixed(2)} → {(t.exitPrice ?? 0).toFixed(2)} · {t.exitDate ? fmtDateShort(t.exitDate) : ''}
+              </span>
+              <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: pnl >= 0 ? TOK.good : TOK.bad }}>
+                {fmtSigned(pnl)} ({pct >= 0 ? '+' : ''}{pct.toFixed(0)}%)
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
+function PnlGrid({ trade, spot, iv }: { trade: OptionTrade; spot: number; iv: number }) {
+  const days = tradingDaysThrough(trade.expiry);
+  if (days.length === 0) return null;
+  const step = Math.max(1, Math.round(spot * 0.0075));
+  const raw = [spot - 2 * step, spot - step, spot, spot + step, spot + 2 * step, spot + 3 * step, trade.strike];
+  if (trade.targetPrice) raw.push(trade.targetPrice);
+  const levels = Array.from(new Set(raw.map(x => Math.round(x)))).sort((a, b) => b - a);
+  const costBasis = trade.entryPrice * 100 * trade.contracts;
+  const cell = (S: number, day: string) => {
+    const T = Math.max(0, (Date.parse(`${trade.expiry}T16:00:00-04:00`) - Date.parse(`${day}T16:00:00-04:00`)) / (365 * 24 * 3600 * 1000));
+    const val = bsGreeks(S, trade.strike, T, iv, trade.kind === 'call').price * 100 * trade.contracts;
+    return val - costBasis;
+  };
+  const matrix = levels.map(S => days.map(d => cell(S, d)));
+  const maxAbs = Math.max(1, ...matrix.flat().map(Math.abs));
+  return (
+    <div style={{ marginTop: 12, overflowX: 'auto' }}>
+      <table style={{ borderCollapse: 'collapse', fontFamily: FONT_TEXT, fontSize: 11.5, fontVariantNumeric: 'tabular-nums', minWidth: 420 }}>
+        <thead>
+          <tr>
+            <th style={{ textAlign: 'left', padding: '4px 10px 4px 0', color: TOK.ink3, fontWeight: 500 }}>{trade.symbol} @ close</th>
+            {days.map(d => (
+              <th key={d} style={{ padding: '4px 8px', color: TOK.ink3, fontWeight: 500, textAlign: 'right' }}>
+                {fmtDateShort(d)}{d === trade.exitBy ? ' ⏎' : ''}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {levels.map((S, i) => (
+            <tr key={S}>
+              <td style={{
+                padding: '3px 10px 3px 0', color: TOK.ink1, fontWeight: S === Math.round(trade.strike) ? 600 : 400,
+                whiteSpace: 'nowrap',
+              }}>
+                {S}{S === Math.round(trade.strike) ? ' · K' : ''}{trade.targetPrice && S === Math.round(trade.targetPrice) ? ' · tgt' : ''}
+              </td>
+              {matrix[i].map((v2, j) => {
+                const a = Math.min(0.5, Math.abs(v2) / maxAbs * 0.5);
+                return (
+                  <td key={j} style={{
+                    padding: '3px 8px', textAlign: 'right', color: TOK.ink0,
+                    background: v2 >= 0 ? `oklch(0.55 0.10 150 / ${a})` : `oklch(0.55 0.14 28 / ${a})`,
+                  }}>
+                    {v2 >= 0 ? '+' : '-'}{Math.abs(Math.round(v2)).toLocaleString()}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div style={{ marginTop: 6, fontSize: 11, color: TOK.ink3, fontFamily: FONT_TEXT }}>
+        position P&L in $ at each session close · IV held at {(iv * 100).toFixed(1)}% · ⏎ = hard exit day
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   IDEAS
+   ═══════════════════════════════════════════════════════════ */
+
+function Ideas({ ideas, setIdeas }: {
+  ideas: ProjectIdea[]; setIdeas: (fn: (prev: ProjectIdea[]) => ProjectIdea[]) => void;
+}) {
+  const [quick, setQuick] = useState('');
+
+  const addQuick = () => {
+    let title = quick.trim();
+    if (!title) return;
+    const tags: string[] = [];
+    title = title.replace(/#(\w+)/g, (_, t) => { tags.push(t); return ''; }).trim();
+    if (!title) return;
+    const now = new Date().toISOString();
+    setIdeas(prev => [{ id: uid(), title, description: '', tags, createdAt: now, updatedAt: now }, ...prev]);
+    setQuick('');
+  };
+
+  const updateIdea = (id: string, patch: Partial<ProjectIdea>) => {
+    setIdeas(prev => prev.map(i => i.id === id ? { ...i, ...patch, updatedAt: new Date().toISOString() } : i));
+  };
+  const removeIdea = (id: string) => setIdeas(prev => prev.filter(i => i.id !== id));
+
+  const sorted = [...ideas].sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+
+  return (
+    <div style={{ animation: 'bb-fade 0.32s cubic-bezier(.2,.8,.2,1) both' }}>
+      <PageHeader
+        title="Ideas"
+        sub={`${ideas.length} ${ideas.length === 1 ? 'idea' : 'ideas'} parked`}
+      />
+
+      <Card style={{ marginBottom: 14, padding: 14 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <span style={{ fontSize: 18, color: TOK.ink3 }}>+</span>
+          <input value={quick} onChange={e => setQuick(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && addQuick()}
+            placeholder="Park an idea, e.g. 'Voice journal on the walk home #ai'"
+            style={{
+              flex: 1, background: 'transparent', border: 0, padding: 0, fontSize: 14,
+              fontFamily: FONT_TEXT, color: TOK.ink0, outline: 'none',
+            }} />
+          <span style={{ fontSize: 11, color: TOK.ink3, fontFamily: FONT_TEXT }}>↵ to add</span>
+        </div>
+      </Card>
+
+      {sorted.length === 0 ? (
+        <Card>
+          <div style={{ padding: '32px 0', textAlign: 'center', color: TOK.ink3, fontFamily: FONT_TEXT }}>
+            Nothing parked yet · add one ↑
+          </div>
+        </Card>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'start' }}>
+          {sorted.map(idea => (
+            <Card key={idea.id} style={{ padding: 18 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10 }}>
+                <span style={{ fontSize: 15, fontWeight: 500, color: TOK.ink0, fontFamily: FONT_DISPLAY, letterSpacing: '-0.01em' }}>
+                  {idea.title}
+                </span>
+                <button onClick={() => removeIdea(idea.id)} style={{
+                  appearance: 'none', border: 0, background: 'transparent', cursor: 'pointer',
+                  color: TOK.ink3, fontSize: 14, padding: '2px 6px', fontFamily: FONT_TEXT, flexShrink: 0,
+                }}>×</button>
+              </div>
+              {idea.tags.length > 0 && (
+                <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+                  {idea.tags.map(t => <Chip key={t}>#{t}</Chip>)}
+                </div>
+              )}
+              <textarea
+                value={idea.description}
+                onChange={e => updateIdea(idea.id, { description: e.target.value })}
+                rows={2}
+                placeholder="Notes, angle, next step…"
+                style={{
+                  width: '100%', background: 'transparent', border: 0, padding: 0, marginTop: 10,
+                  fontSize: 13, lineHeight: 1.55, fontFamily: FONT_TEXT, color: TOK.ink1,
+                  outline: 'none', resize: 'vertical', minHeight: 40, boxSizing: 'border-box',
+                }}
+              />
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
    BLACKBOOK DASHBOARD (chrome + tab routing)
    ═══════════════════════════════════════════════════════════ */
 
-type BlackbookTab = 'dashboard' | 'journal' | 'network' | 'tasks' | 'goals' | 'finance';
-const TABS: BlackbookTab[] = ['dashboard', 'journal', 'network', 'tasks', 'goals', 'finance'];
+type BlackbookTab = 'today' | 'finance' | 'goals' | 'tasks' | 'journal' | 'network' | 'ideas';
+const TABS: BlackbookTab[] = ['today', 'finance', 'goals', 'tasks', 'journal', 'network', 'ideas'];
 
 export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }: {
   onClose: () => void; onLogout?: () => void; passHash: string; transparent?: boolean;
 }) {
-  const [tab, setTab] = useState<BlackbookTab>('dashboard');
+  const [tab, setTab] = useState<BlackbookTab>('today');
   const [journal, setJournal] = useState<JournalEntry[]>(() => load('journal', []));
   const [contacts, setContacts] = useState<NetworkContact[]>(() => load('contacts', DEFAULT_CONTACTS));
   const [ideas, setIdeas] = useState<ProjectIdea[]>(() => load('ideas', []));
   const [tasks, setTasks] = useState<Task[]>(() => load('tasks', []));
   const [goals, setGoals] = useState<Goal[]>(() => load('goals', []));
   const [finance, setFinance] = useState<FinanceData>(() => load('finance', DEFAULT_FINANCE));
+  const [habits, setHabits] = useState<HabitsMap>(() => load('habits', {}));
+  const [plan, setPlan] = useState<FinancePlan>(() => ({ ...DEFAULT_PLAN, ...load<Partial<FinancePlan>>('plan', {}) }));
+  const [trading, setTrading] = useState<TradingData>(() => ({ ...DEFAULT_TRADING, ...load<Partial<TradingData>>('trading', {}) }));
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved' | 'error' | 'retrying'>('saved');
   const [synced, setSynced] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -2329,7 +3190,7 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
 
   const gcal = useGoogleCalendar();
 
-  const sectionTs = useRef({ journal: '', contacts: '', ideas: '', tasks: '', goals: '', finance: '' });
+  const sectionTs = useRef({ journal: '', contacts: '', ideas: '', tasks: '', goals: '', finance: '', habits: '', plan: '', trading: '' });
 
   const journalRef = useRef(journal);
   const contactsRef = useRef(contacts);
@@ -2337,12 +3198,18 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
   const tasksRef = useRef(tasks);
   const goalsRef = useRef(goals);
   const financeRef = useRef(finance);
+  const habitsRef = useRef(habits);
+  const planRef = useRef(plan);
+  const tradingRef = useRef(trading);
   useEffect(() => { journalRef.current = journal; }, [journal]);
   useEffect(() => { contactsRef.current = contacts; }, [contacts]);
   useEffect(() => { ideasRef.current = ideas; }, [ideas]);
   useEffect(() => { tasksRef.current = tasks; }, [tasks]);
   useEffect(() => { goalsRef.current = goals; }, [goals]);
   useEffect(() => { financeRef.current = finance; }, [finance]);
+  useEffect(() => { habitsRef.current = habits; }, [habits]);
+  useEffect(() => { planRef.current = plan; }, [plan]);
+  useEffect(() => { tradingRef.current = trading; }, [trading]);
 
   useEffect(() => {
     saveQueueRef.current.onStatusChange = setSaveStatus;
@@ -2361,12 +3228,18 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
         tasks: load('tasks', []),
         goals: load('goals', []),
         finance: load('finance', DEFAULT_FINANCE),
+        habits: load('habits', {}),
+        plan: load('plan', DEFAULT_PLAN),
+        trading: load('trading', DEFAULT_TRADING),
         journalUpdatedAt: load('journalUpdatedAt', ''),
         contactsUpdatedAt: load('contactsUpdatedAt', ''),
         ideasUpdatedAt: load('ideasUpdatedAt', ''),
         tasksUpdatedAt: load('tasksUpdatedAt', ''),
         goalsUpdatedAt: load('goalsUpdatedAt', ''),
         financeUpdatedAt: load('financeUpdatedAt', ''),
+        habitsUpdatedAt: load('habitsUpdatedAt', ''),
+        planUpdatedAt: load('planUpdatedAt', ''),
+        tradingUpdatedAt: load('tradingUpdatedAt', ''),
       };
 
       const merged = mergeCloudLocal(cloud, localData);
@@ -2377,6 +3250,11 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
       const loadedGoals = merged.goals ?? [];
       const loadedFinance = (merged.finance && typeof merged.finance === 'object' && Array.isArray((merged.finance as any).accounts))
         ? merged.finance : DEFAULT_FINANCE;
+      const loadedHabits = (merged.habits && typeof merged.habits === 'object') ? merged.habits : {};
+      const loadedPlan: FinancePlan = (merged.plan && typeof merged.plan === 'object' && Array.isArray((merged.plan as any).checksConfirmed))
+        ? { ...DEFAULT_PLAN, ...merged.plan } : DEFAULT_PLAN;
+      const loadedTrading: TradingData = (merged.trading && typeof merged.trading === 'object' && Array.isArray((merged.trading as any).trades))
+        ? { ...DEFAULT_TRADING, ...merged.trading } : DEFAULT_TRADING;
 
       const now = new Date().toISOString();
       sectionTs.current = {
@@ -2386,6 +3264,9 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
         tasks: merged.tasksUpdatedAt || now,
         goals: merged.goalsUpdatedAt || now,
         finance: merged.financeUpdatedAt || now,
+        habits: merged.habitsUpdatedAt || now,
+        plan: merged.planUpdatedAt || now,
+        trading: merged.tradingUpdatedAt || now,
       };
 
       // Dedup
@@ -2415,6 +3296,9 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
       setTasks(loadedTasks);
       setGoals(loadedGoals);
       setFinance(loadedFinance);
+      setHabits(loadedHabits);
+      setPlan(loadedPlan);
+      setTrading(loadedTrading);
 
       save('journal', loadedJournal);
       save('contacts', loadedContacts);
@@ -2422,16 +3306,23 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
       save('tasks', loadedTasks);
       save('goals', loadedGoals);
       save('finance', loadedFinance);
+      save('habits', loadedHabits);
+      save('plan', loadedPlan);
+      save('trading', loadedTrading);
 
       const payload: BlackbookData = {
         journal: loadedJournal, contacts: loadedContacts, ideas: loadedIdeas,
         tasks: loadedTasks, goals: loadedGoals, finance: loadedFinance,
+        habits: loadedHabits, plan: loadedPlan, trading: loadedTrading,
         journalUpdatedAt: sectionTs.current.journal,
         contactsUpdatedAt: sectionTs.current.contacts,
         ideasUpdatedAt: sectionTs.current.ideas,
         tasksUpdatedAt: sectionTs.current.tasks,
         goalsUpdatedAt: sectionTs.current.goals,
         financeUpdatedAt: sectionTs.current.finance,
+        habitsUpdatedAt: sectionTs.current.habits,
+        planUpdatedAt: sectionTs.current.plan,
+        tradingUpdatedAt: sectionTs.current.trading,
       };
       saveToCloud(passHash, payload);
       setSynced(true);
@@ -2442,12 +3333,16 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
   const buildPayload = useCallback((): BlackbookData => ({
     journal: journalRef.current, contacts: contactsRef.current, ideas: ideasRef.current,
     tasks: tasksRef.current, goals: goalsRef.current, finance: financeRef.current,
+    habits: habitsRef.current, plan: planRef.current, trading: tradingRef.current,
     journalUpdatedAt: sectionTs.current.journal,
     contactsUpdatedAt: sectionTs.current.contacts,
     ideasUpdatedAt: sectionTs.current.ideas,
     tasksUpdatedAt: sectionTs.current.tasks,
     goalsUpdatedAt: sectionTs.current.goals,
     financeUpdatedAt: sectionTs.current.finance,
+    habitsUpdatedAt: sectionTs.current.habits,
+    planUpdatedAt: sectionTs.current.plan,
+    tradingUpdatedAt: sectionTs.current.trading,
   }), []);
 
   const syncToCloud = useCallback(() => {
@@ -2457,12 +3352,18 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
     save('tasks', tasksRef.current);
     save('goals', goalsRef.current);
     save('finance', financeRef.current);
+    save('habits', habitsRef.current);
+    save('plan', planRef.current);
+    save('trading', tradingRef.current);
     save('journalUpdatedAt', sectionTs.current.journal);
     save('contactsUpdatedAt', sectionTs.current.contacts);
     save('ideasUpdatedAt', sectionTs.current.ideas);
     save('tasksUpdatedAt', sectionTs.current.tasks);
     save('goalsUpdatedAt', sectionTs.current.goals);
     save('financeUpdatedAt', sectionTs.current.finance);
+    save('habitsUpdatedAt', sectionTs.current.habits);
+    save('planUpdatedAt', sectionTs.current.plan);
+    save('tradingUpdatedAt', sectionTs.current.trading);
     setSaveStatus('saving');
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
@@ -2474,12 +3375,17 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
     save('journal', journalRef.current); save('contacts', contactsRef.current);
     save('ideas', ideasRef.current); save('tasks', tasksRef.current);
     save('goals', goalsRef.current); save('finance', financeRef.current);
+    save('habits', habitsRef.current); save('plan', planRef.current);
+    save('trading', tradingRef.current);
     save('journalUpdatedAt', sectionTs.current.journal);
     save('contactsUpdatedAt', sectionTs.current.contacts);
     save('ideasUpdatedAt', sectionTs.current.ideas);
     save('tasksUpdatedAt', sectionTs.current.tasks);
     save('goalsUpdatedAt', sectionTs.current.goals);
     save('financeUpdatedAt', sectionTs.current.finance);
+    save('habitsUpdatedAt', sectionTs.current.habits);
+    save('planUpdatedAt', sectionTs.current.plan);
+    save('tradingUpdatedAt', sectionTs.current.trading);
     const payload = buildPayload();
     fetch(`${SUPABASE_URL}/rest/v1/blackbook?pass_hash=eq.${passHash}`, {
       method: 'PATCH',
@@ -2522,6 +3428,9 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
   useEffect(() => { if (synced) { sectionTs.current.tasks = new Date().toISOString(); syncToCloud(); } }, [tasks]);
   useEffect(() => { if (synced) { sectionTs.current.goals = new Date().toISOString(); syncToCloud(); } }, [goals]);
   useEffect(() => { if (synced) { sectionTs.current.finance = new Date().toISOString(); syncToCloud(); } }, [finance]);
+  useEffect(() => { if (synced) { sectionTs.current.habits = new Date().toISOString(); syncToCloud(); } }, [habits]);
+  useEffect(() => { if (synced) { sectionTs.current.plan = new Date().toISOString(); syncToCloud(); } }, [plan]);
+  useEffect(() => { if (synced) { sectionTs.current.trading = new Date().toISOString(); syncToCloud(); } }, [trading]);
 
   const today = new Date();
   const dateLine = today.toLocaleDateString('en', { weekday: 'long', month: 'short', day: 'numeric' }) + ' · ' + today.getFullYear();
@@ -2631,16 +3540,10 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
       }}>
         <div style={{ padding: '32px 40px 80px' }}>
           <div style={{ maxWidth: 1080, margin: '0 auto' }}>
-            {tab === 'dashboard' && (
-              <Dashboard
-                journal={journal} setJournal={setJournal}
-                contacts={contacts} tasks={tasks} setTasks={setTasks}
-                goals={goals} finance={finance}
-                googleEvents={gcal.events}
-                googleConfigured={gcal.isConfigured}
-                googleConnected={!!gcal.token}
-                googleLoading={gcal.loading}
-                onConnectGoogle={gcal.connect}
+            {tab === 'today' && (
+              <Today
+                habits={habits} setHabits={setHabits}
+                tasks={tasks} setTasks={setTasks}
                 onNavigate={setTab}
               />
             )}
@@ -2654,7 +3557,8 @@ export function BlackbookDashboard({ onClose, onLogout, passHash, transparent }:
             {tab === 'network' && <Network contacts={contacts} setContacts={setContacts} journal={journal} />}
             {tab === 'tasks' && <Tasks tasks={tasks} setTasks={setTasks} />}
             {tab === 'goals' && <Goals goals={goals} setGoals={setGoals} />}
-            {tab === 'finance' && <Finance finance={finance} setFinance={setFinance} />}
+            {tab === 'finance' && <Finance finance={finance} setFinance={setFinance} plan={plan} setPlan={setPlan} trading={trading} setTrading={setTrading} />}
+            {tab === 'ideas' && <Ideas ideas={ideas} setIdeas={setIdeas} />}
           </div>
         </div>
       </main>
