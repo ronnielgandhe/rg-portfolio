@@ -1,7 +1,6 @@
-import { useRef, useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { useRef, useCallback, useEffect, useState } from 'react';
 import { useDesktop } from './DesktopContext';
 import type { WindowState } from './types';
-import { SYSTEM_FONT, MENU_BAR_HEIGHT, VIBRANCY, chromeTokens } from './chrome';
 
 interface AppWindowProps {
   windowState: WindowState;
@@ -20,49 +19,19 @@ export default function AppWindow({ windowState, children, darkMode, titleBarBg,
   const windowRef = useRef<HTMLDivElement>(null);
   const [entering, setEntering] = useState(true);
   const [trafficHover, setTrafficHover] = useState(false);
-  const [interacting, setInteracting] = useState(false);
-  const [minTransform, setMinTransform] = useState<string | null>(null);
-  const [parked, setParked] = useState(false);
-  const chrome = chromeTokens(state.dark);
 
   const isFocused = state.focusedWindowId === windowState.id;
 
   useEffect(() => {
-    const t = setTimeout(() => setEntering(false), 20);
+    const t = setTimeout(() => setEntering(false), 300);
     return () => clearTimeout(t);
   }, []);
-
-  useEffect(() => {
-    if (!windowState.isClosing) return;
-    const t = setTimeout(() => dispatch({ type: 'CLOSE_WINDOW', id: windowState.id }), 150);
-    return () => clearTimeout(t);
-  }, [windowState.isClosing, windowState.id, dispatch]);
-
-  useLayoutEffect(() => {
-    if (!windowState.isMinimized) {
-      setParked(false);
-      setMinTransform(null);
-      return;
-    }
-    const target =
-      document.querySelector(`[data-dock-id="${windowState.id}"]`) ||
-      document.querySelector('[data-dock-bar]');
-    const r = target?.getBoundingClientRect();
-    const cx = r ? r.left + r.width / 2 : window.innerWidth / 2;
-    const cy = r ? r.top + r.height / 2 : window.innerHeight - 30;
-    const wx = windowState.position.x + windowState.size.width / 2;
-    const wy = windowState.position.y + windowState.size.height / 2;
-    setMinTransform(`translate(${Math.round(cx - wx)}px, ${Math.round(cy - wy)}px) scale(0.06)`);
-    const t = setTimeout(() => setParked(true), 420);
-    return () => clearTimeout(t);
-  }, [windowState.isMinimized]);
 
   // Drag handler
   const handleMouseDownTitleBar = useCallback((e: React.MouseEvent) => {
     if (windowState.isFullscreen) return;
     e.preventDefault();
     dispatch({ type: 'FOCUS_WINDOW', id: windowState.id });
-    setInteracting(true);
     dragRef.current = {
       startX: e.clientX,
       startY: e.clientY,
@@ -75,13 +44,12 @@ export default function AppWindow({ windowState, children, darkMode, titleBarBg,
       const dx = e.clientX - dragRef.current.startX;
       const dy = e.clientY - dragRef.current.startY;
       const newX = dragRef.current.winX + dx;
-      const newY = Math.max(MENU_BAR_HEIGHT, dragRef.current.winY + dy);
+      const newY = Math.max(28, dragRef.current.winY + dy);
       dispatch({ type: 'MOVE_WINDOW', id: windowState.id, position: { x: newX, y: newY } });
     };
 
     const handleMouseUp = () => {
       dragRef.current = null;
-      setInteracting(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -96,7 +64,6 @@ export default function AppWindow({ windowState, children, darkMode, titleBarBg,
     e.preventDefault();
     e.stopPropagation();
     dispatch({ type: 'FOCUS_WINDOW', id: windowState.id });
-    setInteracting(true);
     resizeRef.current = {
       startX: e.clientX,
       startY: e.clientY,
@@ -126,13 +93,12 @@ export default function AppWindow({ windowState, children, darkMode, titleBarBg,
       }
       if (edge.includes('n')) {
         const actualDy = resizeRef.current.startH - newH;
-        dispatch({ type: 'MOVE_WINDOW', id: windowState.id, position: { x: windowState.position.x, y: Math.max(MENU_BAR_HEIGHT, windowState.position.y - actualDy) } });
+        dispatch({ type: 'MOVE_WINDOW', id: windowState.id, position: { x: windowState.position.x, y: Math.max(28, windowState.position.y - actualDy) } });
       }
     };
 
     const handleMouseUp = () => {
       resizeRef.current = null;
-      setInteracting(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -149,18 +115,9 @@ export default function AppWindow({ windowState, children, darkMode, titleBarBg,
     dispatch({ type: 'TOGGLE_FULLSCREEN', id: windowState.id });
   }, [dispatch, windowState.id]);
 
-  const minimized = windowState.isMinimized;
-  const closing = !!windowState.isClosing;
-  const borderRadius = '10px';
-  const geometry = interacting ? '' : ', left 0.25s ease, top 0.25s ease, width 0.25s ease, height 0.25s ease';
-  const transform = minimized && minTransform
-    ? minTransform
-    : entering ? 'scale(0.94)' : closing ? 'scale(0.97)' : 'scale(1)';
-  const transition = minimized || minTransform !== null
-    ? `transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.6, 1)${geometry}`
-    : closing
-      ? 'opacity 0.14s ease-out, transform 0.14s ease-out'
-      : `opacity 0.18s ease-out, transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 0.2s ease${geometry}`;
+  if (windowState.isMinimized) return null;
+
+  const borderRadius = windowState.isFullscreen ? '12px' : '12px';
 
   return (
     <div
@@ -179,19 +136,18 @@ export default function AppWindow({ windowState, children, darkMode, titleBarBg,
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        background: darkMode ? 'rgba(244, 244, 245, 0.72)' : chrome.glass,
-        backdropFilter: VIBRANCY,
-        WebkitBackdropFilter: VIBRANCY,
-        boxShadow: windowState.isFullscreen
-          ? '0 0 0 0.5px rgba(0,0,0,0.3)'
-          : isFocused
-            ? '0 0 0 0.5px rgba(0,0,0,0.28), 0 36px 100px rgba(0,0,0,0.36), 0 14px 30px rgba(0,0,0,0.18), inset 0 0.5px 0 rgba(255,255,255,0.45)'
-            : '0 0 0 0.5px rgba(0,0,0,0.2), 0 16px 44px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.1), inset 0 0.5px 0 rgba(255,255,255,0.3)',
-        opacity: entering || closing || minimized ? 0 : 1,
-        transform,
-        transition,
-        pointerEvents: minimized || closing ? 'none' : undefined,
-        visibility: minimized && parked ? 'hidden' : 'visible',
+        background: darkMode ? 'rgba(244, 244, 245, 0.72)' : 'rgba(255, 255, 255, 0.32)',
+        backdropFilter: 'saturate(200%) blur(40px)',
+        WebkitBackdropFilter: 'saturate(200%) blur(40px)',
+        border: windowState.isFullscreen ? 'none' : darkMode
+          ? (isFocused ? '0.5px solid rgba(0, 0, 0, 0.15)' : '0.5px solid rgba(0, 0, 0, 0.08)')
+          : (isFocused ? '1px solid rgba(0, 0, 0, 0.18)' : '1px solid rgba(0, 0, 0, 0.1)'),
+        boxShadow: windowState.isFullscreen ? 'none' : isFocused
+          ? '0 24px 80px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.1), 0 0 0 0.5px rgba(0,0,0,0.06), inset 0 0.5px 0 rgba(255,255,255,0.6)'
+          : '0 8px 32px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.06), inset 0 0.5px 0 rgba(255,255,255,0.4)',
+        opacity: entering ? 0 : 1,
+        transform: entering ? 'scale(0.92)' : 'scale(1)',
+        transition: 'opacity 0.25s ease-out, transform 0.25s ease-out, box-shadow 0.2s ease, border-color 0.2s ease, border-radius 0.2s ease, left 0.25s ease, top 0.25s ease, width 0.25s ease, height 0.25s ease',
         willChange: 'transform',
       }}
     >
@@ -204,9 +160,9 @@ export default function AppWindow({ windowState, children, darkMode, titleBarBg,
           minHeight: '38px',
           display: 'flex',
           alignItems: 'center',
-          padding: '0 13px',
+          padding: '0 12px',
           borderBottom: titleBarDark ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(0, 0, 0, 0.04)',
-          cursor: 'default',
+          cursor: windowState.isFullscreen ? 'default' : 'grab',
           userSelect: 'none',
           background: titleBarBg || 'transparent',
         }}
@@ -218,28 +174,31 @@ export default function AppWindow({ windowState, children, darkMode, titleBarBg,
           onMouseLeave={() => setTrafficHover(false)}
         >
           <TrafficButton
-            kind="close"
-            lit={isFocused || trafficHover}
-            hovered={trafficHover}
-            dark={!!titleBarDark || state.dark}
-            onClick={(e) => { e.stopPropagation(); dispatch({ type: 'REQUEST_CLOSE', id: windowState.id }); }}
+            color="#ff5f57"
+            isFocused={isFocused}
+            isHovered={trafficHover}
+            darkMode={titleBarDark}
+            symbol="×"
+            onClick={(e) => { e.stopPropagation(); dispatch({ type: 'CLOSE_WINDOW', id: windowState.id }); }}
             label="Close window"
           />
           <TrafficButton
-            kind="minimize"
-            lit={isFocused || trafficHover}
-            hovered={trafficHover}
-            dark={!!titleBarDark || state.dark}
+            color="#febc2e"
+            isFocused={isFocused}
+            isHovered={trafficHover}
+            darkMode={titleBarDark}
+            symbol="−"
             onClick={(e) => { e.stopPropagation(); dispatch({ type: 'MINIMIZE_WINDOW', id: windowState.id }); }}
             label="Minimize window"
           />
           <TrafficButton
-            kind="zoom"
-            lit={isFocused || trafficHover}
-            hovered={trafficHover}
-            dark={!!titleBarDark || state.dark}
+            color="#28c840"
+            isFocused={isFocused}
+            isHovered={trafficHover}
+            darkMode={titleBarDark}
+            symbol="⤢"
             onClick={(e) => { e.stopPropagation(); dispatch({ type: 'TOGGLE_FULLSCREEN', id: windowState.id }); }}
-            label="Zoom window"
+            label="Fullscreen"
           />
         </div>
 
@@ -247,13 +206,10 @@ export default function AppWindow({ windowState, children, darkMode, titleBarBg,
         <span style={{
           flex: 1,
           textAlign: 'center',
-          fontFamily: SYSTEM_FONT,
+          fontFamily: "'SF Mono', 'JetBrains Mono', 'Menlo', monospace",
           fontSize: '13px',
-          fontWeight: 600,
-          letterSpacing: '-0.005em',
-          color: (titleBarDark || (state.dark && !titleBarBg))
-            ? (isFocused ? 'rgba(255, 255, 255, 0.86)' : 'rgba(255, 255, 255, 0.4)')
-            : (isFocused ? 'rgba(0, 0, 0, 0.82)' : 'rgba(0, 0, 0, 0.36)'),
+          color: titleBarDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+          letterSpacing: '0.02em',
           transition: 'color 0.15s ease',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
@@ -292,56 +248,38 @@ export default function AppWindow({ windowState, children, darkMode, titleBarBg,
 
 // ── Traffic Light Button ──
 
-const TRAFFIC = {
-  close:    { fill: '#ff5f57', ring: '#e0443e', glyph: '#4d0000' },
-  minimize: { fill: '#febc2e', ring: '#dea123', glyph: '#995700' },
-  zoom:     { fill: '#28c840', ring: '#1aab29', glyph: '#006500' },
-} as const;
-
-function TrafficButton({ kind, lit, hovered, dark, onClick, label }: {
-  kind: keyof typeof TRAFFIC;
-  lit: boolean;
-  hovered: boolean;
-  dark: boolean;
+function TrafficButton({ color, isFocused, isHovered, darkMode, symbol, onClick, label }: {
+  color: string;
+  isFocused: boolean;
+  isHovered: boolean;
+  darkMode?: boolean;
+  symbol: string;
   onClick: (e: React.MouseEvent) => void;
   label: string;
 }) {
-  const c = TRAFFIC[kind];
-  const idleFill = dark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.14)';
-  const idleRing = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
   return (
     <button
       onClick={onClick}
-      onMouseDown={(e) => e.stopPropagation()}
-      onDoubleClick={(e) => e.stopPropagation()}
       aria-label={label}
       style={{
         width: '12px',
         height: '12px',
         borderRadius: '50%',
-        background: lit ? c.fill : idleFill,
-        boxShadow: `inset 0 0 0 0.5px ${lit ? c.ring : idleRing}`,
-        border: 'none',
+        background: color,
+        border: `0.5px solid ${color}88`,
         padding: 0,
-        cursor: 'default',
-        transition: 'background 0.12s ease',
+        cursor: 'pointer',
+        transition: 'background 0.15s ease',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        flexShrink: 0,
+        fontSize: '9px',
+        fontWeight: 800,
+        lineHeight: 1,
+        color: isHovered ? 'rgba(0,0,0,0.65)' : 'transparent',
       }}
     >
-      <svg width="12" height="12" viewBox="0 0 12 12" style={{ opacity: hovered ? 1 : 0, display: 'block' }}>
-        {kind === 'close' && (
-          <path d="M3.6 3.6l4.8 4.8M8.4 3.6L3.6 8.4" stroke={c.glyph} strokeWidth="1.15" strokeLinecap="round" />
-        )}
-        {kind === 'minimize' && (
-          <path d="M2.8 6h6.4" stroke={c.glyph} strokeWidth="1.3" strokeLinecap="round" />
-        )}
-        {kind === 'zoom' && (
-          <path d="M3.3 6.9V3.3h3.6zM8.7 5.1v3.6H5.1z" fill={c.glyph} />
-        )}
-      </svg>
+      {symbol}
     </button>
   );
 }

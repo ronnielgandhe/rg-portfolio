@@ -7,7 +7,7 @@ export default function MacTerminal() {
 LinkedIn: linkedin.com/in/ronniel-gandhe
 GitHub: github.com/ronnielgandhe
 Email: ronnielgandhe@gmail.com
-Location: San Francisco, CA
+Location: Waterloo, ON
 
 
 I build systems that think, design that feels, and code that connects ideas to impact.

@@ -25,18 +25,16 @@ export interface WindowState {
   position: { x: number; y: number };
   size: { width: number; height: number };
   prevBounds?: { position: { x: number; y: number }; size: { width: number; height: number } };
-  isClosing?: boolean;
 }
 
 export interface DesktopState {
   windows: Record<string, WindowState>;
   focusedWindowId: WindowId | null;
   nextZIndex: number;
+  bootComplete: boolean;
   // Sub-window content
   activeDetail: DetailContent | null;
   activeContent: ContentViewData | null;
-  dark: boolean;
-  spotlightOpen: boolean;
 }
 
 export type DesktopAction =
@@ -48,15 +46,13 @@ export type DesktopAction =
   | { type: 'MOVE_WINDOW'; id: WindowId; position: { x: number; y: number } }
   | { type: 'RESIZE_WINDOW'; id: WindowId; size: { width: number; height: number } }
   | { type: 'TOGGLE_FULLSCREEN'; id: WindowId }
+  | { type: 'SET_BOOT_COMPLETE' }
   | { type: 'OPEN_DETAIL'; detail: DetailContent }
   | { type: 'CLOSE_DETAIL' }
   | { type: 'OPEN_CONTENT'; content: ContentViewData }
   | { type: 'CLOSE_CONTENT' }
   | { type: 'DESELECT_ALL' }
   | { type: 'LOCK_SCREEN' }
-  | { type: 'REQUEST_CLOSE'; id: WindowId }
-  | { type: 'TOGGLE_APPEARANCE' }
-  | { type: 'SET_SPOTLIGHT'; open: boolean }
 ;
 
 // Default window configs

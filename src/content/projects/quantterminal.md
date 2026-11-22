@@ -3,7 +3,7 @@ title: QuantTerminal
 slug: quantterminal
 year: 2024
 tech: ["Python","React","FastAPI","PostgreSQL","Docker","AWS Lambda","GitHub Actions"]
-summary: Production trading platform with live market data, strategy backtesting, and order execution, built on top of my earlier backtesting research.
+summary: Production trading platform with live market data, strategy backtesting, and order execution—evolved from QuantZoo research.
 repoUrl: "https://github.com/ronnielgandhe/quantterminal"
 highlights:
   - Real-time WebSocket data feeds
@@ -14,7 +14,7 @@ highlights:
 
 ## Problem
 
-After building a backtesting library for systematic strategies, I faced a practical limitation: **backtest results don't guarantee live trading success**. Even a profitable strategy can fail in production due to:
+After building **QuantZoo** (a backtesting library for systematic strategies), I faced a practical limitation: **backtest results don't guarantee live trading success**. Even a profitable strategy can fail in production due to:
 
 - **Execution delays**: By the time a signal is generated and sent to a broker, prices have moved.
 - **Data feed reliability**: Live market data has gaps, stale quotes, and network issues that backtests ignore.
@@ -23,7 +23,7 @@ After building a backtesting library for systematic strategies, I faced a practi
 
 I needed a **production-grade trading system** that could:
 1. Ingest live market data with minimal latency
-2. Execute backtested strategies in real-time
+2. Execute QuantZoo strategies in real-time
 3. Handle order placement and fill tracking
 4. Provide risk controls (position limits, loss thresholds)
 5. Log everything for post-trade analysis
@@ -50,7 +50,7 @@ QuantTerminal is structured as a **3-tier architecture** to separate data ingest
 
 1. **Data Layer**: Subscribes to real-time market data (Polygon.io WebSocket), normalizes quotes/trades, writes to PostgreSQL time-series tables.
 
-2. **Strategy Engine**: Runs the strategies on incoming data, generates buy/sell signals, applies risk filters (max position size, daily loss limits).
+2. **Strategy Engine**: Runs QuantZoo strategies on incoming data, generates buy/sell signals, applies risk filters (max position size, daily loss limits).
 
 3. **Execution Layer**: Translates signals into orders (Alpaca API), tracks fills, updates positions in Redis cache.
 
@@ -119,7 +119,7 @@ class MarketDataFeed:
 
 ### Strategy Execution
 
-Reuses the backtester's `Strategy` base class, but runs incrementally on live data:
+Reuses QuantZoo's `Strategy` base class, but runs incrementally on live data:
 
 ```python
 class LiveStrategyRunner:
@@ -244,7 +244,7 @@ Realized that **infrastructure is a competitive advantage** in systematic tradin
 ## Future Improvements
 
 - **Multi-Broker Support**: Currently Alpaca-only; add Interactive Brokers, TD Ameritrade APIs
-- **Machine Learning Strategies**: Integrate scikit-learn models trained on historical data (the feature pipeline already exists)
+- **Machine Learning Strategies**: Integrate scikit-learn models trained on historical data (QuantZoo already has feature pipeline)
 - **Portfolio Optimization**: Use Markowitz mean-variance to allocate capital across strategies
 - **Mobile Alerts**: Push notifications via Twilio when drawdown exceeds threshold
 

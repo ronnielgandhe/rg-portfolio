@@ -128,25 +128,6 @@ function desktopReducer(state: DesktopState, action: DesktopAction): DesktopStat
       };
     }
 
-    case 'REQUEST_CLOSE': {
-      const win = state.windows[action.id];
-      if (!win || win.isClosing) return state;
-      return {
-        ...state,
-        focusedWindowId: state.focusedWindowId === action.id ? null : state.focusedWindowId,
-        windows: { ...state.windows, [action.id]: { ...win, isClosing: true } },
-      };
-    }
-
-    case 'TOGGLE_APPEARANCE': {
-      const dark = !state.dark;
-      try { localStorage.setItem('rg-theme', dark ? 'dark' : 'light'); } catch {}
-      return { ...state, dark };
-    }
-
-    case 'SET_SPOTLIGHT':
-      return { ...state, spotlightOpen: action.open };
-
     case 'MINIMIZE_WINDOW': {
       const win = state.windows[action.id];
       if (!win) return state;
@@ -241,6 +222,9 @@ function desktopReducer(state: DesktopState, action: DesktopAction): DesktopStat
       };
     }
 
+    case 'SET_BOOT_COMPLETE':
+      return { ...state, bootComplete: true };
+
     case 'OPEN_DETAIL': {
       const detailWin = createWindow('detail', state.nextZIndex, action.detail.type === 'project' ? (action.detail as any).title : (action.detail as any).company || (action.detail as any).institution || 'Detail');
       return {
@@ -289,7 +273,7 @@ function desktopReducer(state: DesktopState, action: DesktopAction): DesktopStat
       return { ...state, focusedWindowId: null };
 
     case 'LOCK_SCREEN':
-      return { ...initialState, dark: state.dark };
+      return { ...initialState };
 
     default:
       return state;
@@ -300,23 +284,18 @@ const initialState: DesktopState = {
   windows: {},
   focusedWindowId: null,
   nextZIndex: 100,
+  bootComplete: false,
   activeDetail: null,
   activeContent: null,
-  dark: false,
-  spotlightOpen: false,
 };
-
-function readSavedAppearance(): boolean {
-  try { return localStorage.getItem('rg-theme') === 'dark'; } catch { return false; }
-}
 
 const DesktopContext = createContext<{
   state: DesktopState;
   dispatch: Dispatch<DesktopAction>;
 } | null>(null);
 
-export function DesktopProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(desktopReducer, { ...initialState, dark: readSavedAppearance() });
+export function DesktopProvider({ children, skipBoot }: { children: ReactNode; skipBoot?: boolean }) {
+  const [state, dispatch] = useReducer(desktopReducer, { ...initialState, bootComplete: !!skipBoot });
   return (
     <DesktopContext.Provider value={{ state, dispatch }}>
       {children}

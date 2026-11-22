@@ -108,7 +108,7 @@ export default function MobileShell() {
               Ronniel Gandhe — Software Engineer
             </div>
             <div style={{ marginBottom: '2px' }}>
-              <span style={{ color: '#ff79c6' }}>Location:</span> San Francisco, CA
+              <span style={{ color: '#ff79c6' }}>Location:</span> Waterloo, ON
             </div>
             <div style={{ marginBottom: '2px' }}>
               <span style={{ color: '#f1fa8c' }}>Email:</span> ronnielgandhe@gmail.com

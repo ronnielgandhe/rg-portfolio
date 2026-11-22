@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 
 export const GET: APIRoute = async ({ request }) => {
   const url = new URL(request.url);
-  const repo = url.searchParams.get('repo'); // e.g. "ronnielgandhe/leanfetch"
+  const repo = url.searchParams.get('repo'); // e.g. "ronnielgandhe/quantzoo"
   const file = url.searchParams.get('file'); // e.g. "README.md" or "requirements.txt"
 
   if (!repo) {
