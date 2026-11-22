@@ -25,7 +25,7 @@ const PROJECTS: FeedItem[] = [
   {
     id: 'how-many-clicks', nav: 'How Many Clicks',
     label: 'How Many Clicks', sub: 'the wikipedia game. a bot goes first, then you try to beat it',
-    href: 'https://github.com/ronnielgandhe/how-many-clicks', external: true,
+    href: '/how-many-clicks',
     image: '/projects/how-many-clicks.png', colors: NONE,
   },
   {
