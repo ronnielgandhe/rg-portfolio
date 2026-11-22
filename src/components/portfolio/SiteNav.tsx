@@ -44,7 +44,11 @@ export default function SiteNav({ active, crumb, dark, onToggleTheme }: { active
       const a = (e.target as HTMLElement).closest('a');
       if (!a || a.target === '_blank' || a.hasAttribute('download')) return;
       const url = new URL(a.href, location.href);
-      if (url.origin !== location.origin || url.pathname === location.pathname || url.pathname.endsWith('.pdf')) return;
+      if (url.origin !== location.origin || url.pathname.endsWith('.pdf')) return;
+      if (url.pathname === location.pathname) {
+        if (!url.hash) { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        return;
+      }
       e.preventDefault();
       root?.classList.add('site-leaving');
       window.setTimeout(() => { location.href = url.href; }, 170);
@@ -90,8 +94,8 @@ export default function SiteNav({ active, crumb, dark, onToggleTheme }: { active
           --bg: #ffffff;
           --ink: #1a1a1a;
           --text: rgba(26, 26, 26, 0.6);
-          --faint: rgba(26, 26, 26, 0.3);
-          --half: rgba(26, 26, 26, 0.4);
+          --faint: rgba(26, 26, 26, 0.45);
+          --half: rgba(26, 26, 26, 0.55);
           --rule: rgba(0, 0, 0, 0.08);
           --hover: #fafaf8;
           --strong: #1a1a1a;
@@ -113,14 +117,15 @@ export default function SiteNav({ active, crumb, dark, onToggleTheme }: { active
           --bg: #0e0e0e;
           --ink: #f2f2f0;
           --text: rgba(242, 242, 240, 0.62);
-          --faint: rgba(242, 242, 240, 0.32);
-          --half: rgba(242, 242, 240, 0.42);
+          --faint: rgba(242, 242, 240, 0.46);
+          --half: rgba(242, 242, 240, 0.56);
           --rule: rgba(255, 255, 255, 0.1);
           --hover: #161616;
           --strong: #f2f2f0;
         }
         .site *, .site *::before, .site *::after { box-sizing: border-box; }
         .site ::selection { background: rgba(120, 120, 120, 0.25); }
+        .site :focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
         :where(.site) button { font: inherit; color: inherit; background: none; border: none; padding: 0; cursor: pointer; }
 
         .sn-nav {
@@ -153,8 +158,8 @@ export default function SiteNav({ active, crumb, dark, onToggleTheme }: { active
         .sn-link:hover, .sn-link-on { color: var(--ink); }
         .sn-theme { display: inline-flex; align-items: center; color: var(--faint); transition: color 0.2s; }
         .sn-theme:hover { color: var(--ink); }
-        .sn-fade-top { position: fixed; top: 0; left: 0; right: 0; height: 72px; z-index: 10; pointer-events: none; background: linear-gradient(to bottom, var(--bg), transparent); }
-        .sn-fade-bottom { position: fixed; bottom: 0; left: 0; right: 0; height: 120px; z-index: 10; pointer-events: none; background: linear-gradient(to top, var(--bg), transparent); }
+        .sn-fade-top { position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 10; pointer-events: none; background: linear-gradient(to bottom, var(--bg), transparent); }
+        .sn-fade-bottom { position: fixed; bottom: 0; left: 0; right: 0; height: 48px; z-index: 10; pointer-events: none; background: linear-gradient(to top, var(--bg), transparent); }
 
         .site-col { margin: 0 auto; width: 100%; max-width: 576px; }
         .site > :not(nav):not(.sn-fade-top):not(.sn-fade-bottom):not(style) { transition: opacity 0.16s ease, transform 0.16s ease; }
@@ -178,7 +183,7 @@ export default function SiteNav({ active, crumb, dark, onToggleTheme }: { active
         @keyframes snCrumb { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes snDraw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
         @keyframes snDot { from { transform: scale(0); } to { transform: scale(1); } }
-        @media (max-width: 640px) { .site { padding-bottom: 64px; } }
+        @media (max-width: 640px) { .site { padding-bottom: 64px; } .sn-sep, .sn-here { display: none; } }
         @media (prefers-reduced-motion: reduce) { .site-enter, .sn-crumb, .sn-dot { animation: none; } }
       `}</style>
     </>

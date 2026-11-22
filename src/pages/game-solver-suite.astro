@@ -7,7 +7,7 @@ import SolverPage from '../components/portfolio/SolverPage';
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="author" content="Ronniel Gandhe" />
 
     <AstroSeo
@@ -25,6 +25,7 @@ import SolverPage from '../components/portfolio/SolverPage';
     <link rel="icon" type="image/png" href="/icons/baseheadlogo.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/baseheadlogo.png" />
     <meta name="theme-color" content="#ffffff" />
+    <script is:inline>try{if(localStorage.getItem('rg-theme')==='dark'){document.documentElement.style.backgroundColor='#0e0e0e';document.querySelector('meta[name=theme-color]').content='#0e0e0e'}}catch(e){}</script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600&display=swap" />
@@ -53,10 +54,6 @@ import SolverPage from '../components/portfolio/SolverPage';
         width: 100%;
       }
 
-      ::-webkit-scrollbar {
-        width: 0px;
-        background: transparent;
-      }
 
       canvas {
         display: block !important;

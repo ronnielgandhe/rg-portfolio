@@ -88,6 +88,7 @@ function useGradientCanvases(colors: [string, string, string][]) {
   const refs = useRef<(HTMLCanvasElement | null)[]>([]);
 
   useEffect(() => {
+    if (!refs.current.some(Boolean)) return;
     const renderer = createRenderer();
     if (!renderer) return;
     const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -129,13 +130,20 @@ function useGradientCanvases(colors: [string, string, string][]) {
 
 function useActiveSection(ids: string[]) {
   const [active, setActive] = useState(ids[0]);
+  const frozen = useRef(0);
   useEffect(() => {
     const onScroll = () => {
-      const line = window.innerHeight * 0.38;
+      if (Date.now() < frozen.current) return;
+      const doc = document.documentElement;
+      if (window.innerHeight + window.scrollY >= doc.scrollHeight - 4) { setActive(ids[ids.length - 1]); return; }
+      const line = window.innerHeight * 0.45;
       let current = ids[0];
+      let best = Infinity;
       for (const id of ids) {
-        const el = document.getElementById(id);
-        if (el && el.getBoundingClientRect().top <= line) current = id;
+        const r = document.getElementById(id)?.getBoundingClientRect();
+        if (!r) continue;
+        const d = Math.abs(r.top + r.height / 2 - line);
+        if (d < best) { best = d; current = id; }
       }
       setActive(current);
     };
@@ -144,25 +152,28 @@ function useActiveSection(ids: string[]) {
     window.addEventListener('resize', onScroll);
     return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); };
   }, [ids.join('|')]);
-  return active;
+  const jumpTo = (id: string) => { frozen.current = Date.now() + 900; setActive(id); };
+  return [active, jumpTo] as const;
 }
 
 export default function CardFeed({ items }: { items: FeedItem[] }) {
   const canvases = useGradientCanvases(items.map((f) => f.colors));
-  const active = useActiveSection(items.map((f) => f.id));
+  const [active, jumpTo] = useActiveSection(items.map((f) => f.id));
   const jump = (id: string) => {
+    jumpTo(id);
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+  const activeIndex = Math.max(0, items.findIndex((f) => f.id === active));
 
   return (
     <div className="hf-grid">
       <aside className="hf-aside">
         <nav className="hf-toc">
           <ul>
+            <span className="hf-toc-slider" style={{ transform: `translateY(${activeIndex * 32 + 9}px)` }} />
             {items.map((f) => (
               <li key={f.id}>
                 <button className={active === f.id ? 'hf-toc-item hf-toc-on' : 'hf-toc-item'} onClick={() => jump(f.id)}>
-                  <span className="hf-toc-mark" />
                   {f.nav}
                 </button>
               </li>
@@ -209,7 +220,7 @@ export default function CardFeed({ items }: { items: FeedItem[] }) {
         .hf-grid { display: block; }
         .hf-aside, .hf-spacer { display: none; }
         .hf-feed { margin-top: 32px; display: flex; flex-direction: column; gap: 32px; }
-        .hf-anchor { scroll-margin-top: 112px; }
+        .hf-anchor { scroll-margin-top: 144px; }
         .hf-card { position: relative; display: block; width: 100%; aspect-ratio: 16 / 10; border-radius: 0; overflow: hidden; text-decoration: none; background: #000; transform: translateZ(0); }
         .hf-card-art { position: absolute; inset: 0; background-size: cover; }
         .hf-card-art canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity 0.6s ease, transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
@@ -222,16 +233,14 @@ export default function CardFeed({ items }: { items: FeedItem[] }) {
         .hf-shot-media { aspect-ratio: 16 / 10; border-radius: 0; overflow: hidden; border: 1px solid var(--rule); background: var(--hover); transition: border-color 0.2s; }
         .hf-shot:hover .hf-shot-media { border-color: rgba(0, 0, 0, 0.25); }
         .hf-shot-media img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
-        .hf-shot:hover .hf-shot-media img { transform: scale(1.025); }
         .hf-shot-caption { padding: 14px 2px 0; }
         .hf-shot-caption h3 { margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); }
         .hf-shot-caption p { margin: 2px 0 0; font-size: 14px; line-height: 20px; color: var(--text); }
-        .hf-toc { position: sticky; top: 128px; height: fit-content; width: 180px; }
-        .hf-toc ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border-left: 1px solid var(--rule); }
-        .hf-toc-item { position: relative; display: block; width: 100%; padding: 7px 0 7px 16px; text-align: left; font-size: 13px; line-height: 1.375; color: var(--faint); transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .hf-toc { position: sticky; top: 144px; height: fit-content; width: 180px; }
+        .hf-toc ul { position: relative; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border-left: 1px solid var(--rule); }
+        .hf-toc-slider { position: absolute; left: -1px; top: 0; width: 1px; height: 14px; background: var(--ink); transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1); }
+        .hf-toc-item { position: relative; display: block; width: 100%; height: 32px; padding: 0 0 0 16px; text-align: left; font-size: 13px; line-height: 1.375; color: var(--faint); transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .hf-toc-item:hover, .hf-toc-on { color: var(--ink); }
-        .hf-toc-mark { position: absolute; left: -1px; top: 50%; width: 1px; height: 14px; transform: translateY(-50%); border-radius: 1px; background: var(--ink); opacity: 0; transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-        .hf-toc-on .hf-toc-mark { opacity: 1; }
 
         .hf-enter-late { animation-delay: 80ms; }
 
