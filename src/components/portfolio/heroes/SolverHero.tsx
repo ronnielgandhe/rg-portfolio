@@ -31,7 +31,7 @@ const pc = (t: number) => `${((t / DUR) * 100).toFixed(2)}%`;
 
 export default function SolverHero({
   title = 'game solver suite',
-  lede = 'one chrome extension that solves the linkedin and nyt daily games in real time. ten solvers, a pure algorithm core with its own test suite, and a read layer that repairs itself when the sites change. no ai, no server, just vanilla js.',
+  lede = 'one chrome extension that solves the linkedin and nyt daily games in real time. seven puzzles solved by real algorithms, one pure core shared by the extension and this page, and a read layer that repairs itself when the sites change. no ai, no server, just vanilla js.',
   actions = [
     { label: 'get it on github', href: 'https://github.com/ronnielgandhe/game-solver-suite', primary: true, external: true },
     { label: 'how to install', href: '#install' },

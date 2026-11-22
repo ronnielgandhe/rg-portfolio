@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { HOW } from './algorithms';
+import type { Game } from './Demo';
+import { paletteCss } from './palette';
+import Thumb, { THUMB_CSS } from './Thumbs';
 
-export type ArcGame = { icon: string; name: string; how: string; plays: string };
+export type ArcGame = { id: Game; name: string; how: string; plays: string };
+type Pick = { onPick: (g: Game) => void; active: Game };
 export type ArcTrack = { label: string; games: ArcGame[] };
 
 const CARD_W = 184;
@@ -25,28 +29,28 @@ function useMedia(q: string) {
 function Card({ g }: { g: ArcGame }) {
   return (
     <>
-      <img src={`/solver/${g.icon}.png`} alt="" className="sa-icon" draggable={false} />
+      <div className="sa-thumb"><Thumb game={g.id} /></div>
       <div className="sa-name">{g.name}</div>
-      <div className="sa-how">{HOW[g.icon] ?? g.how}</div>
+      <div className="sa-how">{HOW[g.id] ?? g.how}</div>
       <div className="sa-plays">{g.plays}</div>
     </>
   );
 }
 
-export default function Arcs({ top, bottom }: { top: ArcTrack; bottom: ArcTrack }) {
+export default function Arcs({ top, bottom, onPick, active }: { top: ArcTrack; bottom: ArcTrack } & Pick) {
   const narrow = useMedia('(max-width: 640px)');
   const still = useMedia('(prefers-reduced-motion: reduce)');
-  if (narrow) return <Marquees top={top} bottom={bottom} still={still} />;
-  return <Lens top={top} bottom={bottom} still={still} />;
+  if (narrow) return <Marquees top={top} bottom={bottom} still={still} onPick={onPick} active={active} />;
+  return <Lens top={top} bottom={bottom} still={still} onPick={onPick} active={active} />;
 }
 
-function Lens({ top, bottom, still }: { top: ArcTrack; bottom: ArcTrack; still: boolean }) {
+function Lens({ top, bottom, still, onPick, active }: { top: ArcTrack; bottom: ArcTrack; still: boolean } & Pick) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(1040);
   const count = Math.max(top.games.length, Math.ceil((width * 1.5) / SPACING / top.games.length) * top.games.length);
   const tracks = [top, bottom].map((t) => Array.from({ length: count }, (_, i) => t.games[i % t.games.length]));
   const cardRefs = useRef<(HTMLDivElement | null)[][]>([[], []]);
-  const state = useRef({ offset: [0, 0], speed: 1, target: 1, drag: null as null | { x: number; last: number; v: number }, inertia: 0 });
+  const state = useRef({ offset: [0, 0], speed: 1, target: 1, drag: null as null | { x: number; x0: number; last: number; v: number; moved: boolean }, inertia: 0 });
 
   useEffect(() => {
     const el = wrapRef.current;
@@ -98,7 +102,7 @@ function Lens({ top, bottom, still }: { top: ArcTrack; bottom: ArcTrack; still: 
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       const s = state.current;
-      s.speed += (s.target - s.speed) * Math.min(1, dt * 6);
+      s.speed += (s.target - s.speed) * (1 - Math.exp(-dt * 3.2));
       if (!s.drag) {
         const v = SPEED * s.speed + s.inertia;
         s.offset[0] += v * dt;
@@ -117,12 +121,13 @@ function Lens({ top, bottom, still }: { top: ArcTrack; bottom: ArcTrack; still: 
   const onDown = (e: React.PointerEvent) => {
     if (still || e.button !== 0) return;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    state.current.drag = { x: e.clientX, last: performance.now(), v: 0 };
+    state.current.drag = { x: e.clientX, x0: e.clientX, last: performance.now(), v: 0, moved: false };
   };
   const onMove = (e: React.PointerEvent) => {
     const s = state.current;
     if (!s.drag) return;
     const dx = e.clientX - s.drag.x;
+    if (Math.abs(e.clientX - s.drag.x0) > 6) s.drag.moved = true;
     const now = performance.now();
     s.drag.v = dx / Math.max(1, now - s.drag.last) * 1000;
     s.drag.x = e.clientX;
@@ -130,10 +135,13 @@ function Lens({ top, bottom, still }: { top: ArcTrack; bottom: ArcTrack; still: 
     s.offset[0] += dx;
     s.offset[1] -= dx;
   };
-  const onUp = () => {
+  const onUp = (e: React.PointerEvent) => {
     const s = state.current;
     if (!s.drag) return;
-    s.inertia = Math.max(-900, Math.min(900, s.drag.v));
+    if (!s.drag.moved) {
+      const hit = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-game]');
+      if (hit) onPick(hit.getAttribute('data-game') as Game);
+    } else s.inertia = Math.max(-900, Math.min(900, s.drag.v));
     s.drag = null;
   };
 
@@ -156,6 +164,11 @@ function Lens({ top, bottom, still }: { top: ArcTrack; bottom: ArcTrack; still: 
         >
           <div
             className="sa-card"
+            data-game={g.id}
+            data-on={g.id === active ? '' : undefined}
+            role="button"
+            aria-label={`show ${g.name} in the demo`}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(g.id); } }}
             tabIndex={i < (k === 0 ? top : bottom).games.length ? 0 : -1}
             onPointerEnter={() => pause(true)}
             onPointerLeave={() => pause(false)}
@@ -171,7 +184,7 @@ function Lens({ top, bottom, still }: { top: ArcTrack; bottom: ArcTrack; still: 
   );
 }
 
-function Marquees({ top, bottom, still }: { top: ArcTrack; bottom: ArcTrack; still: boolean }) {
+function Marquees({ top, bottom, still, onPick, active }: { top: ArcTrack; bottom: ArcTrack; still: boolean } & Pick) {
   return (
     <div className={`sa-rows${still ? ' sa-still' : ''}`}>
       {[top, bottom].map((t, k) => (
@@ -180,7 +193,7 @@ function Marquees({ top, bottom, still }: { top: ArcTrack; bottom: ArcTrack; sti
           <div className="sa-row">
             <div className={`sa-track ${k === 0 ? 'sa-right' : 'sa-left'}`}>
               {[...t.games, ...t.games].map((g, i) => (
-                <div key={i} className="sa-card sa-card-flat" tabIndex={i < t.games.length ? 0 : -1}><Card g={g} /></div>
+                <button key={i} className="sa-card sa-card-flat" data-on={g.id === active ? '' : undefined} onClick={() => onPick(g.id)} tabIndex={i < t.games.length ? 0 : -1}><Card g={g} /></button>
               ))}
             </div>
           </div>
@@ -196,9 +209,14 @@ const ARCS_CSS = `
   .sa-lens:active { cursor: grabbing; }
   .sa-still { cursor: default; }
   .sa-slot { position: absolute; left: 0; top: 0; width: ${CARD_W}px; height: ${CARD_H}px; will-change: transform, opacity; transform-origin: 50% 50%; }
-  .sa-card { position: relative; width: 100%; height: 100%; padding: 18px 18px 16px; border: 1px solid var(--rule); background: var(--bg); display: flex; flex-direction: column; outline: none; transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .sa-card { position: relative; width: 100%; height: 100%; padding: 18px 18px 16px; border: 1px solid var(--rule); background: var(--bg); display: flex; flex-direction: column; outline: none; transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); cursor: pointer; }
   .sa-card:hover, .sa-card:focus-visible { transform: translateY(-6px); border-color: var(--ink); }
-  .sa-icon { width: 26px; height: 26px; object-fit: contain; display: block; margin-bottom: 14px; pointer-events: none; }
+  ${paletteCss('.sa-lens, .sa-rows')}
+  ${THUMB_CSS}
+  .sa-thumb { height: 52px; width: 64px; margin-bottom: 12px; pointer-events: none; display: flex; align-items: flex-start; }
+  .sa-card[data-on] { border-color: var(--ink); }
+  .sa-card[data-on]::after { content: ''; position: absolute; right: 14px; top: 14px; width: 6px; height: 6px; background: var(--ink); }
+  .sa-card-flat { text-align: left; font: inherit; color: inherit; }
   .sa-name { font-size: 15px; line-height: 20px; font-weight: 500; color: var(--ink); }
   .sa-how { margin-top: 4px; font-size: 12.5px; line-height: 18px; color: var(--text); transition: opacity 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); }
   .sa-plays { position: absolute; left: 18px; right: 18px; bottom: 16px; font-size: 12px; line-height: 17px; color: var(--ink); opacity: 0; transform: translateY(4px); transition: opacity 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); }
