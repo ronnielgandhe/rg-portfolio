@@ -2,8 +2,7 @@ import type { APIRoute } from 'astro';
 
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36';
 const CRYPTO_SYMBOLS = ['BTC', 'ETH', 'SOL', 'DOGE', 'XRP'];
-const VALID_RANGES = ['1mo', '3mo', '6mo', 'ytd', '1y', '2y', '5y', 'max'];
-const INTERVALS: Record<string, string> = { '2y': '1wk', '5y': '1wk', max: '1mo' };
+const VALID_RANGES = ['1mo', '3mo', '1y'];
 
 export const GET: APIRoute = async ({ url }) => {
   const symbolsParam = url.searchParams.get('symbols');
@@ -43,7 +42,7 @@ export const GET: APIRoute = async ({ url }) => {
         batch.map(async (symbol) => {
           const yahooSymbol = CRYPTO_SYMBOLS.includes(symbol) ? `${symbol}-USD` : symbol;
           const res = await fetch(
-            `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?range=${range}&interval=${INTERVALS[range] ?? '1d'}`,
+            `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?range=${range}&interval=1d`,
             { headers: { 'User-Agent': UA } }
           );
           if (!res.ok) throw new Error(`Failed ${symbol}: ${res.status}`);

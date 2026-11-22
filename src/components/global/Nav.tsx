@@ -210,6 +210,7 @@ export default function Nav({ currentPath, recentPosts = [] }: NavProps) {
       ];
 
   const projectItems = [
+    { label: 'QuantZoo', href: '/projects/quantzoo', sublabel: 'Strategy Backtesting Library' },
     { label: 'QuantTerminal', href: '/projects/quantterminal', sublabel: 'Live Trading Platform' },
     { label: 'YourNews', href: '/projects/yournews', sublabel: 'Personalized News Feed' },
     { label: 'All Projects', href: '/projects', sublabel: 'View all projects', divider: true },
