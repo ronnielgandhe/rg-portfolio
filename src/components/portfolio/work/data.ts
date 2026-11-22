@@ -35,6 +35,7 @@ export interface Role {
   company: string;
   page: boolean;
   line: string;
+  brief?: string;
   stats?: Stat[];
   positions: Position[];
   longVersion?: { href: string; label: string };
@@ -64,60 +65,38 @@ export const ROLES: Role[] = [
     company: 'bluejay (yc x25)',
     page: true,
     line: 'bluejay tests and monitors voice and chat ai agents. simulated customers call your agent, and the platform grades what happened.',
-    stats: [
-      { value: 9, suffix: 'M', label: 'production calls on the platform' },
-      { value: 13, label: 'voice platforms benchmarked' },
-      { value: 600, label: 'benchmark tasks through my pipeline' },
-      { value: 27, label: 'repos and services shipped to' },
-    ],
     longVersion: { href: '/writing/my-time-at-bluejay', label: 'my time at bluejay' },
     positions: [
       {
         title: 'software engineer',
         when: 'may 2026 to now',
         where: 'san francisco',
-        summary: 'full stack across the frontend, backend, voice runtime and evals. i take things from a blank page to production, and run a set of ai coding agents in parallel to build them, with checks that make each one prove its work before it can push.',
+        summary: 'full stack across the frontend, backend, voice runtime and evals. i take things from a blank page to a public launch, and run a set of ai coding agents in parallel to build them, with checks that make each one prove its work before it can push.',
         areas: [
           {
-            label: 'benchmarks + evals',
+            label: 'public benchmarks',
             items: [
-              { top: true, text: 'mivas: ran the task pipeline behind 600 tasks for the company’s open multi-industry voice agent benchmark. each industry is a graph of specialist agents with real tool servers and seeded databases, called by digital-human customers. every task passes an oracle at 1.0, is deduped twice and runs 10 times live, and each failure is pinned on the task, the caller, the harness or the model.', links: [{ href: `${MIVAS}/leaderboard`, label: 'leaderboard' }, { href: `${MIVAS}/methodology`, label: 'methodology' }] },
-              { top: true, text: 'mivas task factory: a pipeline runtime that writes, checks and certifies benchmark tasks with no human in the loop. a stage graph with durable state, sandboxed cloud compute, a hard spend ceiling and a receipt for every stage. its second run certified 3 of 3 tasks in 27 minutes with zero interventions. i also designed its fairness gate: 10 code checks plus a run where a strong model gets the answer key, so any miss is the task’s fault, not the model’s.' },
-              { top: true, text: 'voice platform benchmark: mivas tasks run against 13 voice agent platforms over direct internet audio, so the score isolates the platform, not the model. nine fairness rules (same tasks, callers, tool server, prompt, settings and region, fixed thresholds, our own faults re-run) and a seeded audit of graded calls before anything goes out.' },
+              { top: true, text: 'mivas: the company’s open multi-industry voice agent benchmark. each industry is a graph of specialist agents with real tool servers and seeded databases, called by simulated customers. i built and certified tasks for it: every task passes an oracle, is checked for duplicates and runs 10 times live, and each failure is pinned on the task, the caller, the harness or the model.', links: [{ href: `${MIVAS}/leaderboard`, label: 'leaderboard' }, { href: `${MIVAS}/methodology`, label: 'methodology' }] },
+              { top: true, text: 'g2 voice agent leaderboard: built and ran the benchmark behind g2’s public evaluation of voice ai agent platforms. the same agent is deployed on every platform and gets the same 90 simulated calls, five times each, across healthcare, legal and customer support. every call is graded on the tool calls it made and the database state it left behind, then scored on task success, word error rate on clean and degraded audio, and latency. fairness rules and seeded audits of graded calls come before anything is published.', links: [{ href: 'https://ai.g2.com/evaluations/categories/voice', label: 'ai.g2.com' }] },
             ],
           },
           {
-            label: 'simulation',
+            label: 'launches',
             items: [
               { top: true, text: 'bluejay twins: a voice twin of you that phones a business on your behalf. clone consent, a pre-dial safety screen and bot checks, plus an mcp server so any ai agent can run your twin. scaffolded by overnight agent runs, live two days later on its own site.', links: [{ href: 'https://twins.getbluejay.ai', label: 'twins.getbluejay.ai' }] },
-              { text: 'multi-modal customer journeys: one simulated customer who calls, texts, then calls back, keeping context across every step and channel. the chaining core was already channel-agnostic, so it shipped as routing changes with zero changes to the voice runtime.', links: [{ href: 'https://docs.getbluejay.ai/test/simulation-types/customer-journeys', label: 'docs' }] },
-              { top: true, text: 'load testing at scale: describe a test in plain language or by chat, get a credit estimate, and an orchestrator fans out hundreds of concurrent calls. the hard part was the database: every call worker pooled its own connections, so load machines moved to a transaction pooler with no per-worker pool.' },
-            ],
-          },
-          {
-            label: 'platform + infra',
-            items: [
-              { top: true, text: 'workspaces: multi-tenant isolation where every resource lives in exactly one workspace with its own budget. 8 services, a 34-table migration, and a harness that hit 271 write endpoints before it reached production. later an org owner role and scoped org-wide api keys.' },
-              { text: 'observability pipeline: dashboards on a change-data-capture stream into an analytics store, taking p95 loads from timing out to sub-second, and real-time failure alerts that run from the eval workers through a threshold service to slack and email.' },
-              { top: true, text: 'ai incident teammate in slack: watches channels, opens an incident room, counts calls by hour and version, diffs prompt versions to find the one that broke, proposes a fix and proves it with a rerun. built in 3 days, with guards against link spoofing and bot-to-bot loops.' },
-              { text: 'mcp + oauth for claude: claude can drive the whole product. an oauth consent flow that picks org, then workspace, and read-only or destructive hints on all 155 tools so it qualifies for the connector directory.', links: [{ href: 'https://docs.getbluejay.ai/mcp/overview', label: 'docs' }] },
-            ],
-          },
-          {
-            label: 'product + design',
-            items: [
+              { top: true, text: 'free voice agent audit: enter your agent’s phone number, about 20 simulated customers call it, and a pdf report lands in your inbox. the report went from v1 to v5 in 3 days.', links: [{ href: 'https://app.getbluejay.ai/audit', label: 'try the audit' }] },
+              { text: 'load testing: describe a test in plain language or by chat, get a credit estimate, and an orchestrator fans out hundreds of concurrent calls at your agent.', links: [{ href: 'https://docs.getbluejay.ai/test/load-testing/overview', label: 'docs' }] },
+              { text: 'mcp for claude: claude can drive the whole product. an oauth consent flow that picks org, then workspace, and read-only or destructive hints on all 155 tools.', links: [{ href: 'https://docs.getbluejay.ai/mcp/overview', label: 'docs' }] },
+              { text: 'bluejay ai in slack: the launch film, made with my own scripted and animated video pipeline.', links: [{ href: 'https://www.linkedin.com/feed/update/urn:li:activity:7494099807834345472/', label: 'launch post' }] },
               { text: 'website redesign: working on the redesign of the company’s new website.', links: [{ href: 'https://getbluejay.ai', label: 'getbluejay.ai' }] },
-              { text: 'run page + dashboard redesigns: simulation runs rebuilt around a success-rate trend, a latency histogram with p50 to p99, and an outcome donut. rebuilt the internal observability dashboard on a goal-aware judge that reads real tool input and output, because the old one scored confident wrong answers 5 out of 5.' },
             ],
           },
           {
-            label: 'also shipped',
+            label: 'on linkedin',
             items: [
-              { text: 'voice agent audit: a free public audit where about 20 simulated customers call your agent and a pdf report lands in your inbox. report v1 to v5 in 3 days.', links: [{ href: 'https://app.getbluejay.ai/audit', label: 'voice agent audit' }] },
-              { text: 'provider sync: paste a key and your agents import. keys are probed before they are accepted, empty results explain themselves, and platforms with no agent list are discovered from live rooms.' },
-              { text: 'digital-human callers: voice clones, background noise, phonetic-alphabet spelling, per-language speech model routing, and text-to-speech fixes so digits and zip codes come out right.' },
-              { text: 'eval metrics: an llm-as-judge word error rate, deterministic checks (right tool called, transfer landed, trace spans) and an audio clarity score recalibrated against a gold set.' },
-              { text: 'onboarding + ai assistant: sign-up drops you into the in-app assistant (22 runnable skills, artifacts, deep research), with your credit balance and a pay prompt in chat when credits run out.' },
+              { text: 'the audit launch: \u201ci recently built out a free voice agent audit for everyone who wants to find out where their agents are breaking in production.\u201d', links: [{ href: 'https://www.linkedin.com/posts/ronniel-gandhe_i-recently-built-out-a-free-voice-agent-audit-ugcPost-7481447814237999104-vmBk/', label: 'read the post' }] },
+              { draft: true, text: 'draft, june post: \u201cthe most recent thing i built at bluejay\u201d (2026-06-11). confirm it is public and add a one-line summary.', links: [{ href: 'https://www.linkedin.com/posts/ronniel-gandhe_the-most-recent-thing-i-built-at-bluejay-ugcPost-7470908585766494208-7Cdo/', label: 'post' }] },
+              { draft: true, text: 'draft, august post: \u201cfor when you get the 3:00 am why is this\u2026\u201d (2026-08-11). confirm it is public and add a one-line summary.', links: [{ href: 'https://www.linkedin.com/posts/ronniel-gandhe_for-when-you-get-the-300-am-why-is-this-ugcPost-7493018171960958977-PUKr/', label: 'post' }] },
             ],
           },
         ],
@@ -129,6 +108,7 @@ export const ROLES: Role[] = [
     company: 'augmentor labs',
     page: true,
     line: 'augmentor labs brings professional tools that usually live in separate platforms into one application.',
+    brief: 'growth engineering in 2026, shipping acquisition and engagement features and running experiments. before that, a 2025 cloud infrastructure internship where i cut p95 pipeline latency by about 35%.',
     positions: [
       {
         title: 'software engineer, growth',
@@ -167,8 +147,9 @@ export const ROLES: Role[] = [
   {
     slug: 'cibc',
     company: 'cibc',
-    page: false,
+    page: true,
     line: 'a major canadian bank.',
+    brief: 'data scientist intern in technology operations: ci/cd pipelines, feature flags with blue/green and canary rollouts, and release dashboards.',
     positions: [
       {
         title: 'data scientist intern, technology operations',
