@@ -57,19 +57,19 @@ export function SLink({
   );
 }
 
-export default function PageShell({ activePage, crumb, wide, children }: { activePage: string; crumb?: string; wide?: boolean; children: React.ReactNode }) {
+export default function PageShell({ activePage, crumb, back, wide, children }: { activePage: string; crumb?: string; back?: { href: string; label: string }; wide?: boolean; children: React.ReactNode }) {
   return (
     <ThemeProvider>
-      <PageShellInner activePage={activePage} crumb={crumb} wide={wide}>{children}</PageShellInner>
+      <PageShellInner activePage={activePage} crumb={crumb} back={back} wide={wide}>{children}</PageShellInner>
     </ThemeProvider>
   );
 }
 
-function PageShellInner({ activePage, crumb, wide, children }: { activePage: string; crumb?: string; wide?: boolean; children: React.ReactNode }) {
+function PageShellInner({ activePage, crumb, back, wide, children }: { activePage: string; crumb?: string; back?: { href: string; label: string }; wide?: boolean; children: React.ReactNode }) {
   const { dark, toggle } = useTheme();
   return (
     <div className={`site ${dark ? 'site-dark' : ''}`}>
-      <SiteNav active={activePage} crumb={crumb} dark={dark} onToggleTheme={toggle} />
+      <SiteNav active={activePage} crumb={crumb} back={back ?? (activePage === 'about' || !activePage ? undefined : { href: '/', label: 'home' })} dark={dark} onToggleTheme={toggle} />
       {wide ? <div style={{ margin: '0 auto', width: '100%', maxWidth: 1152 }}>{children}</div> : <div className="site-col site-enter">{children}</div>}
       <style>{`
         .rg-slink { text-decoration: none; font-weight: 500; position: relative; transition: color 0.2s; }

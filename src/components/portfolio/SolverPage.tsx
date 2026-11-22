@@ -46,7 +46,7 @@ const INSTALL = [
 
 export default function SolverPage() {
   return (
-    <PageShell activePage="projects" crumb="game solver suite" wide>
+    <PageShell activePage="projects" crumb="game solver suite" back={{ href: '/projects', label: 'projects' }} wide>
       <div className="site-col site-enter">
         <div className="st-kicker">project</div>
         <h1 className="st-title">game solver suite</h1>

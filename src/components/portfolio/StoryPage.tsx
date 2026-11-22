@@ -119,7 +119,7 @@ export default function StoryPage({ slug }: { slug: string }) {
   const story = STORIES[slug];
   if (!story) return null;
   return (
-    <PageShell activePage={slug} crumb={story.crumb}>
+    <PageShell activePage={slug} crumb={story.crumb} back={story.kicker === 'project' ? { href: '/projects', label: 'projects' } : { href: '/', label: 'home' }}>
       <div className="st-kicker">{story.kicker}</div>
       <h1 className="st-title">{story.title}</h1>
       {story.lede && <p className="st-lede">{story.lede}</p>}

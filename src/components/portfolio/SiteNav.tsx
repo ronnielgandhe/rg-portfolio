@@ -33,7 +33,7 @@ function seenBefore() {
   } catch { return false; }
 }
 
-export default function SiteNav({ active, crumb, dark, onToggleTheme }: { active?: string; crumb?: string; dark: boolean; onToggleTheme: () => void }) {
+export default function SiteNav({ active, crumb, back, dark, onToggleTheme }: { active?: string; crumb?: string; back?: { href: string; label: string }; dark: boolean; onToggleTheme: () => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [settled] = useState(seenBefore);
 
@@ -70,6 +70,12 @@ export default function SiteNav({ active, crumb, dark, onToggleTheme }: { active
     <>
       <nav className="sn-nav">
         <div className={`sn-crumb${scrolled ? ' sn-scrolled' : ''}${settled ? ' sn-settled' : ''}`}>
+          {back && (
+            <a href={back.href} className="sn-back" aria-label={`back to ${back.label}`}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M11 6l-6 6 6 6" /></svg>
+              {back.label}
+            </a>
+          )}
           <span className="sn-dot" />
           <a href="/" className="sn-name">Ronniel Gandhe</a>
           {crumb && (
@@ -150,6 +156,10 @@ export default function SiteNav({ active, crumb, dark, onToggleTheme }: { active
         .sn-name { font-size: 15px; line-height: 20px; font-weight: 400; letter-spacing: -0.01em; color: var(--ink); text-decoration: none; }
         .sn-sep { font-size: 14px; line-height: 20px; color: var(--faint); }
         .sn-here { font-size: 14px; line-height: 20px; color: var(--text); }
+        .sn-back { display: inline-flex; align-items: center; gap: 6px; margin-right: 8px; padding-right: 16px; border-right: 1px solid var(--rule); font-size: 14px; line-height: 20px; color: var(--text); text-decoration: none; transition: color 0.2s; }
+        .sn-back:hover { color: var(--ink); }
+        .sn-back svg { transition: transform 0.2s; }
+        .sn-back:hover svg { transform: translateX(-2px); }
         .sn-gap { width: 12px; }
         .sn-link { position: relative; font-size: 14px; line-height: 20px; color: var(--text); text-decoration: none; transition: color 0.2s; }
         .sn-link::after { content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 1px; background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }

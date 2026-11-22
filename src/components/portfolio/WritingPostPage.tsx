@@ -129,7 +129,7 @@ function PostContent({ slug }: { slug: string }) {
 
 export default function WritingPostPage({ slug }: { slug: string }) {
   return (
-    <PageShell activePage="writing">
+    <PageShell activePage="writing" back={{ href: '/writing', label: 'writing' }}>
       <PostContent slug={slug} />
     </PageShell>
   );
