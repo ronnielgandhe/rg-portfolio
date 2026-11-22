@@ -188,7 +188,7 @@ const Experience = ({ onCardClick, windowMode }: ExperienceProps) => {
             <h2 style={{
               fontSize: '1.2rem',
               color: 'rgba(255, 255, 255, 0.9)',
-              fontFamily: '-apple-system, BlinkMacSystemFont, NeueMontreal-MediumItalic, sans-serif',
+              fontFamily: 'var(--os-font)',
               fontStyle: 'italic',
               margin: '0 0 0.75rem 0',
               fontWeight: '600'
@@ -276,7 +276,7 @@ const Experience = ({ onCardClick, windowMode }: ExperienceProps) => {
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
                   background: 'none', border: 'none', cursor: 'pointer',
                   color: 'rgba(255,255,255,0.5)', fontSize: '13px',
-                  fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+                  fontFamily: 'var(--os-font)',
                   padding: '4px 0', marginBottom: '1.25rem',
                   transition: 'color 0.15s',
                 }}
@@ -299,7 +299,7 @@ const Experience = ({ onCardClick, windowMode }: ExperienceProps) => {
           <h2 style={{
             fontSize: '1.2rem',
             color: '#1d1d1f',
-            fontFamily: '-apple-system, BlinkMacSystemFont, NeueMontreal-MediumItalic, sans-serif',
+            fontFamily: 'var(--os-font)',
             fontStyle: 'italic',
             margin: '0 0 1rem 0',
             fontWeight: '600'

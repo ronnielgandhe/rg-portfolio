@@ -74,7 +74,7 @@ const Calendar = ({ windowMode }: CalendarProps) => {
     return (
       <div style={{
         width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
-        background: '#fff', fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif",
+        background: '#fff', fontFamily: 'var(--os-font)',
       }}>
         <div style={{
           height: '36px', minHeight: '36px', display: 'flex', alignItems: 'center',
@@ -82,7 +82,7 @@ const Calendar = ({ windowMode }: CalendarProps) => {
         }}>
           <button onClick={() => setShowBooking(false)} style={{
             background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px',
-            color: '#007aff', fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+            color: '#007aff', fontFamily: 'var(--os-font)',
             fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px',
             padding: '4px 8px', borderRadius: '6px',
           }}>
@@ -105,7 +105,7 @@ const Calendar = ({ windowMode }: CalendarProps) => {
   return (
     <div style={{
       width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
-      background: 'transparent', fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif",
+      background: 'transparent', fontFamily: 'var(--os-font)',
       userSelect: 'none',
     }}>
       {/* Toolbar — solid white to match calendar content */}
@@ -156,7 +156,7 @@ const Calendar = ({ windowMode }: CalendarProps) => {
                 style={{
                   padding: '3px 16px', borderRadius: '5px', border: 'none', fontSize: '12.5px',
                   fontWeight: mode === viewMode ? 500 : 400,
-                  fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+                  fontFamily: 'var(--os-font)',
                   cursor: 'pointer',
                   background: mode === viewMode ? 'rgba(255, 255, 255, 0.85)' : 'transparent',
                   color: mode === viewMode ? '#1a1a1a' : 'rgba(0, 0, 0, 0.5)',
@@ -192,7 +192,7 @@ const Calendar = ({ windowMode }: CalendarProps) => {
       }}>
         <h1 style={{
           fontSize: '26px', fontWeight: 700, color: '#1a1a1a', margin: 0,
-          fontFamily: "'SF Pro Display', -apple-system, sans-serif", letterSpacing: '-0.3px',
+          fontFamily: 'var(--os-font-display)', letterSpacing: '-0.3px',
         }}>
           <span style={{ fontWeight: 700 }}>{headerText.split(' ')[0]}</span>
           {headerText.includes(' ') && (
@@ -205,7 +205,7 @@ const Calendar = ({ windowMode }: CalendarProps) => {
           <button onClick={goToToday} style={{
             padding: '4px 12px', borderRadius: '6px', border: '1px solid #d0d0d0',
             background: '#fff', fontSize: '12px', fontWeight: 500, color: '#333', cursor: 'pointer',
-            fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+            fontFamily: 'var(--os-font)',
           }}>
             Today
           </button>
@@ -232,7 +232,7 @@ const Calendar = ({ windowMode }: CalendarProps) => {
           style={{
             padding: '6px 20px', borderRadius: '8px', border: 'none', background: '#007aff',
             color: '#fff', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-            fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+            fontFamily: 'var(--os-font)',
             transition: 'all 0.15s ease', boxShadow: '0 1px 3px rgba(0, 122, 255, 0.3)',
           }}
           onMouseEnter={(e) => { e.currentTarget.style.background = '#0066dd'; e.currentTarget.style.transform = 'scale(1.02)'; }}
@@ -370,7 +370,7 @@ function MiniMonth({ year, month, today, isToday, onClick }: {
       {/* Month name */}
       <div style={{
         fontSize: '13px', fontWeight: 600, color: '#ff3b30', marginBottom: '6px',
-        fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+        fontFamily: 'var(--os-font)',
       }}>
         {MONTHS[month]}
       </div>
@@ -493,7 +493,7 @@ function WeekView({ currentDate, today, isToday }: {
                 {h > 0 && (
                   <span style={{
                     fontSize: '10px', color: '#999', fontWeight: 400,
-                    fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+                    fontFamily: 'var(--os-font)',
                     lineHeight: 1, transform: 'translateY(-5px)',
                   }}>
                     {formatHour(h)}
@@ -617,7 +617,7 @@ function DayView({ currentDate, today, isToday }: {
                 {h > 0 && (
                   <span style={{
                     fontSize: '10px', color: '#999', fontWeight: 400,
-                    fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+                    fontFamily: 'var(--os-font)',
                     lineHeight: 1, transform: 'translateY(-5px)',
                   }}>
                     {formatHour(h)}
@@ -757,7 +757,7 @@ function NavButton({ children, onClick }: { children: React.ReactNode; onClick: 
       width: '28px', height: '28px', borderRadius: '6px', border: '1px solid #d0d0d0',
       background: '#fff', fontSize: '18px', fontWeight: 300, color: '#333', cursor: 'pointer',
       display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
-      fontFamily: "'SF Pro Text', -apple-system, sans-serif", transition: 'background 0.15s ease',
+      fontFamily: 'var(--os-font)', transition: 'background 0.15s ease',
     }}
       onMouseEnter={(e) => { e.currentTarget.style.background = '#f0f0f0'; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}

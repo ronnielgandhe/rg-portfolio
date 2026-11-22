@@ -104,7 +104,7 @@ const Photos = ({ windowMode }: PhotosProps) => {
                 background: 'rgba(255, 255, 255, 0.06)',
                 color: 'rgba(255, 255, 255, 0.8)',
                 fontSize: '12px',
-                fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+                fontFamily: 'var(--os-font)',
                 cursor: 'pointer',
               }}
             >
@@ -117,7 +117,7 @@ const Photos = ({ windowMode }: PhotosProps) => {
             <span style={{
               fontSize: '11px',
               color: 'rgba(255, 255, 255, 0.35)',
-              fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+              fontFamily: 'var(--os-font)',
             }}>
               {selectedPhoto + 1} of {photos.length}
             </span>
@@ -128,7 +128,7 @@ const Photos = ({ windowMode }: PhotosProps) => {
               fontSize: '13px',
               color: 'rgba(255, 255, 255, 0.9)',
               fontWeight: 600,
-              fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+              fontFamily: 'var(--os-font)',
             }}>
               All Photos
             </span>
@@ -136,7 +136,7 @@ const Photos = ({ windowMode }: PhotosProps) => {
             <span style={{
               fontSize: '11px',
               color: 'rgba(255, 255, 255, 0.35)',
-              fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+              fontFamily: 'var(--os-font)',
             }}>
               {photos.length} photos
             </span>
@@ -232,7 +232,7 @@ const Photos = ({ windowMode }: PhotosProps) => {
               <p style={{
                 color: 'rgba(255, 255, 255, 0.8)',
                 fontSize: '13px',
-                fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+                fontFamily: 'var(--os-font)',
                 margin: 0,
                 fontWeight: 500,
               }}>
@@ -243,7 +243,7 @@ const Photos = ({ windowMode }: PhotosProps) => {
               <p style={{
                 color: 'rgba(255, 255, 255, 0.35)',
                 fontSize: '11px',
-                fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+                fontFamily: 'var(--os-font)',
                 margin: '4px 0 0',
               }}>
                 {new Date(selected.createdAt).toLocaleDateString('en-US', {

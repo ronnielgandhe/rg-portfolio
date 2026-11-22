@@ -1,5 +1,5 @@
 export const SYSTEM_FONT =
-  "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', 'Inter', system-ui, sans-serif";
+  'var(--os-font)';
 
 export const MENU_BAR_HEIGHT = 28;
 export const ACCENT = '#0a84ff';

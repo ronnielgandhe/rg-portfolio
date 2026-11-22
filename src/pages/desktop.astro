@@ -26,9 +26,24 @@ import DesktopShell from '../components/desktop/DesktopShell';
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/baseheadlogo.png" />
     <meta name="theme-color" content="#ffffff" />
     <script is:inline>
-      addEventListener('pagereveal', function (e) {
-        if (e.viewTransition) document.documentElement.classList.add('rg-vt-in');
-      });
+      (function () {
+        var root = document.documentElement;
+        var during = function (vt) {
+          root.classList.add('rg-vt');
+          vt.finished.finally(function () { root.classList.remove('rg-vt'); });
+        };
+        addEventListener('pagereveal', function (e) {
+          if (!e.viewTransition) return;
+          root.classList.add('rg-vt-in');
+          during(e.viewTransition);
+        });
+        addEventListener('pageswap', function (e) {
+          if (e.viewTransition) during(e.viewTransition);
+        });
+        addEventListener('pageshow', function (e) {
+          if (e.persisted) root.classList.remove('rg-vt');
+        });
+      })();
     </script>
 
     <style is:global>
@@ -36,6 +51,39 @@ import DesktopShell from '../components/desktop/DesktopShell';
         margin: 0;
         padding: 0;
         box-sizing: border-box;
+      }
+
+      :root {
+        --os-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+        --os-font-display: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+        --os-font-rounded: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+        --os-font-serif: ui-serif, "New York", Georgia, serif;
+        --os-mono: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      }
+
+      html, body, .rg-desktop {
+        font-family: var(--os-font);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      .rg-desktop button,
+      .rg-desktop input,
+      .rg-desktop select,
+      .rg-desktop textarea {
+        font: inherit;
+        letter-spacing: inherit;
+      }
+
+      .rg-desktop code,
+      .rg-desktop kbd,
+      .rg-desktop samp,
+      .rg-desktop pre {
+        font-family: var(--os-mono);
+      }
+
+      .rg-desktop svg text {
+        font-variant-numeric: tabular-nums;
       }
 
       html {
@@ -78,6 +126,9 @@ import DesktopShell from '../components/desktop/DesktopShell';
         position: fixed;
         inset: 0;
         background: #ffffff;
+      }
+
+      .rg-vt .rg-desktop {
         view-transition-name: rg-desktop;
       }
 

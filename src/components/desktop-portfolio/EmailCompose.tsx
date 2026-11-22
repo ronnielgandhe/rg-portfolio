@@ -64,7 +64,7 @@ const EmailCompose = ({ windowMode }: EmailComposeProps) => {
           color: 'rgba(255, 255, 255, 0.9)',
           fontSize: '16px',
           fontWeight: 600,
-          fontFamily: "'SF Pro Display', -apple-system, sans-serif",
+          fontFamily: 'var(--os-font-display)',
           margin: 0,
         }}>
           Your mail client should open now
@@ -72,7 +72,7 @@ const EmailCompose = ({ windowMode }: EmailComposeProps) => {
         <p style={{
           color: 'rgba(255, 255, 255, 0.45)',
           fontSize: '13px',
-          fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+          fontFamily: 'var(--os-font)',
           margin: 0,
         }}>
           Hit send in your mail app to deliver the message
@@ -93,7 +93,7 @@ const EmailCompose = ({ windowMode }: EmailComposeProps) => {
             background: 'rgba(255, 255, 255, 0.06)',
             color: 'rgba(255, 255, 255, 0.7)',
             fontSize: '13px',
-            fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+            fontFamily: 'var(--os-font)',
             cursor: 'pointer',
             transition: 'all 0.2s',
           }}
@@ -144,7 +144,7 @@ const EmailCompose = ({ windowMode }: EmailComposeProps) => {
             color: canSend ? '#fff' : 'rgba(255,255,255,0.4)',
             fontSize: '13px',
             fontWeight: 600,
-            fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+            fontFamily: 'var(--os-font)',
             cursor: canSend ? 'pointer' : 'default',
             transition: 'all 0.2s',
             opacity: sending ? 0.6 : 1,
@@ -161,7 +161,7 @@ const EmailCompose = ({ windowMode }: EmailComposeProps) => {
         <span style={{
           fontSize: '11px',
           color: 'rgba(255, 255, 255, 0.3)',
-          fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+          fontFamily: 'var(--os-font)',
         }}>
           to: ronnielgandhe@gmail.com
         </span>
@@ -184,14 +184,14 @@ const EmailCompose = ({ windowMode }: EmailComposeProps) => {
           <span style={{
             fontSize: '13px',
             color: 'rgba(255, 255, 255, 0.35)',
-            fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+            fontFamily: 'var(--os-font)',
             width: '56px',
             flexShrink: 0,
           }}>To:</span>
           <span style={{
             fontSize: '13px',
             color: 'rgba(255, 255, 255, 0.8)',
-            fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+            fontFamily: 'var(--os-font)',
             background: 'rgba(0, 122, 255, 0.15)',
             padding: '3px 10px',
             borderRadius: '12px',
@@ -212,7 +212,7 @@ const EmailCompose = ({ windowMode }: EmailComposeProps) => {
           <span style={{
             fontSize: '13px',
             color: 'rgba(255, 255, 255, 0.35)',
-            fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+            fontFamily: 'var(--os-font)',
             width: '56px',
             flexShrink: 0,
           }}>Name:</span>
@@ -227,7 +227,7 @@ const EmailCompose = ({ windowMode }: EmailComposeProps) => {
               outline: 'none',
               color: 'rgba(255, 255, 255, 0.9)',
               fontSize: '13px',
-              fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+              fontFamily: 'var(--os-font)',
               padding: '10px 0',
             }}
           />
@@ -244,7 +244,7 @@ const EmailCompose = ({ windowMode }: EmailComposeProps) => {
           <span style={{
             fontSize: '13px',
             color: 'rgba(255, 255, 255, 0.35)',
-            fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+            fontFamily: 'var(--os-font)',
             width: '56px',
             flexShrink: 0,
           }}>Email:</span>
@@ -260,7 +260,7 @@ const EmailCompose = ({ windowMode }: EmailComposeProps) => {
               outline: 'none',
               color: 'rgba(255, 255, 255, 0.9)',
               fontSize: '13px',
-              fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+              fontFamily: 'var(--os-font)',
               padding: '10px 0',
             }}
           />
@@ -277,7 +277,7 @@ const EmailCompose = ({ windowMode }: EmailComposeProps) => {
           <span style={{
             fontSize: '13px',
             color: 'rgba(255, 255, 255, 0.35)',
-            fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+            fontFamily: 'var(--os-font)',
             width: '56px',
             flexShrink: 0,
           }}>Subject:</span>
@@ -292,7 +292,7 @@ const EmailCompose = ({ windowMode }: EmailComposeProps) => {
               outline: 'none',
               color: 'rgba(255, 255, 255, 0.9)',
               fontSize: '13px',
-              fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+              fontFamily: 'var(--os-font)',
               padding: '10px 0',
             }}
           />
@@ -313,7 +313,7 @@ const EmailCompose = ({ windowMode }: EmailComposeProps) => {
             outline: 'none',
             color: 'rgba(255, 255, 255, 0.85)',
             fontSize: '14px',
-            fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+            fontFamily: 'var(--os-font)',
             lineHeight: 1.6,
             padding: '16px',
             resize: 'none',
@@ -335,7 +335,7 @@ const EmailCompose = ({ windowMode }: EmailComposeProps) => {
         <span style={{
           fontSize: '11px',
           color: 'rgba(255, 255, 255, 0.25)',
-          fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+          fontFamily: 'var(--os-font)',
         }}>
           {message.length > 0 ? `${message.length} characters` : 'Compose your message above'}
         </span>

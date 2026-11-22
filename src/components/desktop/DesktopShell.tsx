@@ -228,7 +228,7 @@ function RollingTitles() {
       <span ref={contentRef} style={{ display: 'inline' }}>
         {displayItems.map((item, i) => (
           <span key={i}>
-            <span style={{ color: item.color, fontWeight: 600, fontFamily: "'SF Pro Text', -apple-system, sans-serif" }}>{item.text}</span>
+            <span style={{ color: item.color, fontWeight: 600, fontFamily: 'var(--os-font)' }}>{item.text}</span>
             {i < displayItems.length - 1 && <span style={{ color: 'rgba(0,0,0,0.12)', margin: '0 6px' }}>·</span>}
           </span>
         ))}
@@ -318,7 +318,7 @@ function RotatingWords() {
 
   return (
     <span style={{ position: 'relative', display: 'inline' }}>
-      <span style={{ color: 'rgba(255,255,255,0.95)', fontWeight: 800, fontSize: '22px', fontFamily: "'SF Pro Display', -apple-system, sans-serif" }}>
+      <span style={{ color: 'rgba(255,255,255,0.95)', fontWeight: 800, fontSize: '22px', fontFamily: 'var(--os-font-display)' }}>
         {displayText}
       </span>
       <span style={{
@@ -370,7 +370,7 @@ function StockTickers() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-      <div style={{ color: 'rgba(0,0,0,0.3)', fontSize: '10px', fontWeight: 600, letterSpacing: '0.08em', marginBottom: '4px' }}>
+      <div style={{ color: 'rgba(0,0,0,0.3)', fontSize: '10px', fontWeight: 600, letterSpacing: '0.04em', marginBottom: '4px' }}>
         MARKETS
       </div>
       {tickers.map(t => {
@@ -390,11 +390,11 @@ function StockTickers() {
               color: 'rgba(0,0,0,0.6)',
               fontSize: '11px',
               fontWeight: 600,
-              fontFamily: "'SF Mono', monospace",
+              fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
               width: '40px',
             }}>{t.symbol}</span>
             <span style={{
-              fontFamily: "'SF Mono', monospace",
+              fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
               fontSize: '11.5px',
               color: '#1d1d1f',
               fontWeight: 500,
@@ -403,7 +403,7 @@ function StockTickers() {
               marginRight: '8px',
             }}>{fmt}</span>
             <span style={{
-              fontFamily: "'SF Mono', monospace",
+              fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
               fontSize: '10.5px',
               color,
               fontWeight: 500,
@@ -459,7 +459,7 @@ function WorldClock() {
     return () => clearInterval(id);
   }, [groups.length]);
 
-  const font = "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif";
+  const font = 'var(--os-font-display)';
   const currentGroup = groups[groupIdx];
 
   return (
@@ -546,8 +546,8 @@ const QUICK_NAV = [
 
 function QuickStartTiles({ runCommand }: { runCommand: (cmd: string, source?: 'ui' | 'typed') => void }) {
   return (
-    <div style={{ marginTop: '20px', fontFamily: "'SF Mono', monospace" }}>
-      <div style={{ color: '#1d1d1f', fontSize: '11px', letterSpacing: '0.1em', fontWeight: 600, marginBottom: '8px' }}>
+    <div style={{ marginTop: '20px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
+      <div style={{ color: '#1d1d1f', fontSize: '11px', letterSpacing: '0.04em', fontWeight: 600, marginBottom: '8px' }}>
         QUICK START
       </div>
       <div className="qs-pills" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
@@ -608,7 +608,7 @@ function AnimatedExplore({ runCommand }: { runCommand: (cmd: string, source?: 'u
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', width: '100%' }}>
       {/* Typed text — shows on hover */}
-      <div style={{ minHeight: '28px', display: 'flex', alignItems: 'baseline', fontFamily: "'SF Pro Display', -apple-system, sans-serif" }}>
+      <div style={{ minHeight: '28px', display: 'flex', alignItems: 'baseline', fontFamily: 'var(--os-font-display)' }}>
         {typed && (
           <span style={{ fontSize: '22px', fontWeight: 700, color: '#1d1d1f', letterSpacing: '-0.5px' }}>
             {typed}
@@ -637,7 +637,7 @@ function AnimatedExplore({ runCommand }: { runCommand: (cmd: string, source?: 'u
               style={{
                 padding: '5px 14px', borderRadius: '16px', cursor: 'pointer',
                 fontSize: '13px', fontWeight: isHovered ? 700 : 500,
-                fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+                fontFamily: 'var(--os-font)',
                 color: isHovered ? '#1d1d1f' : 'rgba(0,0,0,0.4)',
                 background: isHovered ? 'rgba(0,0,0,0.06)' : 'transparent',
                 border: `1px solid ${isHovered ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.08)'}`,
@@ -660,7 +660,7 @@ function ExploreCommands({ smartCommandLinks, runCommand }: {
 }) {
   return (
     <div style={{ padding: '8px 14px' }}>
-      <div style={{ color: '#1d1d1f', fontSize: '11px', fontWeight: 600, letterSpacing: '0.1em', marginBottom: '4px' }}>EXPLORE</div>
+      <div style={{ color: '#1d1d1f', fontSize: '11px', fontWeight: 600, letterSpacing: '0.04em', marginBottom: '4px' }}>EXPLORE</div>
       <div className="explore-list" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
         {smartCommandLinks.map((item) => (
           <div
@@ -1019,13 +1019,13 @@ function CyclingStock({ stocks: externalStocks, startOffset = 0, compact = false
 
   return (
     <div>
-      <div style={{ fontFamily: "'SF Mono', monospace", minHeight: compact ? '14px' : '18px', marginBottom: '2px' }}>
+      <div style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', minHeight: compact ? '14px' : '18px', marginBottom: '2px' }}>
         <span style={{ color: textColor, fontWeight: 700, fontSize: compact ? '11px' : '13px' }}>
           {scrambledText}
         </span>
       </div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: compact ? '6px' : '8px' }}>
-        <span style={{ fontSize: compact ? '18px' : '26px', fontWeight: 700, color: textColor, fontFamily: "'SF Pro Display', -apple-system, sans-serif", fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.5px' }}>
+        <span style={{ fontSize: compact ? '18px' : '26px', fontWeight: 700, color: textColor, fontFamily: 'var(--os-font-display)', fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.5px' }}>
           {scrambledPrice}
         </span>
         <span style={{ color, fontSize: compact ? '11px' : '13px', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
@@ -1132,14 +1132,14 @@ function BloombergNewsFeed() {
   };
 
   if (!news.length) return (
-    <div style={{ padding: '8px 10px', color: 'rgba(255,255,255,0.3)', fontSize: '11px', fontFamily: "'SF Mono', monospace" }}>
+    <div style={{ padding: '8px 10px', color: 'rgba(255,255,255,0.3)', fontSize: '11px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
       Loading feed...
     </div>
   );
 
   return (
     <div style={{ padding: '0 10px' }}>
-      <div style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.1em', marginBottom: '6px', fontFamily: "'SF Pro Text', -apple-system, sans-serif" }}>
+      <div style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.04em', marginBottom: '6px', fontFamily: 'var(--os-font)' }}>
         TOP STORIES
       </div>
       {news.slice(0, 3).map((item, i) => (
@@ -1153,13 +1153,13 @@ function BloombergNewsFeed() {
           onClick={e => e.stopPropagation()}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
-            <span style={{ color: getColor(item.source), fontSize: '10px', fontWeight: 600, fontFamily: "'SF Mono', monospace" }}>{item.source}</span>
-            <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: '10px', fontFamily: "'SF Mono', monospace" }}>{timeAgo(item.pubDate)}</span>
+            <span style={{ color: getColor(item.source), fontSize: '10px', fontWeight: 600, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>{item.source}</span>
+            <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: '10px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>{timeAgo(item.pubDate)}</span>
           </div>
           <div style={{
             fontSize: '12px', fontWeight: 500, color: 'rgba(255,255,255,0.8)', lineHeight: 1.35,
             display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-            fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+            fontFamily: 'var(--os-font)',
           }}>
             {item.title}
           </div>
@@ -1198,10 +1198,10 @@ function SpotifyWidget() {
 
   if (!track) return (
     <div style={{ padding: '8px 10px' }}>
-      <div style={{ fontSize: '10px', fontWeight: 700, color: '#1d1d1f', letterSpacing: '0.1em', marginBottom: '6px', fontFamily: "'SF Pro Text', -apple-system, sans-serif" }}>
+      <div style={{ fontSize: '10px', fontWeight: 700, color: '#1d1d1f', letterSpacing: '0.04em', marginBottom: '6px', fontFamily: 'var(--os-font)' }}>
         NOW PLAYING
       </div>
-      <div style={{ color: 'rgba(0,0,0,0.25)', fontSize: '11px', fontFamily: "'SF Mono', monospace" }}>Not connected</div>
+      <div style={{ color: 'rgba(0,0,0,0.25)', fontSize: '11px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>Not connected</div>
     </div>
   );
 
@@ -1209,7 +1209,7 @@ function SpotifyWidget() {
 
   return (
     <div style={{ padding: '8px 10px' }}>
-      <div style={{ fontSize: '10px', fontWeight: 700, color: '#1d1d1f', letterSpacing: '0.1em', marginBottom: '6px', fontFamily: "'SF Pro Text', -apple-system, sans-serif" }}>
+      <div style={{ fontSize: '10px', fontWeight: 700, color: '#1d1d1f', letterSpacing: '0.04em', marginBottom: '6px', fontFamily: 'var(--os-font)' }}>
         {track.isPlaying ? 'NOW PLAYING' : 'RECENTLY PLAYED'}
       </div>
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -1217,7 +1217,7 @@ function SpotifyWidget() {
           <img src={track.albumArt} alt="" style={{ width: 40, height: 40, borderRadius: 4, flexShrink: 0 }} />
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: '12px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: "'SF Pro Text', -apple-system, sans-serif" }}>
+          <div style={{ fontSize: '12px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: 'var(--os-font)' }}>
             {track.title}
           </div>
           <div style={{ fontSize: '11px', color: 'rgba(0,0,0,0.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -1227,7 +1227,7 @@ function SpotifyWidget() {
             <div style={{ flex: 1, height: 3, background: 'rgba(0,0,0,0.1)', borderRadius: 2, overflow: 'hidden' }}>
               <div style={{ width: `${pct}%`, height: '100%', background: '#1db954', borderRadius: 2, transition: 'width 1s linear' }} />
             </div>
-            <span style={{ fontSize: '9px', color: 'rgba(0,0,0,0.3)', fontFamily: "'SF Mono', monospace", flexShrink: 0 }}>
+            <span style={{ fontSize: '9px', color: 'rgba(0,0,0,0.3)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
               {fmtTime(progress)}/{fmtTime(track.durationMs)}
             </span>
           </div>
@@ -1239,6 +1239,7 @@ function SpotifyWidget() {
 
 // ── Widget 3: Market Sector Heatmap ──
 function SectorHeatmap() {
+  const marketOpen = useMarketOpen();
   const stocks = useStockData();
   if (!stocks.length) return null;
 
@@ -1268,12 +1269,12 @@ function SectorHeatmap() {
   return (
     <div style={{ padding: '8px 10px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-        <div style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.1em', fontFamily: "'SF Pro Text', -apple-system, sans-serif" }}>
+        <div style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.04em', fontFamily: 'var(--os-font)' }}>
           SECTOR PERFORMANCE
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '8px', color: 'rgba(255,255,255,0.85)', fontFamily: "'SF Mono', monospace" }}>
-          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#22c55e', display: 'inline-block', animation: 'livePulse 2s ease-in-out infinite' }} />
-          LIVE · {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '8px', color: 'rgba(255,255,255,0.85)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
+          <span style={{ width: 5, height: 5, borderRadius: '50%', background: marketOpen ? '#22c55e' : 'rgba(255,255,255,0.35)', display: 'inline-block', animation: marketOpen ? 'livePulse 2s ease-in-out infinite' : 'none' }} />
+          {marketOpen ? 'LIVE' : 'CLOSED'} · {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
         </div>
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
@@ -1286,10 +1287,10 @@ function SectorHeatmap() {
             padding: '6px 6px',
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: '10px', fontWeight: 700, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.5)', fontFamily: "'SF Mono', monospace" }}>
+            <div style={{ fontSize: '10px', fontWeight: 700, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.5)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
               {sec.name}
             </div>
-            <div style={{ fontSize: '10px', fontWeight: 600, color: 'rgba(255,255,255,0.9)', fontFamily: "'SF Mono', monospace" }}>
+            <div style={{ fontSize: '10px', fontWeight: 600, color: 'rgba(255,255,255,0.9)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
               {sec.pct >= 0 ? '+' : ''}{sec.pct.toFixed(1)}%
             </div>
           </div>
@@ -1403,17 +1404,17 @@ function NowPlaying() {
         </a>
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '15px', fontWeight: 700, color: 'rgba(255,255,255,0.9)', fontFamily: "'SF Pro Text', -apple-system, sans-serif" }}>
+        <div style={{ fontSize: '15px', fontWeight: 700, color: 'rgba(255,255,255,0.9)', fontFamily: 'var(--os-font)' }}>
           {active.title}
         </div>
-        <div style={{ fontSize: '13px', fontWeight: 400, color: 'rgba(255,255,255,0.55)', fontFamily: "'SF Pro Text', -apple-system, sans-serif" }}>
+        <div style={{ fontSize: '13px', fontWeight: 400, color: 'rgba(255,255,255,0.55)', fontFamily: 'var(--os-font)' }}>
           {active.artist}
         </div>
         <div style={{ marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
           <div style={{ flex: 1, height: 2, background: 'rgba(255,255,255,0.1)', borderRadius: 1, overflow: 'hidden' }}>
             <div style={{ width: `${pct}%`, height: '100%', background: 'rgba(255,255,255,0.5)', borderRadius: 1, transition: 'width 1s linear' }} />
           </div>
-          <span style={{ fontSize: '17px', fontWeight: 500, color: 'rgba(255,255,255,0.85)', fontFamily: "'SF Pro Text', -apple-system, sans-serif", flexShrink: 0 }}>
+          <span style={{ fontSize: '17px', fontWeight: 500, color: 'rgba(255,255,255,0.85)', fontFamily: 'var(--os-font)', flexShrink: 0 }}>
             {fmtTime(progress)}
           </span>
         </div>
@@ -1440,6 +1441,7 @@ function NowPlaying() {
 
 // ── Sector Treemap (finviz style) ──
 function SectorTreemap() {
+  const marketOpen = useMarketOpen();
   const stocks = useStockData();
   const [expanded, setExpanded] = useState(false);
   if (!stocks.length) return null;
@@ -1501,11 +1503,11 @@ function SectorTreemap() {
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               overflow: 'hidden', cursor: 'default',
             }}>
-              <div style={{ fontSize: symSize, fontWeight: 700, color: '#fff', textShadow: '0 1px 2px rgba(0,0,0,0.6)', fontFamily: "'SF Mono', monospace", lineHeight: 1.2 }}>
+              <div style={{ fontSize: symSize, fontWeight: 700, color: '#fff', textShadow: '0 1px 2px rgba(0,0,0,0.6)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
                 {item.symbol}
               </div>
               {w > 8 && (
-                <div style={{ fontSize: pctSize, fontWeight: 600, color: 'rgba(255,255,255,0.95)', fontFamily: "'SF Mono', monospace" }}>
+                <div style={{ fontSize: pctSize, fontWeight: 600, color: 'rgba(255,255,255,0.95)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
                   {item.pct >= 0 ? '+' : ''}{item.pct.toFixed(1)}%
                 </div>
               )}
@@ -1519,19 +1521,19 @@ function SectorTreemap() {
   return (
     <div style={{ padding: '10px 12px', height: expanded ? 'auto' : '100%', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <div style={{ fontSize: '12px', fontWeight: 700, color: 'rgba(255,255,255,0.9)', letterSpacing: '0.1em', fontFamily: "'SF Pro Text', -apple-system, sans-serif" }}>
+        <div style={{ fontSize: '12px', fontWeight: 700, color: 'rgba(255,255,255,0.9)', letterSpacing: '0.04em', fontFamily: 'var(--os-font)' }}>
           MARKET TREEMAP
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div
             onClick={() => setExpanded(e => !e)}
-            style={{ cursor: 'pointer', fontSize: '9px', color: 'rgba(255,255,255,0.7)', fontFamily: "'SF Mono', monospace", padding: '2px 6px', borderRadius: '4px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', transition: 'all 0.2s' }}
+            style={{ cursor: 'pointer', fontSize: '9px', color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', padding: '2px 6px', borderRadius: '4px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', transition: 'all 0.2s' }}
           >
             {expanded ? '↙ Collapse' : '↗ Expand'}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '9px', color: 'rgba(255,255,255,0.85)', fontFamily: "'SF Mono', monospace" }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#22c55e', display: 'inline-block', animation: 'livePulse 2s ease-in-out infinite' }} />
-            LIVE
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '9px', color: 'rgba(255,255,255,0.85)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: marketOpen ? '#22c55e' : 'rgba(255,255,255,0.35)', display: 'inline-block', animation: marketOpen ? 'livePulse 2s ease-in-out infinite' : 'none' }} />
+            {marketOpen ? 'LIVE' : 'CLOSED'}
           </div>
         </div>
       </div>
@@ -1542,6 +1544,7 @@ function SectorTreemap() {
 
 // ── Sector Bubbles ──
 function SectorBubbles() {
+  const marketOpen = useMarketOpen();
   const stocks = useStockData();
   if (!stocks.length) return null;
 
@@ -1576,22 +1579,22 @@ function SectorBubbles() {
   return (
     <div style={{ padding: '8px 10px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-        <div style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.1em', fontFamily: "'SF Pro Text', -apple-system, sans-serif" }}>
+        <div style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.04em', fontFamily: 'var(--os-font)' }}>
           SECTOR BUBBLES
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '8px', color: 'rgba(255,255,255,0.85)', fontFamily: "'SF Mono', monospace" }}>
-          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#22c55e', display: 'inline-block', animation: 'livePulse 2s ease-in-out infinite' }} />
-          LIVE
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '8px', color: 'rgba(255,255,255,0.85)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
+          <span style={{ width: 5, height: 5, borderRadius: '50%', background: marketOpen ? '#22c55e' : 'rgba(255,255,255,0.35)', display: 'inline-block', animation: marketOpen ? 'livePulse 2s ease-in-out infinite' : 'none' }} />
+          {marketOpen ? 'LIVE' : 'CLOSED'}
         </div>
       </div>
       <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} style={{ display: 'block' }}>
         {bubbles.map(b => (
           <g key={b.name}>
             <circle cx={b.cx} cy={b.cy} r={b.r} fill={getColor(b.pct)} stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
-            <text x={b.cx} y={b.cy - 3} textAnchor="middle" fill="#fff" fontSize="7" fontWeight="700" fontFamily="'SF Mono', monospace" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+            <text x={b.cx} y={b.cy - 3} textAnchor="middle" fill="#fff" fontSize="7" fontWeight="700" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
               {b.name}
             </text>
-            <text x={b.cx} y={b.cy + 7} textAnchor="middle" fill="rgba(255,255,255,0.9)" fontSize="7" fontWeight="600" fontFamily="'SF Mono', monospace">
+            <text x={b.cx} y={b.cy + 7} textAnchor="middle" fill="rgba(255,255,255,0.9)" fontSize="7" fontWeight="600">
               {b.pct >= 0 ? '+' : ''}{b.pct.toFixed(1)}%
             </text>
           </g>
@@ -1602,6 +1605,22 @@ function SectorBubbles() {
 }
 
 // ── Market Clock (fills empty grid slot next to Energy) ──
+function isMarketOpenAt(now: Date) {
+  const et = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  const day = et.getDay();
+  const mins = et.getHours() * 60 + et.getMinutes();
+  return day >= 1 && day <= 5 && mins >= 9 * 60 + 30 && mins < 16 * 60;
+}
+
+function useMarketOpen() {
+  const [open, setOpen] = useState(() => isMarketOpenAt(new Date()));
+  useEffect(() => {
+    const id = setInterval(() => setOpen(isMarketOpenAt(new Date())), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  return open;
+}
+
 function MarketClock() {
   const [now, setNow] = useState(new Date());
   useEffect(() => {
@@ -1668,17 +1687,17 @@ function MarketClock() {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}>
         <span style={{ width: 5, height: 5, borderRadius: '50%', background: isOpen ? '#4ade80' : '#f87171', display: 'inline-block', animation: 'livePulse 2s ease-in-out infinite' }} />
-        <span style={{ fontSize: '10px', fontWeight: 700, color: isOpen ? '#4ade80' : '#f87171', fontFamily: "'SF Mono', monospace", letterSpacing: '0.05em' }}>
+        <span style={{ fontSize: '10px', fontWeight: 700, color: isOpen ? '#4ade80' : '#f87171', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em' }}>
           {isOpen ? 'MARKET OPEN' : 'MARKET CLOSED'}
         </span>
       </div>
-      <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.6)', fontWeight: 600, letterSpacing: '0.1em', fontFamily: "'SF Mono', monospace", marginBottom: '4px' }}>
+      <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.6)', fontWeight: 600, letterSpacing: '0.02em', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', marginBottom: '4px' }}>
         {targetLabel}
       </div>
-      <div style={{ fontSize: '18px', fontWeight: 700, color: '#fff', fontFamily: "'SF Mono', monospace", fontVariantNumeric: 'tabular-nums', letterSpacing: '0.5px' }}>
+      <div style={{ fontSize: '18px', fontWeight: 700, color: '#fff', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.5px' }}>
         {countdown}
       </div>
-      <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)', fontFamily: "'SF Mono', monospace", marginTop: '4px' }}>
+      <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', marginTop: '4px' }}>
         NYSE · {et.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/New_York' })} ET
       </div>
     </div>
@@ -1993,7 +2012,7 @@ function MountainClimber() {
                     lengthAdjust="spacingAndGlyphs"
                     style={{
                       fontSize: `${fontSize}px`,
-                      fontFamily: "'SF Pro Display', -apple-system, sans-serif",
+                      fontFamily: 'var(--os-font-display)',
                       fontWeight: 900,
                       fontStyle: 'italic',
                       fill: 'rgba(255,255,255,0.15)',
@@ -2012,7 +2031,7 @@ function MountainClimber() {
       {hintVisible && !celebrating && (
         <div style={{
           position: 'absolute', bottom: '8px', right: '8px',
-          fontSize: '10px', fontFamily: "'SF Mono', monospace",
+          fontSize: '10px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
           color: 'rgba(255,255,255,0.5)',
           animation: 'cornerPulse 2.5s ease-in-out infinite',
           pointerEvents: 'none', textAlign: 'right',
@@ -2143,6 +2162,7 @@ function AnimatedSparkline({ history, color, delay, sparkW, sparkH, animReady, i
 }
 
 function SectorSparklines({ onSectorClick }: { onSectorClick?: (name: string) => void } = {}) {
+  const marketOpen = useMarketOpen();
   const stocks = useStockData();
   const [animReady, setAnimReady] = useState(false);
 
@@ -2182,12 +2202,12 @@ function SectorSparklines({ onSectorClick }: { onSectorClick?: (name: string) =>
         }
       `}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <div style={{ fontSize: '10px', fontWeight: 700, color: '#fff', letterSpacing: '0.1em', fontFamily: "'SF Mono', monospace" }}>
+        <div style={{ fontSize: '10px', fontWeight: 700, color: '#fff', letterSpacing: '0.02em', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
           SECTOR PERFORMANCE
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '8px', color: 'rgba(255,255,255,0.85)', fontFamily: "'SF Mono', monospace" }}>
-          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#22c55e', display: 'inline-block', animation: 'livePulse 2s ease-in-out infinite' }} />
-          LIVE · {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '8px', color: 'rgba(255,255,255,0.85)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
+          <span style={{ width: 5, height: 5, borderRadius: '50%', background: marketOpen ? '#22c55e' : 'rgba(255,255,255,0.35)', display: 'inline-block', animation: marketOpen ? 'livePulse 2s ease-in-out infinite' : 'none' }} />
+          {marketOpen ? 'LIVE' : 'CLOSED'} · {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
         </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
@@ -2208,8 +2228,8 @@ function SectorSparklines({ onSectorClick }: { onSectorClick?: (name: string) =>
             onMouseLeave={e => { if (onSectorClick) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
-                <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', fontFamily: "'SF Mono', monospace" }}>{sec.name}</span>
-                <span style={{ fontSize: '10px', fontWeight: 700, color, fontFamily: "'SF Mono', monospace" }}>
+                <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>{sec.name}</span>
+                <span style={{ fontSize: '10px', fontWeight: 700, color, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
                   {sec.pct >= 0 ? '+' : ''}{sec.pct.toFixed(2)}%
                 </span>
               </div>
@@ -2240,8 +2260,8 @@ function BloombergBackButton({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       style={{
         background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer',
-        fontSize: '10px', fontWeight: 700, fontFamily: "'SF Mono', monospace",
-        letterSpacing: '0.05em', padding: '4px 0', display: 'flex', alignItems: 'center', gap: '4px',
+        fontSize: '10px', fontWeight: 700, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
+        letterSpacing: '0.04em', padding: '4px 0', display: 'flex', alignItems: 'center', gap: '4px',
       }}
       onMouseEnter={e => (e.currentTarget.style.color = '#60a5fa')}
       onMouseLeave={e => (e.currentTarget.style.color = '#3b82f6')}
@@ -2293,7 +2313,7 @@ const CERTIFICATIONS = [
 
 const sectionLabel: React.CSSProperties = {
   color: '#fff', fontSize: '11px', fontWeight: 700,
-  letterSpacing: '0.1em', marginBottom: '10px', fontFamily: "'SF Mono', monospace",
+  letterSpacing: '0.02em', marginBottom: '10px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
 };
 
 // ── Chronograph Clock ──
@@ -2426,17 +2446,17 @@ function ChronographClock() {
         <circle cx={cx} cy={cy} r="1" fill="#1a1a2e" />
 
         {/* Brand text */}
-        <text x={cx} y={cy - 20} textAnchor="middle" style={{ fontSize: '6px', fill: 'rgba(255,255,255,0.2)', fontFamily: "'SF Mono', monospace", letterSpacing: '0.15em', fontWeight: 500 }}>
+        <text x={cx} y={cy - 20} textAnchor="middle" style={{ fontSize: '6px', fill: 'rgba(255,255,255,0.2)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em', fontWeight: 500 }}>
           GANDHE
         </text>
       </svg>
 
       {/* Digital readout below */}
       <div style={{
-        fontFamily: "'SF Mono', monospace",
+        fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
         fontSize: '11px',
         color: 'rgba(255,255,255,0.3)',
-        letterSpacing: '0.1em',
+        letterSpacing: '0.04em',
       }}>
         {String(time.getHours()).padStart(2, '0')}:{String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
       </div>
@@ -2547,7 +2567,7 @@ function __removedDinoGame() {
 
     // "Press Space" text
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
-    ctx.font = "10px 'SF Mono', monospace";
+    ctx.font = "10px -apple-system, BlinkMacSystemFont, sans-serif";
     ctx.textAlign = 'center';
     ctx.fillText('Press SPACE to start', CANVAS_W / 2, GROUND_Y + 16);
   }, []);
@@ -2662,7 +2682,7 @@ function __removedDinoGame() {
 
       // Score display
       ctx.fillStyle = 'rgba(255,255,255,0.4)';
-      ctx.font = "10px 'SF Mono', monospace";
+      ctx.font = "10px -apple-system, BlinkMacSystemFont, sans-serif";
       ctx.textAlign = 'right';
       ctx.fillText(String(Math.floor(g.score)).padStart(5, '0'), CANVAS_W - 4, 12);
       if (g.highScore > 0) {
@@ -2752,7 +2772,7 @@ function __removedDinoGame() {
       />
       {gameOver && (
         <div style={{ textAlign: 'center', marginTop: '4px' }}>
-          <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontFamily: "'SF Mono', monospace" }}>
+          <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
             GAME OVER — click or press SPACE to restart
           </span>
         </div>
@@ -2788,7 +2808,7 @@ function BloombergTopBar({ stocks }: { stocks: StockData[]; gameMode: boolean; o
     <div className="bloomberg-top-bar" style={{
       height: '28px', minHeight: '28px', borderBottom: '0.5px solid rgba(255,255,255,0.06)',
       overflow: 'hidden', position: 'relative',
-      fontFamily: "'SF Mono', monospace", fontSize: '10px',
+      fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '10px',
     }}>
       <div className="ticker-scroll" style={{
         display: 'flex', alignItems: 'center', height: '100%',
@@ -2859,13 +2879,13 @@ function PerformanceBarChart({ stocks }: { stocks: StockData[] }) {
 
   return (
     <div style={{ padding: '10px 14px' }}>
-      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.9)', letterSpacing: '0.1em', marginBottom: '8px', fontWeight: 700, fontFamily: "'SF Mono', monospace" }}>TOP MOVERS</div>
+      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.9)', letterSpacing: '0.02em', marginBottom: '8px', fontWeight: 700, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>TOP MOVERS</div>
       {movers.map((s, i) => {
         const isUp = s.pct >= 0;
         const barPct = (Math.abs(s.pct) / maxAbs) * 100;
         return (
           <div key={s.symbol} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', opacity: 0, animation: `fadeInLeft 0.3s ease ${i * 0.04}s forwards` }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', fontFamily: "'SF Mono', monospace", minWidth: '40px' }}>{s.symbol}</span>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', minWidth: '40px' }}>{s.symbol}</span>
             <div style={{ flex: 1, height: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden', position: 'relative' }}>
               <div style={{
                 position: 'absolute', [isUp ? 'left' : 'right']: '50%', top: 0, height: '100%',
@@ -2875,7 +2895,7 @@ function PerformanceBarChart({ stocks }: { stocks: StockData[] }) {
               }} />
               <div style={{ position: 'absolute', left: '50%', top: 0, width: '1px', height: '100%', background: 'rgba(255,255,255,0.15)' }} />
             </div>
-            <span style={{ fontSize: '11px', fontWeight: 600, fontFamily: "'SF Mono', monospace", minWidth: '52px', textAlign: 'right', color: isUp ? '#4ade80' : '#f87171' }}>
+            <span style={{ fontSize: '11px', fontWeight: 600, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', minWidth: '52px', textAlign: 'right', color: isUp ? '#4ade80' : '#f87171' }}>
               {isUp ? '+' : ''}{s.pct.toFixed(2)}%
             </span>
           </div>
@@ -2926,19 +2946,19 @@ function CorrelationMatrix({ stocks }: { stocks: StockData[] }) {
 
   return (
     <div style={{ padding: '10px 14px' }}>
-      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.9)', letterSpacing: '0.1em', marginBottom: '8px', fontWeight: 700, fontFamily: "'SF Mono', monospace" }}>SECTOR CORRELATION</div>
+      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.9)', letterSpacing: '0.02em', marginBottom: '8px', fontWeight: 700, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>SECTOR CORRELATION</div>
       <div style={{ display: 'grid', gridTemplateColumns: `40px repeat(${sectorNames.length}, 1fr)`, gap: '2px' }}>
         {/* Header row */}
         <div />
         {sectorNames.map(name => (
-          <div key={name} style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', textAlign: 'center', fontFamily: "'SF Mono', monospace", padding: '2px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
+          <div key={name} style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', textAlign: 'center', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', padding: '2px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
             {name.slice(0, 4)}
           </div>
         ))}
         {/* Data rows */}
         {sectorNames.map((rowName, ri) => (
           <React.Fragment key={rowName}>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', fontFamily: "'SF Mono', monospace", display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '4px', fontWeight: 600 }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '4px', fontWeight: 600 }}>
               {rowName.slice(0, 4)}
             </div>
             {matrix[ri].map((val, ci) => (
@@ -2947,7 +2967,7 @@ function CorrelationMatrix({ stocks }: { stocks: StockData[] }) {
                 borderRadius: '2px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 aspectRatio: '1', minHeight: '26px',
-                fontSize: '12px', color: 'rgba(255,255,255,0.95)', fontFamily: "'SF Mono', monospace", fontWeight: 700,
+                fontSize: '12px', color: 'rgba(255,255,255,0.95)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontWeight: 700,
               }}>
                 {val.toFixed(1)}
               </div>
@@ -2972,13 +2992,13 @@ function VolatilityGauge({ stocks }: { stocks: StockData[] }) {
 
   return (
     <div style={{ padding: '10px 14px' }}>
-      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.9)', letterSpacing: '0.1em', marginBottom: '8px', fontWeight: 700, fontFamily: "'SF Mono', monospace" }}>VOLATILITY INDEX</div>
+      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.9)', letterSpacing: '0.02em', marginBottom: '8px', fontWeight: 700, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>VOLATILITY INDEX</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
         {sectorVols.map((s, i) => {
           const pct = (s.vol / maxVol) * 100;
           return (
             <div key={s.name} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)', fontFamily: "'SF Mono', monospace", minWidth: '56px' }}>{s.name}</span>
+              <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', minWidth: '56px' }}>{s.name}</span>
               <div style={{ flex: 1, height: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
                 <div style={{
                   width: `${pct}%`, height: '100%', borderRadius: '4px',
@@ -2987,7 +3007,7 @@ function VolatilityGauge({ stocks }: { stocks: StockData[] }) {
                   animation: `volGrow${i} 1.2s ease ${i * 0.08}s both`,
                 }} />
               </div>
-              <span style={{ fontSize: '10px', color: s.color, fontFamily: "'SF Mono', monospace", minWidth: '42px', textAlign: 'right', fontWeight: 600 }}>
+              <span style={{ fontSize: '10px', color: s.color, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', minWidth: '42px', textAlign: 'right', fontWeight: 600 }}>
                 {s.vol.toFixed(2)}%
               </span>
             </div>
@@ -3018,7 +3038,7 @@ function SectorPieChart({ stocks }: { stocks: StockData[] }) {
 
   return (
     <div style={{ padding: '10px 14px', height: '100%', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
-      <div style={{ fontSize: '12px', fontWeight: 700, color: 'rgba(255,255,255,0.9)', letterSpacing: '0.1em', marginBottom: '8px', fontFamily: "'SF Mono', monospace" }}>
+      <div style={{ fontSize: '12px', fontWeight: 700, color: 'rgba(255,255,255,0.9)', letterSpacing: '0.02em', marginBottom: '8px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
         SECTOR ALLOCATION
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
@@ -3036,12 +3056,12 @@ function SectorPieChart({ stocks }: { stocks: StockData[] }) {
               />
             );
           })}
-          <text x={cx} y={cy - 4} textAnchor="middle" fill="rgba(255,255,255,0.9)" fontSize="18" fontWeight="700" fontFamily="'SF Mono', monospace">{SECTORS.length}</text>
-          <text x={cx} y={cy + 12} textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="9" fontFamily="'SF Mono', monospace">SECTORS</text>
+          <text x={cx} y={cy - 4} textAnchor="middle" fill="rgba(255,255,255,0.9)" fontSize="18" fontWeight="700">{SECTORS.length}</text>
+          <text x={cx} y={cy + 12} textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="9">SECTORS</text>
         </svg>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {sectorData.map((d, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: "'SF Mono', monospace" }}>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: d.color, flexShrink: 0 }} />
               <span style={{ color: 'rgba(255,255,255,0.85)', minWidth: '55px' }}>{d.name}</span>
               <span style={{ color: 'rgba(255,255,255,0.7)' }}>{((d.value / total) * 100).toFixed(1)}%</span>
@@ -3093,7 +3113,7 @@ function BloombergBottomBar() {
     <div style={{
       height: '32px', minHeight: '32px', background: 'rgba(0,0,0,0.4)', borderTop: '0.5px solid rgba(255,255,255,0.08)',
       display: 'flex', alignItems: 'center', padding: '0 12px', gap: '16px',
-      fontFamily: "'SF Mono', monospace", fontSize: '10px',
+      fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '10px',
     }}>
       {items.map((item, i) => (
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -3500,7 +3520,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
       gridLines.push(
         <g key={`grid-${i}`}>
           <line x1={pad.left} y1={y} x2={chartW - pad.right} y2={y} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-          <text x={chartW - pad.right + 5} y={y + 4} fill="rgba(255,255,255,0.4)" fontSize="9" fontFamily="'SF Mono', monospace">{price.toFixed(2)}</text>
+          <text x={chartW - pad.right + 5} y={y + 4} fill="rgba(255,255,255,0.4)" fontSize="9">{price.toFixed(2)}</text>
         </g>
       );
     }
@@ -3573,7 +3593,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
           <g>
             <line x1={pad.left} y1={curY} x2={chartW - pad.right} y2={curY} stroke="#ff6b35" strokeWidth="1" strokeDasharray="4,3" opacity="0.7" />
             <rect x={chartW - pad.right} y={curY - 10} width={55} height={20} rx="3" fill="#ff6b35" />
-            <text x={chartW - pad.right + 27} y={curY + 4} textAnchor="middle" fill="#fff" fontSize="9" fontWeight="700" fontFamily="'SF Mono', monospace">{currentPrice.toFixed(2)}</text>
+            <text x={chartW - pad.right + 27} y={curY + 4} textAnchor="middle" fill="#fff" fontSize="9" fontWeight="700">{currentPrice.toFixed(2)}</text>
             {/* Pulsing dot */}
             <circle cx={pad.left + visibleDays * gap - gap / 2} cy={curY} r="3" fill="#ff6b35">
               <animate attributeName="r" values="3;6;3" dur="1.5s" repeatCount="indefinite" />
@@ -3598,7 +3618,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
           );
         })}
         {/* Day counter */}
-        <text x={pad.left} y={chartH + volH + 8} fill="rgba(255,255,255,0.3)" fontSize="9" fontFamily="'SF Mono', monospace">
+        <text x={pad.left} y={chartH + volH + 8} fill="rgba(255,255,255,0.3)" fontSize="9">
           Day {visibleDays}/{totalDays}
         </text>
       </svg>
@@ -3615,14 +3635,14 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
       <div style={{
         height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         background: 'radial-gradient(ellipse at center, #0f1119 0%, #0a0c12 70%)',
-        fontFamily: "'SF Mono', monospace", color: '#fff', gap: '20px', padding: '40px',
+        fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', color: '#fff', gap: '20px', padding: '40px',
         position: 'relative', overflow: 'hidden',
       }}>
         {/* Animated background grid */}
         <div style={{ position: 'absolute', inset: 0, opacity: 0.04, backgroundImage: 'linear-gradient(rgba(255,107,53,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,107,53,0.3) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-        <div style={{ fontSize: '11px', letterSpacing: '0.3em', color: 'rgba(255,107,53,0.6)', textTransform: 'uppercase', zIndex: 1 }}>Bloomberg Terminal Presents</div>
+        <div style={{ fontSize: '11px', letterSpacing: '0.04em', color: 'rgba(255,107,53,0.6)', textTransform: 'uppercase', zIndex: 1 }}>Bloomberg Terminal Presents</div>
         <div style={{
-          fontSize: '42px', fontWeight: 900, color: '#ff6b35', letterSpacing: '0.05em', zIndex: 1,
+          fontSize: '42px', fontWeight: 900, color: '#ff6b35', letterSpacing: '0.04em', zIndex: 1,
           textShadow: '0 0 60px rgba(255,107,53,0.3), 0 0 120px rgba(255,107,53,0.1)',
         }}>
           TRADING ARENA
@@ -3638,14 +3658,14 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
           ].map((s, i) => (
             <div key={i} style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '24px', fontWeight: 800, color: '#ff6b35' }}>{s.val}</div>
-              <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.15em', marginTop: '4px' }}>{s.label}</div>
+              <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.04em', marginTop: '4px' }}>{s.label}</div>
             </div>
           ))}
         </div>
         <button onClick={() => setStarted(true)} style={{
           padding: '14px 48px', border: '2px solid #ff6b35', borderRadius: '6px', cursor: 'pointer',
           background: 'rgba(255,107,53,0.1)', color: '#ff6b35', fontSize: '14px', fontWeight: 800,
-          fontFamily: "'SF Mono', monospace", letterSpacing: '0.15em', zIndex: 1,
+          fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em', zIndex: 1,
           transition: 'all 0.3s ease', animation: 'pulse-glow 2s ease infinite',
         }}
           onMouseEnter={e => { (e.target as HTMLButtonElement).style.background = 'rgba(255,107,53,0.25)'; }}
@@ -3665,10 +3685,10 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
     return (
       <div style={{
         height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: '#0a0c12', color: '#ff6b35', fontFamily: "'SF Mono', monospace",
+        background: '#0a0c12', color: '#ff6b35', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
         flexDirection: 'column', gap: '16px',
       }}>
-        <div style={{ fontSize: '24px', fontWeight: 700, letterSpacing: '0.1em' }}>LOADING MARKET DATA</div>
+        <div style={{ fontSize: '24px', fontWeight: 700, letterSpacing: '0.04em' }}>LOADING MARKET DATA</div>
         <div style={{
           width: '200px', height: '3px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', overflow: 'hidden',
         }}>
@@ -3696,12 +3716,12 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
     return (
       <div className="bloomberg-scroll" style={{
         height: '100%', overflowY: 'auto', background: 'radial-gradient(ellipse at top, #0f1119 0%, #0a0c12 70%)',
-        color: '#fff', fontFamily: "'SF Mono', monospace", padding: '32px 40px',
+        color: '#fff', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', padding: '32px 40px',
       }}>
         <div style={{ maxWidth: '700px', margin: '0 auto' }}>
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-            <div style={{ fontSize: '10px', letterSpacing: '0.3em', color: 'rgba(255,255,255,0.3)', marginBottom: '8px' }}>TRADING SESSION COMPLETE</div>
+            <div style={{ fontSize: '10px', letterSpacing: '0.04em', color: 'rgba(255,255,255,0.3)', marginBottom: '8px' }}>TRADING SESSION COMPLETE</div>
             <div style={{
               fontSize: '36px', fontWeight: 900, color: beatMarket ? '#4ade80' : '#f87171',
               textShadow: `0 0 40px ${beatMarket ? 'rgba(74,222,128,0.25)' : 'rgba(248,113,113,0.25)'}`,
@@ -3724,7 +3744,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
             ].map((s, i) => (
               <div key={i} style={{ textAlign: 'center', padding: '12px 16px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px', flex: 1 }}>
                 <div style={{ fontSize: '20px', fontWeight: 800, color: s.color, marginBottom: '4px' }}>{s.val}</div>
-                <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.15em' }}>{s.label}</div>
+                <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.04em' }}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -3733,7 +3753,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
             {/* Rounds */}
             <div>
-              <div style={{ fontSize: '10px', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>ROUND BREAKDOWN</div>
+              <div style={{ fontSize: '10px', letterSpacing: '0.04em', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>ROUND BREAKDOWN</div>
               {roundScores.map((r, i) => (
                 <div key={i} style={{
                   display: 'flex', justifyContent: 'space-between', padding: '8px 10px', marginBottom: '4px',
@@ -3746,7 +3766,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
             </div>
             {/* Leaderboard */}
             <div>
-              <div style={{ fontSize: '10px', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>LEADERBOARD (ANNUALIZED)</div>
+              <div style={{ fontSize: '10px', letterSpacing: '0.04em', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>LEADERBOARD (ANNUALIZED)</div>
               {leaderboardWithUser.map((entry, i) => {
                 const isUser = entry.name === 'YOU';
                 return (
@@ -3773,7 +3793,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
 
           {/* Achievements */}
           <div style={{ marginBottom: '24px' }}>
-            <div style={{ fontSize: '10px', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>ACHIEVEMENTS UNLOCKED</div>
+            <div style={{ fontSize: '10px', letterSpacing: '0.04em', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>ACHIEVEMENTS UNLOCKED</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
               {ACHIEVEMENTS.map(a => {
                 const unlocked = unlockedAchievements.includes(a.id);
@@ -3797,7 +3817,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
             <button onClick={() => { setStarted(false); setGameOver(false); setCash(100000); setPositions([]); setOrders([]); setRound(1); setCurrentSymbol(''); setUsedSymbols([]); setRoundScores([]); setXp(0); setProfitStreak(0); setUnlockedAchievements([]); setVisibleDays(0); setRoundComplete(false); }} style={{
               padding: '10px 32px', border: '2px solid #ff6b35', borderRadius: '6px', cursor: 'pointer',
               background: 'rgba(255,107,53,0.1)', color: '#ff6b35', fontSize: '12px', fontWeight: 700,
-              fontFamily: "'SF Mono', monospace", letterSpacing: '0.1em',
+              fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em',
             }}>PLAY AGAIN</button>
           </div>
         </div>
@@ -3811,7 +3831,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
       height: '100%', display: 'grid',
       gridTemplateColumns: '1fr 320px',
       gridTemplateRows: '48px 1fr 40px',
-      background: '#0a0c12', fontFamily: "'SF Mono', monospace", color: '#fff',
+      background: '#0a0c12', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', color: '#fff',
       overflow: 'hidden',
     }}>
       {/* Flash overlay */}
@@ -3843,7 +3863,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
         }}>
           <span style={{ fontSize: '22px' }}>{achievementToast.icon}</span>
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: '#ff6b35', letterSpacing: '0.05em' }}>ACHIEVEMENT UNLOCKED</div>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: '#ff6b35', letterSpacing: '0.04em' }}>ACHIEVEMENT UNLOCKED</div>
             <div style={{ fontSize: '13px', fontWeight: 800, color: '#fff' }}>{achievementToast.label}</div>
             <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)' }}>{achievementToast.desc}</div>
           </div>
@@ -3867,7 +3887,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
         background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.06)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em' }}>ROUND</span>
+          <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.04em' }}>ROUND</span>
           <span style={{ fontSize: '13px', fontWeight: 700, color: '#ff6b35' }}>{round}/{totalRounds}</span>
         </div>
         <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.08)' }} />
@@ -3878,7 +3898,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
           { label: "DAY P&L", value: `$${fmtPnl(dayPnl)}`, color: dayPnl >= 0 ? '#4ade80' : '#f87171' },
         ].map((item, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em' }}>{item.label}</span>
+            <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.04em' }}>{item.label}</span>
             <span style={{
               fontSize: '12px', fontWeight: 700, color: item.color,
               animation: (item.label === 'TOTAL P&L' || item.label === "DAY P&L") && pnlFlash !== 0 ? 'count-up 0.4s ease' : 'none',
@@ -3889,7 +3909,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
         <div style={{ flex: 1 }} />
         {/* Rank + XP bar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '9px', fontWeight: 700, color: currentRank.color, letterSpacing: '0.05em' }}>{currentRank.title.toUpperCase()}</span>
+          <span style={{ fontSize: '9px', fontWeight: 700, color: currentRank.color, letterSpacing: '0.04em' }}>{currentRank.title.toUpperCase()}</span>
           <div style={{ width: '60px', height: '4px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
             <div style={{ width: `${xpProgress * 100}%`, height: '100%', background: currentRank.color, borderRadius: '2px', transition: 'width 0.4s ease' }} />
           </div>
@@ -3920,7 +3940,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
         {/* Chart header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '16px', fontWeight: 800, color: '#ff6b35', letterSpacing: '0.05em' }}>
+            <span style={{ fontSize: '16px', fontWeight: 800, color: '#ff6b35', letterSpacing: '0.04em' }}>
               {revealed || roundComplete ? currentSymbol : '???'}
             </span>
             <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
@@ -3957,20 +3977,20 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
           padding: '14px', borderBottom: '1px solid rgba(255,255,255,0.06)',
           background: 'rgba(255,255,255,0.01)',
         }}>
-          <div style={{ fontSize: '10px', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.4)', marginBottom: '12px' }}>ORDER ENTRY</div>
+          <div style={{ fontSize: '10px', letterSpacing: '0.04em', color: 'rgba(255,255,255,0.4)', marginBottom: '12px' }}>ORDER ENTRY</div>
 
           {/* Bid/Ask */}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', padding: '8px', background: 'rgba(255,255,255,0.03)', borderRadius: '4px' }}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em' }}>BID</div>
+              <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.04em' }}>BID</div>
               <div style={{ fontSize: '14px', fontWeight: 700, color: '#4ade80' }}>{bidPrice.toFixed(2)}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em' }}>SPREAD</div>
+              <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.04em' }}>SPREAD</div>
               <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>{spread.toFixed(2)}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em' }}>ASK</div>
+              <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.04em' }}>ASK</div>
               <div style={{ fontSize: '14px', fontWeight: 700, color: '#f87171' }}>{askPrice.toFixed(2)}</div>
             </div>
           </div>
@@ -3980,7 +4000,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
             {(['market', 'limit'] as const).map(t => (
               <button key={t} onClick={() => setOrderType(t)} style={{
                 flex: 1, padding: '6px', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: 600,
-                letterSpacing: '0.1em', fontFamily: "'SF Mono', monospace", textTransform: 'uppercase',
+                letterSpacing: '0.02em', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', textTransform: 'uppercase',
                 background: orderType === t ? 'rgba(255,107,53,0.15)' : 'transparent',
                 color: orderType === t ? '#ff6b35' : 'rgba(255,255,255,0.3)',
                 transition: 'all 0.2s ease',
@@ -3991,14 +4011,14 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
           {/* Limit price input */}
           {orderType === 'limit' && (
             <div style={{ marginBottom: '10px' }}>
-              <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', marginBottom: '4px', letterSpacing: '0.1em' }}>LIMIT PRICE</div>
+              <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', marginBottom: '4px', letterSpacing: '0.04em' }}>LIMIT PRICE</div>
               <input
                 type="number"
                 value={limitPrice || currentPrice}
                 onChange={e => setLimitPrice(Number(e.target.value))}
                 style={{
                   width: '100%', padding: '6px 8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: '4px', color: '#fff', fontSize: '12px', fontFamily: "'SF Mono', monospace", outline: 'none',
+                  borderRadius: '4px', color: '#fff', fontSize: '12px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', outline: 'none',
                   boxSizing: 'border-box',
                 }}
               />
@@ -4007,14 +4027,14 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
 
           {/* Quantity */}
           <div style={{ marginBottom: '10px' }}>
-            <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', marginBottom: '4px', letterSpacing: '0.1em' }}>QUANTITY</div>
+            <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', marginBottom: '4px', letterSpacing: '0.04em' }}>QUANTITY</div>
             <input
               type="number"
               value={orderQty}
               onChange={e => setOrderQty(Math.max(1, Number(e.target.value)))}
               style={{
                 width: '100%', padding: '6px 8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: '4px', color: '#fff', fontSize: '12px', fontFamily: "'SF Mono', monospace", outline: 'none',
+                borderRadius: '4px', color: '#fff', fontSize: '12px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', outline: 'none',
                 marginBottom: '6px', boxSizing: 'border-box',
               }}
             />
@@ -4024,13 +4044,13 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
                   flex: 1, padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '3px',
                   background: orderQty === q ? 'rgba(255,107,53,0.12)' : 'transparent', cursor: 'pointer',
                   color: orderQty === q ? '#ff6b35' : 'rgba(255,255,255,0.3)', fontSize: '10px',
-                  fontFamily: "'SF Mono', monospace", fontWeight: 600, transition: 'all 0.15s ease',
+                  fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontWeight: 600, transition: 'all 0.15s ease',
                 }}>{q}</button>
               ))}
               <button onClick={() => setOrderQty(maxBuyQty)} style={{
                 flex: 1, padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '3px',
                 background: 'transparent', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', fontSize: '10px',
-                fontFamily: "'SF Mono', monospace", fontWeight: 600, transition: 'all 0.15s ease',
+                fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontWeight: 600, transition: 'all 0.15s ease',
               }}>ALL</button>
             </div>
           </div>
@@ -4044,7 +4064,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
                 flex: 1, padding: '10px', border: 'none', borderRadius: '4px', cursor: roundComplete ? 'not-allowed' : 'pointer',
                 background: roundComplete ? 'rgba(74,222,128,0.08)' : 'rgba(74,222,128,0.15)',
                 color: roundComplete ? 'rgba(74,222,128,0.3)' : '#4ade80',
-                fontSize: '12px', fontWeight: 800, fontFamily: "'SF Mono', monospace", letterSpacing: '0.1em',
+                fontSize: '12px', fontWeight: 800, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em',
                 transition: 'all 0.2s ease',
                 boxShadow: !roundComplete ? '0 0 12px rgba(74,222,128,0.1)' : 'none',
               }}
@@ -4060,7 +4080,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
                 flex: 1, padding: '10px', border: 'none', borderRadius: '4px', cursor: roundComplete || maxSellQty <= 0 ? 'not-allowed' : 'pointer',
                 background: roundComplete || maxSellQty <= 0 ? 'rgba(248,113,113,0.08)' : 'rgba(248,113,113,0.15)',
                 color: roundComplete || maxSellQty <= 0 ? 'rgba(248,113,113,0.3)' : '#f87171',
-                fontSize: '12px', fontWeight: 800, fontFamily: "'SF Mono', monospace", letterSpacing: '0.1em',
+                fontSize: '12px', fontWeight: 800, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em',
                 transition: 'all 0.2s ease',
                 boxShadow: !(roundComplete || maxSellQty <= 0) ? '0 0 12px rgba(248,113,113,0.1)' : 'none',
               }}
@@ -4074,7 +4094,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
 
         {/* Position Tracker */}
         <div style={{ padding: '14px', borderBottom: '1px solid rgba(255,255,255,0.06)', flex: '0 0 auto' }}>
-          <div style={{ fontSize: '10px', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>POSITIONS</div>
+          <div style={{ fontSize: '10px', letterSpacing: '0.04em', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>POSITIONS</div>
           {currentPos ? (
             <div style={{
               padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '4px',
@@ -4086,15 +4106,15 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
                 <div>
-                  <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em' }}>ENTRY</div>
+                  <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.04em' }}>ENTRY</div>
                   <div style={{ fontSize: '11px', color: '#fff' }}>{currentPos.avgCost.toFixed(2)}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em' }}>CURRENT</div>
+                  <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.04em' }}>CURRENT</div>
                   <div style={{ fontSize: '11px', color: '#fff' }}>{currentPrice.toFixed(2)}</div>
                 </div>
                 <div style={{ gridColumn: '1 / -1' }}>
-                  <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em' }}>UNREALIZED P&L</div>
+                  <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.04em' }}>UNREALIZED P&L</div>
                   <div style={{
                     fontSize: '14px', fontWeight: 700, color: unrealizedPnl >= 0 ? '#4ade80' : '#f87171',
                     textShadow: pnlFlash !== 0 ? `0 0 10px ${unrealizedPnl >= 0 ? 'rgba(74,222,128,0.4)' : 'rgba(248,113,113,0.4)'}` : 'none',
@@ -4117,7 +4137,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
               padding: '10px', background: 'rgba(255,107,53,0.08)', borderRadius: '4px',
               border: '1px solid rgba(255,107,53,0.2)', textAlign: 'center',
             }}>
-              <div style={{ fontSize: '10px', color: '#ff6b35', letterSpacing: '0.15em', marginBottom: '6px' }}>
+              <div style={{ fontSize: '10px', color: '#ff6b35', letterSpacing: '0.04em', marginBottom: '6px' }}>
                 ROUND {round} COMPLETE
               </div>
               <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '10px' }}>
@@ -4128,7 +4148,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
                 style={{
                   padding: '8px 24px', border: 'none', borderRadius: '4px', cursor: 'pointer',
                   background: '#ff6b35', color: '#fff', fontSize: '11px', fontWeight: 700,
-                  fontFamily: "'SF Mono', monospace", letterSpacing: '0.1em',
+                  fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em',
                   transition: 'all 0.2s ease', animation: 'pulse-glow 2s ease infinite',
                 }}
               >
@@ -4140,7 +4160,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
 
         {/* Order History */}
         <div style={{ flex: 1, overflow: 'auto', padding: '14px', minHeight: 0 }}>
-          <div style={{ fontSize: '10px', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>ORDER HISTORY</div>
+          <div style={{ fontSize: '10px', letterSpacing: '0.04em', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>ORDER HISTORY</div>
           {orders.filter(o => o.symbol === currentSymbol).length === 0 ? (
             <div style={{ color: 'rgba(255,255,255,0.2)', fontSize: '11px', textAlign: 'center', padding: '12px' }}>No trades yet</div>
           ) : (
@@ -4171,7 +4191,7 @@ function StockPickerGame({ stocks }: { stocks: StockData[] }) {
       <div style={{
         gridColumn: '1 / -1', display: 'flex', alignItems: 'center', padding: '0 16px',
         background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.06)',
-        fontSize: '9px', color: 'rgba(255,255,255,0.3)', gap: '16px', letterSpacing: '0.05em',
+        fontSize: '9px', color: 'rgba(255,255,255,0.3)', gap: '16px', letterSpacing: '0.04em',
       }}>
         <span>TRADING ARENA v2.0</span>
         <span style={{ color: 'rgba(255,255,255,0.1)' }}>|</span>
@@ -4200,7 +4220,7 @@ function BloombergTerminalView({ drillDown, setDrillDown }: {
   const hasDrillDown = drillDown !== null;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', fontFamily: "'SF Mono', monospace", background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}>
       <BloombergTopBar stocks={stocks} gameMode={gameMode} onToggleGame={() => {}} />
       <div style={{ flex: 1, overflow: 'hidden', display: hasDrillDown ? 'block' : 'grid', gridTemplateColumns: hasDrillDown ? undefined : '50% 50%' }}>
         {hasDrillDown ? (
@@ -4253,6 +4273,7 @@ function BloombergTerminalView({ drillDown, setDrillDown }: {
 
 // ── Standalone Stocks App ──
 function StocksApp() {
+  const marketOpen = useMarketOpen();
   const { state } = useDesktop();
   const isFullscreen = state.windows.stocks?.isFullscreen ?? false;
   const [drillDown, setDrillDown] = useState<{ type: 'stock'; symbol: string; name: string } | { type: 'sector'; name: string } | null>(null);
@@ -4270,7 +4291,7 @@ function StocksApp() {
   }
 
   return (
-    <div className="bloomberg-scroll" style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', fontFamily: "'SF Mono', monospace", padding: '10px' }}>
+    <div className="bloomberg-scroll" style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', padding: '10px' }}>
       {drillDown ? (
         <div style={{ background: 'rgba(0,0,0,0.35)', borderRadius: '12px', border: '0.5px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', overflow: 'hidden' }}>
           {drillDown.type === 'stock' ? (
@@ -4293,15 +4314,15 @@ function StocksApp() {
           {/* Header card */}
           <div style={{ background: 'rgba(0,0,0,0.35)', borderRadius: '12px', padding: '12px 14px', border: '0.5px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ fontSize: '18px', fontWeight: 700, color: '#fff', fontFamily: "'SF Pro Display', -apple-system, sans-serif", letterSpacing: '-0.01em' }}>
+              <div style={{ fontSize: '18px', fontWeight: 700, color: '#fff', fontFamily: 'var(--os-font-display)', letterSpacing: '-0.01em' }}>
                 My Watchlist
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#4ade80', animation: 'livePulse 2s ease-in-out infinite' }} />
-                <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '10px', fontWeight: 600, letterSpacing: '0.05em' }}>LIVE</span>
+                <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: marketOpen ? '#4ade80' : 'rgba(255,255,255,0.35)', animation: marketOpen ? 'livePulse 2s ease-in-out infinite' : 'none' }} />
+                <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '10px', fontWeight: 600, letterSpacing: '0.04em' }}>{marketOpen ? 'LIVE' : 'CLOSED'}</span>
               </div>
             </div>
-            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px', fontWeight: 500, fontFamily: "'SF Pro Text', -apple-system, sans-serif", marginTop: '2px' }}>
+            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px', fontWeight: 500, fontFamily: 'var(--os-font)', marginTop: '2px' }}>
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
             </div>
           </div>
@@ -4340,7 +4361,7 @@ function MiddlePanel({ runCommand }: { runCommand: (cmd: string) => void }) {
           <div style={sectionLabel}>TECH STACK</div>
           {TECH_STACK.map(cat => (
             <div key={cat.category} style={{ marginBottom: '10px' }}>
-              <div style={{ fontSize: '10px', color: '#fff', fontFamily: "'SF Mono', monospace", marginBottom: '5px', textTransform: 'uppercase' as const, fontWeight: 600 }}>{cat.category}</div>
+              <div style={{ fontSize: '10px', color: '#fff', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', marginBottom: '5px', textTransform: 'uppercase' as const, fontWeight: 600 }}>{cat.category}</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
                 {cat.items.map((item, i) => {
                   const theme = CATEGORY_THEME[cat.category] || { color: '#fff', rgb: '255,255,255' };
@@ -4350,7 +4371,7 @@ function MiddlePanel({ runCommand }: { runCommand: (cmd: string) => void }) {
                       fontSize: '11.5px', padding: '3px 10px', borderRadius: 5,
                       background: `rgba(${theme.rgb},${Math.max(opacity, 0.06)})`,
                       border: `0.5px solid rgba(${theme.rgb},0.25)`,
-                      color: theme.color, fontFamily: "'SF Mono', monospace",
+                      color: theme.color, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
                     }}>{item}</span>
                   );
                 })}
@@ -4367,6 +4388,7 @@ function MiddlePanel({ runCommand }: { runCommand: (cmd: string) => void }) {
 }
 
 function StockDetailView({ symbol, name, onBack, onSectorClick }: { symbol: string; name: string; onBack: () => void; onSectorClick: (name: string) => void }) {
+  const marketOpen = useMarketOpen();
   const [detail, setDetail] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const stocks = useStockData();
@@ -4419,20 +4441,20 @@ function StockDetailView({ symbol, name, onBack, onSectorClick }: { symbol: stri
       {/* Header: Symbol + Price */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: '8px', marginBottom: '12px' }}>
         <div>
-          <div style={{ fontSize: '16px', fontWeight: 800, color: '#fff', fontFamily: "'SF Mono', monospace" }}>
+          <div style={{ fontSize: '16px', fontWeight: 800, color: '#fff', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
             {symbol} <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.5)', fontSize: '12px' }}>{detail?.name || name}</span>
           </div>
           {detail?.exchange && (
-            <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.35)', fontFamily: "'SF Mono', monospace", marginTop: '2px' }}>
+            <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
               {detail.exchange} · {detail.currency}
             </div>
           )}
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: '20px', fontWeight: 800, color: '#fff', fontFamily: "'SF Mono', monospace" }}>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#fff', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
             {symbol === 'BTC' ? price.toLocaleString('en-US', { maximumFractionDigits: 0 }) : price.toFixed(2)}
           </div>
-          <div style={{ fontSize: '12px', fontWeight: 700, color, fontFamily: "'SF Mono', monospace" }}>
+          <div style={{ fontSize: '12px', fontWeight: 700, color, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
             {isUp ? '▲' : '▼'} {Math.abs(change).toFixed(2)} ({isUp ? '+' : ''}{pct.toFixed(2)}%)
           </div>
         </div>
@@ -4454,24 +4476,24 @@ function StockDetailView({ symbol, name, onBack, onSectorClick }: { symbol: stri
               <animate attributeName="r" values="3;5;3" dur="2s" repeatCount="indefinite" />
             </circle>
           </svg>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '8px', color: 'rgba(255,255,255,0.3)', fontFamily: "'SF Mono', monospace", marginTop: '4px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '8px', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', marginTop: '4px' }}>
             <span>{detail?.chart?.closes?.length > 0 ? '5D' : '1D'}</span>
-            <span>LIVE</span>
+            <span>{marketOpen ? 'LIVE' : 'CLOSED'}</span>
           </div>
         </div>
       )}
 
       {/* Stats Grid */}
       {loading ? (
-        <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '10px', fontFamily: "'SF Mono', monospace", textAlign: 'center', padding: '20px' }}>
+        <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '10px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', textAlign: 'center', padding: '20px' }}>
           Loading fundamentals...
         </div>
       ) : statItems.length > 0 ? (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'rgba(255,255,255,0.04)', borderRadius: 6, overflow: 'hidden', marginBottom: '12px', border: '0.5px solid rgba(255,255,255,0.06)' }}>
           {statItems.map(s => (
             <div key={s.label} style={{ padding: '5px 8px', background: 'rgba(10,12,18,0.9)' }}>
-              <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.4)', fontFamily: "'SF Mono', monospace", fontWeight: 600 }}>{s.label}</div>
-              <div style={{ fontSize: '11px', color: '#fff', fontFamily: "'SF Mono', monospace", fontWeight: 600 }}>{s.value}</div>
+              <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>{s.label}</div>
+              <div style={{ fontSize: '11px', color: '#fff', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>{s.value}</div>
             </div>
           ))}
         </div>
@@ -4481,12 +4503,12 @@ function StockDetailView({ symbol, name, onBack, onSectorClick }: { symbol: stri
       {sector && (
         <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 6, padding: '8px 10px', marginBottom: '12px', border: '0.5px solid rgba(255,255,255,0.06)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-            <span style={{ fontSize: '9px', fontWeight: 700, color: 'rgba(255,255,255,0.5)', fontFamily: "'SF Mono', monospace", letterSpacing: '0.05em' }}>
+            <span style={{ fontSize: '9px', fontWeight: 700, color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em' }}>
               SECTOR: {sector.name.toUpperCase()}
             </span>
             <button onClick={() => onSectorClick(sector.name)} style={{
               background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer',
-              fontSize: '9px', fontWeight: 700, fontFamily: "'SF Mono', monospace",
+              fontSize: '9px', fontWeight: 700, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
             }}>
               VIEW ALL →
             </button>
@@ -4494,7 +4516,7 @@ function StockDetailView({ symbol, name, onBack, onSectorClick }: { symbol: stri
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
             {sectorStocks.map(s => (
               <span key={s.symbol} style={{
-                fontSize: '9px', fontFamily: "'SF Mono', monospace", fontWeight: 600,
+                fontSize: '9px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontWeight: 600,
                 padding: '2px 6px', borderRadius: 3,
                 background: s.symbol === symbol ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.05)',
                 color: s.symbol === symbol ? '#3b82f6' : (s.pct >= 0 ? '#4ade80' : '#f87171'),
@@ -4510,7 +4532,7 @@ function StockDetailView({ symbol, name, onBack, onSectorClick }: { symbol: stri
       {/* Related News */}
       {detail?.news?.length > 0 && (
         <div style={{ marginTop: '4px' }}>
-          <div style={{ fontSize: '9px', fontWeight: 700, color: 'rgba(255,255,255,0.5)', fontFamily: "'SF Mono', monospace", letterSpacing: '0.05em', marginBottom: '6px' }}>
+          <div style={{ fontSize: '9px', fontWeight: 700, color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em', marginBottom: '6px' }}>
             RELATED NEWS
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', background: 'rgba(255,255,255,0.04)', borderRadius: 6, overflow: 'hidden', border: '0.5px solid rgba(255,255,255,0.06)' }}>
@@ -4524,10 +4546,10 @@ function StockDetailView({ symbol, name, onBack, onSectorClick }: { symbol: stri
                 onMouseLeave={e => (e.currentTarget.style.background = 'rgba(10,12,18,0.9)')}
                 onClick={e => e.stopPropagation()}
               >
-                <div style={{ fontSize: '10px', color: '#fff', fontFamily: "'SF Mono', monospace", fontWeight: 500, lineHeight: 1.3 }}>
+                <div style={{ fontSize: '10px', color: '#fff', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontWeight: 500, lineHeight: 1.3 }}>
                   {n.title}
                 </div>
-                <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.35)', fontFamily: "'SF Mono', monospace", marginTop: '2px' }}>
+                <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
                   {n.source} · {n.pubDate ? new Date(n.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}
                 </div>
               </a>
@@ -4624,18 +4646,18 @@ function SectorDetailView({ sectorName, onBack, onStockClick }: { sectorName: st
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: '8px', marginBottom: '12px' }}>
         <div>
-          <div style={{ fontSize: '16px', fontWeight: 800, color: '#fff', fontFamily: "'SF Mono', monospace" }}>
+          <div style={{ fontSize: '16px', fontWeight: 800, color: '#fff', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
             {sectorName} Sector
           </div>
-          <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', fontFamily: "'SF Mono', monospace", marginTop: '2px' }}>
+          <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
             {matched.length} stocks tracked · {winners} up · {losers} down{flat > 0 ? ` · ${flat} flat` : ''}
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: '18px', fontWeight: 800, color, fontFamily: "'SF Mono', monospace" }}>
+          <div style={{ fontSize: '18px', fontWeight: 800, color, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
             {isUp ? '+' : ''}{avgPct.toFixed(2)}%
           </div>
-          <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', fontFamily: "'SF Mono', monospace" }}>
+          <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
             sector avg
           </div>
         </div>
@@ -4645,8 +4667,8 @@ function SectorDetailView({ sectorName, onBack, onStockClick }: { sectorName: st
       {avgHistory.length > 1 && (
         <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 6, padding: '8px', marginBottom: '10px', border: '0.5px solid rgba(255,255,255,0.06)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <span style={{ fontSize: '8px', fontWeight: 700, color: 'rgba(255,255,255,0.35)', fontFamily: "'SF Mono', monospace", letterSpacing: '0.05em' }}>SECTOR AVG PERFORMANCE</span>
-            <span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.3)', fontFamily: "'SF Mono', monospace" }}>intraday</span>
+            <span style={{ fontSize: '8px', fontWeight: 700, color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em' }}>SECTOR AVG PERFORMANCE</span>
+            <span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>intraday</span>
           </div>
           <svg width="100%" height={sparkH} viewBox={`0 0 ${sparkW} ${sparkH}`} preserveAspectRatio="xMidYMid meet" style={{ display: 'block' }}>
             <defs>
@@ -4677,15 +4699,15 @@ function SectorDetailView({ sectorName, onBack, onStockClick }: { sectorName: st
           { label: 'Breadth', value: matched.length > 0 ? `${((winners / matched.length) * 100).toFixed(0)}% up` : '—', color: winners >= losers ? '#4ade80' : '#f87171' },
         ].map(s => (
           <div key={s.label} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 5, padding: '5px 6px', border: '0.5px solid rgba(255,255,255,0.06)' }}>
-            <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.4)', fontFamily: "'SF Mono', monospace", fontWeight: 600, letterSpacing: '0.03em' }}>{s.label.toUpperCase()}</div>
-            <div style={{ fontSize: '9px', color: s.color, fontFamily: "'SF Mono', monospace", fontWeight: 700, marginTop: '1px' }}>{s.value}</div>
+            <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontWeight: 600, letterSpacing: '0.03em' }}>{s.label.toUpperCase()}</div>
+            <div style={{ fontSize: '9px', color: s.color, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontWeight: 700, marginTop: '1px' }}>{s.value}</div>
           </div>
         ))}
       </div>
 
       {/* Performance Distribution Bar */}
       <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 6, padding: '8px', marginBottom: '10px', border: '0.5px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ fontSize: '8px', fontWeight: 700, color: 'rgba(255,255,255,0.35)', fontFamily: "'SF Mono', monospace", letterSpacing: '0.05em', marginBottom: '6px' }}>PERFORMANCE DISTRIBUTION</div>
+        <div style={{ fontSize: '8px', fontWeight: 700, color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em', marginBottom: '6px' }}>PERFORMANCE DISTRIBUTION</div>
         {sorted.map(s => {
           const sUp = s.pct >= 0;
           const sColor = sUp ? '#4ade80' : '#f87171';
@@ -4696,7 +4718,7 @@ function SectorDetailView({ sectorName, onBack, onStockClick }: { sectorName: st
               onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
             >
-              <span style={{ fontSize: '8px', fontWeight: 700, color: '#fff', fontFamily: "'SF Mono', monospace", width: '38px', flexShrink: 0 }}>{s.symbol}</span>
+              <span style={{ fontSize: '8px', fontWeight: 700, color: '#fff', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', width: '38px', flexShrink: 0 }}>{s.symbol}</span>
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', height: '12px', position: 'relative' }}>
                 <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '0.5px', background: 'rgba(255,255,255,0.1)' }} />
                 {sUp ? (
@@ -4705,7 +4727,7 @@ function SectorDetailView({ sectorName, onBack, onStockClick }: { sectorName: st
                   <div style={{ marginLeft: `${50 - barWidth}%`, width: `${barWidth}%`, height: '8px', background: sColor, borderRadius: '2px 0 0 2px', opacity: 0.7, transition: 'width 0.3s' }} />
                 )}
               </div>
-              <span style={{ fontSize: '8px', color: sColor, fontFamily: "'SF Mono', monospace", fontWeight: 700, width: '48px', textAlign: 'right', flexShrink: 0 }}>
+              <span style={{ fontSize: '8px', color: sColor, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontWeight: 700, width: '48px', textAlign: 'right', flexShrink: 0 }}>
                 {sUp ? '+' : ''}{s.pct.toFixed(2)}%
               </span>
             </div>
@@ -4716,11 +4738,11 @@ function SectorDetailView({ sectorName, onBack, onStockClick }: { sectorName: st
       {/* Stock Table with Mini Charts */}
       <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 6, overflow: 'hidden', border: '0.5px solid rgba(255,255,255,0.06)', marginBottom: '10px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '50px 1fr 70px 60px 58px', padding: '5px 8px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.03)' }}>
-          <span style={{ fontSize: '7px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', fontFamily: "'SF Mono', monospace" }}>SYMBOL</span>
-          <span style={{ fontSize: '7px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', fontFamily: "'SF Mono', monospace" }}>CHART</span>
-          <span style={{ fontSize: '7px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', fontFamily: "'SF Mono', monospace", textAlign: 'right' }}>PRICE</span>
-          <span style={{ fontSize: '7px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', fontFamily: "'SF Mono', monospace", textAlign: 'right' }}>CHG%</span>
-          <span style={{ fontSize: '7px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', fontFamily: "'SF Mono', monospace", textAlign: 'right' }}>RANGE</span>
+          <span style={{ fontSize: '7px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>SYMBOL</span>
+          <span style={{ fontSize: '7px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>CHART</span>
+          <span style={{ fontSize: '7px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>PRICE</span>
+          <span style={{ fontSize: '7px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>CHG%</span>
+          <span style={{ fontSize: '7px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>RANGE</span>
         </div>
         {sorted.map(s => {
           const sUp = s.pct >= 0;
@@ -4742,19 +4764,19 @@ function SectorDetailView({ sectorName, onBack, onStockClick }: { sectorName: st
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
             >
               <div>
-                <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', fontFamily: "'SF Mono', monospace" }}>{s.symbol}</span>
-                <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.3)', fontFamily: "'SF Mono', monospace", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '48px' }}>{s.name.split(' ')[0]}</div>
+                <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>{s.symbol}</span>
+                <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '48px' }}>{s.name.split(' ')[0]}</div>
               </div>
               <div style={{ padding: '2px 4px' }}>
                 {miniSparkline(s.history, 80, 20, sColor)}
               </div>
-              <span style={{ fontSize: '9px', color: '#fff', fontFamily: "'SF Mono', monospace", textAlign: 'right', fontWeight: 600 }}>
+              <span style={{ fontSize: '9px', color: '#fff', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', textAlign: 'right', fontWeight: 600 }}>
                 {s.symbol === 'BTC' ? s.price.toLocaleString('en-US', { maximumFractionDigits: 0 }) : s.price.toFixed(2)}
               </span>
-              <span style={{ fontSize: '9px', color: sColor, fontFamily: "'SF Mono', monospace", textAlign: 'right', fontWeight: 700 }}>
+              <span style={{ fontSize: '9px', color: sColor, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', textAlign: 'right', fontWeight: 700 }}>
                 {sUp ? '+' : ''}{s.pct.toFixed(2)}%
               </span>
-              <span style={{ fontSize: '7px', color: 'rgba(255,255,255,0.35)', fontFamily: "'SF Mono', monospace", textAlign: 'right' }}>
+              <span style={{ fontSize: '7px', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>
                 {rangeStr}
               </span>
             </div>
@@ -4764,13 +4786,13 @@ function SectorDetailView({ sectorName, onBack, onStockClick }: { sectorName: st
 
       {/* Sector News */}
       <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 6, padding: '8px', border: '0.5px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ fontSize: '8px', fontWeight: 700, color: '#ff6b35', fontFamily: "'SF Mono', monospace", letterSpacing: '0.08em', marginBottom: '6px' }}>
+        <div style={{ fontSize: '8px', fontWeight: 700, color: '#ff6b35', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em', marginBottom: '6px' }}>
           {sectorName.toUpperCase()} SECTOR NEWS
         </div>
         {newsLoading ? (
-          <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', fontFamily: "'SF Mono', monospace", padding: '8px 0' }}>Loading news…</div>
+          <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', padding: '8px 0' }}>Loading news…</div>
         ) : news.length === 0 ? (
-          <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', fontFamily: "'SF Mono', monospace", padding: '8px 0' }}>No recent news available</div>
+          <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', padding: '8px 0' }}>No recent news available</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
             {news.map((n, i) => (
@@ -4788,14 +4810,14 @@ function SectorDetailView({ sectorName, onBack, onStockClick }: { sectorName: st
                 onClick={e => e.stopPropagation()}
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
-                  <span style={{ fontSize: '8px', fontWeight: 700, color: getNewsColor(n.source), fontFamily: "'SF Mono', monospace", flexShrink: 0, marginTop: '1px', minWidth: '50px' }}>
+                  <span style={{ fontSize: '8px', fontWeight: 700, color: getNewsColor(n.source), fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', flexShrink: 0, marginTop: '1px', minWidth: '50px' }}>
                     {n.source.toUpperCase().slice(0, 10)}
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '9px', color: '#fff', fontFamily: "'SF Mono', monospace", fontWeight: 500, lineHeight: 1.3 }}>
+                    <div style={{ fontSize: '9px', color: '#fff', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontWeight: 500, lineHeight: 1.3 }}>
                       {n.title}
                     </div>
-                    <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.3)', fontFamily: "'SF Mono', monospace", marginTop: '1px' }}>
+                    <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', marginTop: '1px' }}>
                       {n.pubDate ? new Date(n.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
                     </div>
                   </div>
@@ -4837,10 +4859,10 @@ function ScrollingNewsTape() {
       onMouseEnter={e => { (e.currentTarget.querySelector('[data-title]') as HTMLElement).style.textDecoration = 'underline'; }}
       onMouseLeave={e => { (e.currentTarget.querySelector('[data-title]') as HTMLElement).style.textDecoration = 'none'; }}
     >
-      <span style={{ color: getColor(item.source), fontSize: '10px', fontWeight: 700, fontFamily: "'SF Mono', monospace" }}>
+      <span style={{ color: getColor(item.source), fontSize: '10px', fontWeight: 700, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
         {item.source.toUpperCase()}
       </span>
-      <span data-title style={{ color: 'rgba(255,255,255,0.8)', fontSize: '11px', fontFamily: "'SF Mono', monospace" }}>
+      <span data-title style={{ color: 'rgba(255,255,255,0.8)', fontSize: '11px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
         {item.title}
       </span>
       <span style={{ color: 'rgba(255,255,255,0.2)' }}>│</span>
@@ -4856,7 +4878,7 @@ function ScrollingNewsTape() {
         }
       `}</style>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span style={{ fontSize: '11px', fontWeight: 700, color: '#ff6b35', letterSpacing: '0.1em', fontFamily: "'SF Mono', monospace", padding: '0 10px', flexShrink: 0 }}>
+        <span style={{ fontSize: '11px', fontWeight: 700, color: '#ff6b35', letterSpacing: '0.02em', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', padding: '0 10px', flexShrink: 0 }}>
           NEWS
         </span>
         <div style={{ flex: 1, overflow: 'hidden' }}>
@@ -4902,7 +4924,7 @@ function LiveNewsFeed() {
   };
 
   if (!news.length) return (
-    <div style={{ padding: '8px 12px', color: 'rgba(255,255,255,0.3)', fontSize: '10px', fontFamily: "'SF Mono', monospace" }}>
+    <div style={{ padding: '8px 12px', color: 'rgba(255,255,255,0.3)', fontSize: '10px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
       Loading feed...
     </div>
   );
@@ -4910,10 +4932,10 @@ function LiveNewsFeed() {
   return (
     <div style={{ padding: '8px 12px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', letterSpacing: '0.1em', fontFamily: "'SF Mono', monospace" }}>
+        <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', letterSpacing: '0.02em', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
           MARKET NEWS
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '9px', color: 'rgba(255,255,255,0.85)', fontFamily: "'SF Mono', monospace" }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '9px', color: 'rgba(255,255,255,0.85)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
           <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#ff6b35', display: 'inline-block', animation: 'livePulse 2s ease-in-out infinite' }} />
           LIVE
         </div>
@@ -4928,17 +4950,17 @@ function LiveNewsFeed() {
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderLeftColor = `${getColor(item.source)}22`; }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
-              <span style={{ color: getColor(item.source), fontSize: '10px', fontWeight: 700, fontFamily: "'SF Mono', monospace", letterSpacing: '0.05em' }}>
+              <span style={{ color: getColor(item.source), fontSize: '10px', fontWeight: 700, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em' }}>
                 {item.source.toUpperCase()}
               </span>
-              <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '10px', fontFamily: "'SF Mono', monospace" }}>
+              <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '10px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
                 {timeAgo(item.pubDate)}
               </span>
             </div>
             <div style={{
               fontSize: '11px', fontWeight: 500, color: 'rgba(255,255,255,0.85)', lineHeight: 1.35,
               display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-              fontFamily: "'SF Mono', monospace",
+              fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
             }}>
               {item.title}
             </div>
@@ -4979,13 +5001,13 @@ function MarketStatsBar() {
           const color = ind.label === 'VIX' ? (isUp ? '#f87171' : '#4ade80') : (isUp ? '#4ade80' : '#f87171');
           return (
             <div key={ind.label} style={{ textAlign: 'center', flex: 1 }}>
-              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)', fontWeight: 700, letterSpacing: '0.08em', fontFamily: "'SF Mono', monospace", marginBottom: '2px' }}>
+              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)', fontWeight: 700, letterSpacing: '0.02em', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', marginBottom: '2px' }}>
                 {ind.label}
               </div>
-              <div style={{ fontSize: '13px', color: '#fff', fontWeight: 600, fontFamily: "'SF Mono', monospace", fontVariantNumeric: 'tabular-nums' }}>
+              <div style={{ fontSize: '13px', color: '#fff', fontWeight: 600, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
                 {ind.value}
               </div>
-              <div style={{ fontSize: '10px', color, fontWeight: 600, fontFamily: "'SF Mono', monospace" }}>
+              <div style={{ fontSize: '10px', color, fontWeight: 600, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
                 {isUp ? '▲' : '▼'} {Math.abs(ind.change).toFixed(2)}%
               </div>
             </div>
@@ -5020,10 +5042,10 @@ function EconomicCalendar() {
   return (
     <div style={{ padding: '8px 12px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', letterSpacing: '0.1em', fontFamily: "'SF Mono', monospace" }}>
+        <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', letterSpacing: '0.02em', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
           UPCOMING
         </div>
-        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)', fontFamily: "'SF Mono', monospace" }}>
+        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
           {new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
         </div>
       </div>
@@ -5038,15 +5060,15 @@ function EconomicCalendar() {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
                 <span style={{ width: 4, height: 4, borderRadius: '50%', background: importanceColor[evt.importance], flexShrink: 0 }} />
-                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.9)', fontFamily: "'SF Mono', monospace", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.9)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {evt.label}
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', fontFamily: "'SF Mono', monospace" }}>
+                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
                   {new Date(evt.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </span>
-                <span style={{ fontSize: '10px', fontWeight: 600, color: countdown === 'Today' ? '#f87171' : countdown === 'Tomorrow' ? '#fbbf24' : 'rgba(255,255,255,0.75)', fontFamily: "'SF Mono', monospace", minWidth: '44px', textAlign: 'right' }}>
+                <span style={{ fontSize: '10px', fontWeight: 600, color: countdown === 'Today' ? '#f87171' : countdown === 'Tomorrow' ? '#fbbf24' : 'rgba(255,255,255,0.75)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', minWidth: '44px', textAlign: 'right' }}>
                   {countdown}
                 </span>
               </div>
@@ -5088,12 +5110,12 @@ function SystemVitals() {
     const current = values[values.length - 1];
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', fontFamily: "'SF Mono', monospace", width: 24, flexShrink: 0 }}>{label}</span>
+        <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', width: 24, flexShrink: 0 }}>{label}</span>
         <svg width={w} height={h} style={{ flexShrink: 0 }}>
           <path d={path} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           <circle cx={w} cy={h - (current / max) * h} r="2" fill={color} />
         </svg>
-        <span style={{ fontSize: '10px', color, fontWeight: 600, fontFamily: "'SF Mono', monospace", width: 36, textAlign: 'right', flexShrink: 0 }}>
+        <span style={{ fontSize: '10px', color, fontWeight: 600, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', width: 36, textAlign: 'right', flexShrink: 0 }}>
           {current.toFixed(0)}{suffix}
         </span>
       </div>
@@ -5102,7 +5124,7 @@ function SystemVitals() {
 
   return (
     <div style={{ padding: '8px 10px' }}>
-      <div style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.1em', marginBottom: '6px', fontFamily: "'SF Pro Text', -apple-system, sans-serif" }}>
+      <div style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.04em', marginBottom: '6px', fontFamily: 'var(--os-font)' }}>
         SYSTEM
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -5167,8 +5189,8 @@ function OrderbookDepth() {
   return (
     <div style={{ padding: '8px 10px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-        <span style={{ fontSize: '12px', fontWeight: 700, color: 'rgba(255,255,255,0.9)', letterSpacing: '0.1em', fontFamily: "'SF Pro Text', -apple-system, sans-serif" }}>BTC ORDERBOOK</span>
-        <div style={{ display: 'flex', gap: '8px', fontSize: '10px', fontFamily: "'SF Mono', monospace" }}>
+        <span style={{ fontSize: '12px', fontWeight: 700, color: 'rgba(255,255,255,0.9)', letterSpacing: '0.04em', fontFamily: 'var(--os-font)' }}>BTC ORDERBOOK</span>
+        <div style={{ display: 'flex', gap: '8px', fontSize: '10px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
           <span style={{ color: '#4ade80' }}>BID {bidCum[bidCum.length - 1]?.toFixed(1)}</span>
           <span style={{ color: '#f87171' }}>ASK {askCum[askCum.length - 1]?.toFixed(1)}</span>
         </div>
@@ -5256,7 +5278,7 @@ function ChronographWatch() {
       {/* Outer rings */}
       <circle cx={C} cy={C} r="94" stroke="rgba(255,255,255,0.6)" strokeWidth="2" fill="none" />
       <circle cx={C} cy={C} r="90" stroke="rgba(255,255,255,0.3)" strokeWidth="1" fill="none" />
-      <text x={C} y="48" textAnchor="middle" fill="rgba(255,255,255,0.85)" fontSize="8" fontFamily="'SF Pro Display', -apple-system, sans-serif" fontWeight="800" letterSpacing="4">GANDHE</text>
+      <text x={C} y="48" textAnchor="middle" fill="rgba(255,255,255,0.85)" fontSize="8" fontWeight="800" letterSpacing="4">GANDHE</text>
       {Array.from({ length: 12 }).map((_, i) => {
         const a = toRad(i * 30 - 90);
         const r1 = i % 3 === 0 ? 72 : 78;
@@ -5506,7 +5528,7 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
 
   // Shared terminal prompt + history renderer
   const renderTerminal = (compact?: boolean, mono?: boolean) => (
-    <div style={{ fontFamily: mono !== false ? "'SF Mono', 'JetBrains Mono', 'Menlo', monospace" : 'inherit', fontSize: compact ? '12.5px' : '13px', lineHeight: 1.5 }}>
+    <div style={{ fontFamily: mono !== false ? 'var(--os-mono)' : 'inherit', fontSize: compact ? '12.5px' : '13px', lineHeight: 1.5 }}>
       {history.map((line, i) => {
         const age = line.ts ? Date.now() - line.ts : 0;
         const isFading = line.ts && age > 15000;
@@ -5526,10 +5548,10 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
       })}
       {introDone && (
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <span style={{ color: '#4ade80', fontWeight: 700, whiteSpace: 'pre', fontFamily: "'SF Mono', monospace", fontSize: compact ? '12.5px' : '13px' }}>{prompt}</span>
+          <span style={{ color: '#4ade80', fontWeight: 700, whiteSpace: 'pre', fontFamily: 'var(--os-mono)', fontSize: compact ? '12.5px' : '13px' }}>{prompt}</span>
           <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown}
             spellCheck={false} autoComplete="off"
-            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontFamily: "'SF Mono', monospace", fontSize: compact ? '12.5px' : '13px', color: 'rgba(255,255,255,0.9)', padding: 0, margin: 0, caretColor: '#4ade80' }} />
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontFamily: 'var(--os-mono)', fontSize: compact ? '12.5px' : '13px', color: 'rgba(255,255,255,0.9)', padding: 0, margin: 0, caretColor: '#4ade80' }} />
         </div>
       )}
       {!introDone && <span style={{ display: 'inline-block', width: '8px', height: '14px', background: '#4ade80', animation: 'blink 1s step-end infinite' }} />}
@@ -5565,7 +5587,7 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
         gridTemplateColumns: '1fr 240px',
         gridTemplateRows: 'auto 1fr auto',
         height: '100%',
-        fontFamily: "'SF Mono', 'JetBrains Mono', 'Menlo', monospace",
+        fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
         fontSize: '12.5px', color: '#3a3a3c', lineHeight: 1.6,
         cursor: 'text', overflow: 'hidden',
       }}>
@@ -5592,7 +5614,7 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
 
         {/* Command tiles — middle left */}
         <div style={{ padding: '0 24px 16px' }}>
-          <div style={{ color: 'rgba(0,0,0,0.25)', fontSize: '10px', fontWeight: 600, letterSpacing: '0.1em', marginBottom: '8px' }}>EXPLORE</div>
+          <div style={{ color: 'rgba(0,0,0,0.25)', fontSize: '10px', fontWeight: 600, letterSpacing: '0.04em', marginBottom: '8px' }}>EXPLORE</div>
           {renderCommandGrid(3, true)}
         </div>
 
@@ -5614,16 +5636,16 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
       }}>
         {/* Hero area — centered, fills most space */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '24px 32px 0', minHeight: 0 }}>
-          <div style={{ fontFamily: "'SF Pro Display', -apple-system, sans-serif", fontSize: '52px', fontWeight: 800, letterSpacing: '0.12em', color: '#1d1d1f', lineHeight: 1, textTransform: 'uppercase' }}>Ronniel</div>
-          <div style={{ fontFamily: "'SF Pro Display', -apple-system, sans-serif", fontSize: '52px', fontWeight: 800, letterSpacing: '0.12em', color: '#1d1d1f', lineHeight: 1, textTransform: 'uppercase', marginBottom: '12px' }}>Gandhe</div>
-          <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", fontSize: '14px', color: 'rgba(0,0,0,0.4)', fontWeight: 400, marginBottom: '4px' }}>Software Engineer</div>
-          <div style={{ fontFamily: "'SF Mono', monospace", fontSize: '13px', marginBottom: '20px' }}>
+          <div style={{ fontFamily: 'var(--os-font-display)', fontSize: '52px', fontWeight: 800, letterSpacing: '0.12em', color: '#1d1d1f', lineHeight: 1, textTransform: 'uppercase' }}>Ronniel</div>
+          <div style={{ fontFamily: 'var(--os-font-display)', fontSize: '52px', fontWeight: 800, letterSpacing: '0.12em', color: '#1d1d1f', lineHeight: 1, textTransform: 'uppercase', marginBottom: '12px' }}>Gandhe</div>
+          <div style={{ fontFamily: 'var(--os-font)', fontSize: '14px', color: 'rgba(0,0,0,0.4)', fontWeight: 400, marginBottom: '4px' }}>Software Engineer</div>
+          <div style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '13px', marginBottom: '20px' }}>
             <RotatingWords />
           </div>
           <div style={{ width: '40px', height: '1px', background: 'rgba(0,0,0,0.08)', marginBottom: '20px' }} />
 
           {/* Info row */}
-          <div style={{ display: 'flex', gap: '20px', fontSize: '13px', fontFamily: "'SF Mono', monospace", marginBottom: '24px' }}>
+          <div style={{ display: 'flex', gap: '20px', fontSize: '13px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', marginBottom: '24px' }}>
             <a href="https://www.linkedin.com/in/ronniel-gandhe/" target="_blank" rel="noopener" style={{ color: 'rgba(0,0,0,0.75)', textDecoration: 'none' }} onClick={e => e.stopPropagation()}>💼 LinkedIn</a>
             <a href="https://github.com/ronnielgandhe" target="_blank" rel="noopener" style={{ color: 'rgba(0,0,0,0.75)', textDecoration: 'none' }} onClick={e => e.stopPropagation()}>🐙 GitHub</a>
             <a href="mailto:ronnielgandhe@gmail.com" style={{ color: 'rgba(0,0,0,0.75)', textDecoration: 'none' }} onClick={e => e.stopPropagation()}>✉️ Email</a>
@@ -5637,7 +5659,7 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
                 style={{
                   display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '20px', cursor: 'pointer',
                   background: 'rgba(0,0,0,0.04)', border: '0.5px solid rgba(0,0,0,0.08)', transition: 'all 0.2s', fontSize: '12px',
-                  fontFamily: "'SF Mono', monospace",
+                  fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
                 }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; e.currentTarget.style.borderColor = item.color + '50'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'; }}
@@ -5652,7 +5674,7 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
         {/* Data ticker bar */}
         <div style={{
           display: 'flex', justifyContent: 'center', gap: '20px', padding: '10px 24px',
-          borderTop: '1px solid rgba(0,0,0,0.04)', fontFamily: "'SF Mono', monospace", fontSize: '11px',
+          borderTop: '1px solid rgba(0,0,0,0.04)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '11px',
           color: 'rgba(0,0,0,0.35)', flexWrap: 'wrap',
         }}>
           <CompactClocks />
@@ -5663,7 +5685,7 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
         {/* Terminal prompt */}
         <div style={{
           borderTop: '1px solid rgba(0,0,0,0.04)', padding: '8px 24px', maxHeight: '100px', overflowY: 'auto',
-          fontFamily: "'SF Mono', monospace",
+          fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
         }}>
           {renderTerminal(true)}
         </div>
@@ -5683,9 +5705,9 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
         {/* Top hero section */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 32px', width: '100%', minHeight: 0, overflowY: 'auto' }}>
           <img src="/icons/rglogo.png" alt="RG" style={{ width: '44px', opacity: 0.85, marginBottom: '12px' }} />
-          <div style={{ fontFamily: "'SF Pro Display', -apple-system, sans-serif", fontSize: '26px', fontWeight: 700, color: '#1d1d1f', letterSpacing: '-0.5px' }}>Ronniel Gandhe</div>
-          <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", fontSize: '13px', color: 'rgba(0,0,0,0.4)', marginBottom: '6px' }}>Software Engineer · <RotatingWords /></div>
-          <div style={{ display: 'flex', gap: '16px', fontSize: '13px', fontFamily: "'SF Mono', monospace", marginBottom: '20px' }}>
+          <div style={{ fontFamily: 'var(--os-font-display)', fontSize: '26px', fontWeight: 700, color: '#1d1d1f', letterSpacing: '-0.5px' }}>Ronniel Gandhe</div>
+          <div style={{ fontFamily: 'var(--os-font)', fontSize: '13px', color: 'rgba(0,0,0,0.4)', marginBottom: '6px' }}>Software Engineer · <RotatingWords /></div>
+          <div style={{ display: 'flex', gap: '16px', fontSize: '13px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', marginBottom: '20px' }}>
             <a href="https://www.linkedin.com/in/ronniel-gandhe/" target="_blank" rel="noopener" style={{ color: 'rgba(0,0,0,0.75)', textDecoration: 'none' }} onClick={e => e.stopPropagation()}>💼 LinkedIn</a>
             <a href="https://github.com/ronnielgandhe" target="_blank" rel="noopener" style={{ color: 'rgba(0,0,0,0.75)', textDecoration: 'none' }} onClick={e => e.stopPropagation()}>🐙 GitHub</a>
             <a href="mailto:ronnielgandhe@gmail.com" style={{ color: 'rgba(0,0,0,0.75)', textDecoration: 'none' }} onClick={e => e.stopPropagation()}>✉️ Email</a>
@@ -5704,7 +5726,7 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
 
           {/* Explore cards */}
           <div style={{ width: '100%', maxWidth: '520px' }}>
-            <div style={{ color: 'rgba(0,0,0,0.25)', fontSize: '10px', fontWeight: 600, letterSpacing: '0.1em', marginBottom: '8px' }}>EXPLORE</div>
+            <div style={{ color: 'rgba(0,0,0,0.25)', fontSize: '10px', fontWeight: 600, letterSpacing: '0.04em', marginBottom: '8px' }}>EXPLORE</div>
             {renderCommandGrid(3, true)}
           </div>
         </div>
@@ -5712,7 +5734,7 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
         {/* Terminal prompt */}
         <div style={{
           borderTop: '1px solid rgba(0,0,0,0.04)', padding: '8px 24px', width: '100%',
-          maxHeight: '100px', overflowY: 'auto', fontFamily: "'SF Mono', monospace",
+          maxHeight: '100px', overflowY: 'auto', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
         }}>
           {renderTerminal(true)}
         </div>
@@ -5767,34 +5789,34 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
       }}>
         {/* Hero text */}
         <div>
-          <div style={{ fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: isFullscreen ? '15.5px' : '14px', lineHeight: 1.6, color: isFullscreen ? '#1d1d1f' : '#3a3a3c' }}>
+          <div style={{ fontFamily: 'var(--os-font)', fontSize: isFullscreen ? '15.5px' : '14px', lineHeight: 1.6, color: isFullscreen ? '#1d1d1f' : '#3a3a3c' }}>
             {isFullscreen ? (
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
-                  <div style={{ fontFamily: "'SF Pro Display', -apple-system, sans-serif", fontWeight: 800, fontSize: isSmallScreen ? '32px' : '42px', color: 'rgba(255,255,255,0.95)', letterSpacing: '-0.5px', lineHeight: 1.1, marginBottom: '4px' }}>
+                  <div style={{ fontFamily: 'var(--os-font-display)', fontWeight: 800, fontSize: isSmallScreen ? '32px' : '42px', color: 'rgba(255,255,255,0.95)', letterSpacing: '-0.5px', lineHeight: 1.1, marginBottom: '4px' }}>
                     Ronniel Gandhe
                   </div>
-                  <div style={{ fontSize: isSmallScreen ? '12px' : '14px', marginBottom: isSmallScreen ? '8px' : '12px', fontFamily: "'SF Pro Text', -apple-system, sans-serif", letterSpacing: '0.3px' }}>
+                  <div style={{ fontSize: isSmallScreen ? '12px' : '14px', marginBottom: isSmallScreen ? '8px' : '12px', fontFamily: 'var(--os-font)', letterSpacing: '0.3px' }}>
                     <RollingTitles />
                   </div>
                 </div>
-                <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '11px', fontWeight: 700, fontFamily: "'SF Pro Display', -apple-system, sans-serif", textAlign: 'right', paddingTop: '8px', flexShrink: 0, marginLeft: '16px' }}>
+                <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '11px', fontWeight: 700, fontFamily: 'var(--os-font-display)', textAlign: 'right', paddingTop: '8px', flexShrink: 0, marginLeft: '16px' }}>
                   {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                 </div>
               </div>
             ) : (
               <>
-                <div style={{ fontFamily: "'SF Pro Display', -apple-system, sans-serif", fontWeight: 800, fontSize: '36px', color: 'rgba(255,255,255,0.95)', letterSpacing: '-0.5px', lineHeight: 1.1, marginBottom: '2px' }}>
+                <div style={{ fontFamily: 'var(--os-font-display)', fontWeight: 800, fontSize: '36px', color: 'rgba(255,255,255,0.95)', letterSpacing: '-0.5px', lineHeight: 1.1, marginBottom: '2px' }}>
                   Ronniel Gandhe
                 </div>
-                <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", fontSize: '15px', color: 'rgba(255,255,255,0.9)', fontWeight: 700, marginBottom: '14px' }}>
+                <div style={{ fontFamily: 'var(--os-font)', fontSize: '15px', color: 'rgba(255,255,255,0.9)', fontWeight: 700, marginBottom: '14px' }}>
                   Software Engineer
                 </div>
               </>
             )}
             {isFullscreen ? (() => {
-              const sHead: React.CSSProperties = { color: 'rgba(255,255,255,0.9)', fontSize: isSmallScreen ? '10px' : '11.5px', fontWeight: 700, letterSpacing: '0.12em', marginBottom: isSmallScreen ? '5px' : '8px', fontFamily: "'SF Mono', monospace" };
-              const sPara: React.CSSProperties = { color: 'rgba(255,255,255,0.75)', fontSize: isSmallScreen ? '12px' : '14.5px', lineHeight: isSmallScreen ? 1.5 : 1.65, fontFamily: "'SF Pro Text', -apple-system, sans-serif", fontWeight: 400 };
+              const sHead: React.CSSProperties = { color: 'rgba(255,255,255,0.9)', fontSize: isSmallScreen ? '10px' : '11.5px', fontWeight: 700, letterSpacing: '0.02em', marginBottom: isSmallScreen ? '5px' : '8px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' };
+              const sPara: React.CSSProperties = { color: 'rgba(255,255,255,0.75)', fontSize: isSmallScreen ? '12px' : '14.5px', lineHeight: isSmallScreen ? 1.5 : 1.65, fontFamily: 'var(--os-font)', fontWeight: 400 };
               const sRule: React.CSSProperties = { width: '40px', height: '1px', background: 'rgba(255,255,255,0.12)', margin: isSmallScreen ? '6px 0' : '10px 0' };
               return (
               <div style={{ marginTop: '2px', display: 'flex', gap: isSmallScreen ? '24px' : '40px' }}>
@@ -5845,7 +5867,7 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
                       'The Power Broker — Robert Caro',
                     ].map((book, i) => (
                       <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
-                        <span style={{ color: '#1d1d1f', fontSize: '9px', fontFamily: "'SF Mono', monospace" }}>›</span>
+                        <span style={{ color: '#1d1d1f', fontSize: '9px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>›</span>
                         <span style={{ ...sPara }}>{book}</span>
                       </div>
                     ))}
@@ -5870,7 +5892,7 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
                           'Turning ideas into working products quickly',
                         ].map((item, i) => (
                           <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
-                            <span style={{ color: '#1d1d1f', fontSize: '9px', fontFamily: "'SF Mono', monospace" }}>›</span>
+                            <span style={{ color: '#1d1d1f', fontSize: '9px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>›</span>
                             <span style={{ ...sPara }}>{item}</span>
                           </div>
                         ))}
@@ -5890,13 +5912,13 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
             })() : !isMobileTerminal ? (
               <>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", color: 'rgba(255,255,255,0.85)', fontSize: '17px', fontWeight: 500 }}>
+                  <div style={{ fontFamily: 'var(--os-font)', color: 'rgba(255,255,255,0.85)', fontSize: '17px', fontWeight: 500 }}>
                     Using {showRotating && <RotatingWords />}
                   </div>
-                  <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", color: 'rgba(255,255,255,0.85)', fontSize: '17px', fontWeight: 500 }}>
+                  <div style={{ fontFamily: 'var(--os-font)', color: 'rgba(255,255,255,0.85)', fontSize: '17px', fontWeight: 500 }}>
                     to create elegant and scalable
                   </div>
-                  <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", color: 'rgba(255,255,255,0.85)', fontSize: '17px', fontWeight: 500 }}>
+                  <div style={{ fontFamily: 'var(--os-font)', color: 'rgba(255,255,255,0.85)', fontSize: '17px', fontWeight: 500 }}>
                     solutions to real world problems.
                   </div>
                 </div>
@@ -5918,7 +5940,7 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
             {/* Bottom left: NowPlaying on desktop, Using text on mobile */}
             <div style={{ width: '50%', minWidth: 0 }}>
               {isMobileTerminal ? (
-                <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", color: 'rgba(255,255,255,0.85)', fontSize: '15px', lineHeight: 1.6, fontWeight: 500 }}>
+                <div style={{ fontFamily: 'var(--os-font)', color: 'rgba(255,255,255,0.85)', fontSize: '15px', lineHeight: 1.6, fontWeight: 500 }}>
                   <div>Using</div>
                   <div style={{ minHeight: '30px' }}>{showRotating && <RotatingWords />}</div>
                   <div>to create elegant and scalable</div>
@@ -5929,18 +5951,21 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
               )}
             </div>
             {/* Links — bottom right */}
-            <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '17px', fontWeight: 500, textAlign: 'right', flexShrink: 0, color: 'rgba(255,255,255,0.85)' }}>
+            <div style={{ fontFamily: 'var(--os-font)', display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '17px', fontWeight: 500, textAlign: 'right', flexShrink: 0, color: 'rgba(255,255,255,0.85)' }}>
               {[
                 { href: 'https://www.linkedin.com/in/ronniel-gandhe/', text: 'linkedin' },
                 { href: 'https://github.com/ronnielgandhe', text: 'github' },
                 { href: 'mailto:ronnielgandhe@gmail.com', text: 'email' },
               ].map(link => (
                 <a key={link.href} href={link.href} target="_blank" rel="noopener"
-                  style={{ color: 'rgba(255,255,255,0.85)', textDecoration: 'none', transition: 'all 0.15s', fontWeight: 500 }}
+                  style={{ display: 'inline-grid', justifyItems: 'end', color: 'rgba(255,255,255,0.85)', textDecoration: 'none', transition: 'color 0.15s', fontWeight: 500 }}
                   onClick={e => e.stopPropagation()}
                   onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.fontWeight = '700'; }}
                   onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; e.currentTarget.style.fontWeight = '500'; }}
-                >{link.text}</a>
+                >
+                  <span style={{ gridArea: '1 / 1' }}>{link.text}</span>
+                  <span aria-hidden="true" style={{ gridArea: '1 / 1', fontWeight: 700, visibility: 'hidden' }}>{link.text}</span>
+                </a>
               ))}
             </div>
           </div>
@@ -5987,7 +6012,7 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
             fontSize: '11px',
             fontWeight: 500,
             color: 'rgba(0,0,0,0.6)',
-            fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+            fontFamily: 'var(--os-font)',
             letterSpacing: '0.02em',
           }}>Collapse</span>
           <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
@@ -6277,12 +6302,13 @@ type MobileSection = 'education' | 'experience' | 'blog' | 'calendar' | 'stocks'
 
 // ── MobileStocks: Bloomberg terminal experience for mobile ──
 function MobileStocks() {
+  const marketOpen = useMarketOpen();
   const [drillDown, setDrillDown] = useState<{ type: 'stock'; symbol: string; name: string } | { type: 'sector'; name: string } | null>(null);
 
   return (
-    <div className="bloomberg-scroll" style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', fontFamily: "'SF Mono', monospace" }}>
+    <div className="bloomberg-scroll" style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
       <div style={{ padding: '14px 14px 0' }}>
-        <div style={{ fontSize: '18px', fontWeight: 700, color: '#fff', fontFamily: "'SF Pro Display', -apple-system, sans-serif", letterSpacing: '-0.01em' }}>
+        <div style={{ fontSize: '18px', fontWeight: 700, color: '#fff', fontFamily: 'var(--os-font-display)', letterSpacing: '-0.01em' }}>
           My Watchlist
         </div>
       </div>
@@ -6306,10 +6332,10 @@ function MobileStocks() {
           <>
             <div style={{ padding: '12px 14px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4ade80', animation: 'livePulse 2s ease-in-out infinite' }} />
-                <span style={{ color: '#fff', fontSize: '12px', fontWeight: 600, fontFamily: "'SF Pro Display', -apple-system, sans-serif", letterSpacing: '0.02em' }}>LIVE</span>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: marketOpen ? '#4ade80' : 'rgba(255,255,255,0.35)', animation: marketOpen ? 'livePulse 2s ease-in-out infinite' : 'none' }} />
+                <span style={{ color: '#fff', fontSize: '12px', fontWeight: 600, fontFamily: 'var(--os-font-display)', letterSpacing: '0.02em' }}>{marketOpen ? 'LIVE' : 'CLOSED'}</span>
               </div>
-              <div style={{ color: '#fff', fontSize: '12px', fontWeight: 600, fontFamily: "'SF Pro Display', -apple-system, sans-serif" }}>
+              <div style={{ color: '#fff', fontSize: '12px', fontWeight: 600, fontFamily: 'var(--os-font-display)' }}>
                 {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
               </div>
             </div>
@@ -6339,6 +6365,7 @@ function MobileProjects({ onCardClick }: { onCardClick: (detail: DetailContent) 
       gradient: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #44403c 100%)',
       tech: ['TypeScript', 'Next.js', 'Anthropic SDK'],
       repoUrl: 'https://github.com/ronnielgandhe/leanfetch',
+      pageUrl: '/leanfetch',
     },
     {
       title: 'Harvey',
@@ -6347,38 +6374,16 @@ function MobileProjects({ onCardClick }: { onCardClick: (detail: DetailContent) 
       gradient: 'linear-gradient(135deg, #0b0b0f 0%, #1a1a24 50%, #2a2a3a 100%)',
       tech: ['Python', 'LiveKit', 'Deepgram', 'ElevenLabs'],
       repoUrl: 'https://github.com/ronnielgandhe/harvey',
+      pageUrl: '/harvey',
     },
     {
-      title: 'LinkedIn Games Solver',
-      desc: 'chrome extension to solve linkedin games in real time. built with vanilla js.',
+      title: 'Game Solver Suite',
+      desc: 'one chrome extension that solves the linkedin and nyt daily games. queens, tango, zip, mini sudoku, patches, strands, wordle and more.',
       coverImage: '/linkdensolver.png',
       gradient: 'linear-gradient(135deg, #0a66c2 0%, #084d92 50%, #052e57 100%)',
       tech: ['JavaScript', 'Manifest V3', 'CDP'],
-      repoUrl: 'https://github.com/ronnielgandhe/linkedin-games-solver',
-    },
-    {
-      title: 'NYT Games Solver',
-      desc: 'chrome extension that solves wordle, connections, strands, the mini and spelling bee.',
-      coverImage: '/nytsolver.png',
-      gradient: 'linear-gradient(135deg, #121212 0%, #2b2b2b 50%, #4a4a4a 100%)',
-      tech: ['JavaScript', 'Manifest V3', 'CDP'],
-      repoUrl: 'https://github.com/ronnielgandhe/nyt-games-solver',
-    },
-    {
-      title: 'CreatorScope',
-      desc: 'Go-to-market automation tool for brands to discover and evaluate TikTok creators for partnerships at scale with a proprietary Creator Intent Score.',
-      coverImage: '/cover.png',
-      gradient: 'linear-gradient(135deg, #0d1117 0%, #161b22 50%, #21262d 100%)',
-      tech: ['Python', 'FastAPI', 'SQLAlchemy'],
-      repoUrl: 'https://github.com/ronnielgandhe/creatorscope',
-    },
-    {
-      title: 'YourNews',
-      desc: 'AI-powered personalized news aggregator that learns reading preferences and ranks articles using TF-IDF, BM25, and GPT-4 summarization.',
-      coverImage: '/yournews-cover.png',
-      gradient: 'linear-gradient(135deg, #1a1a1a 0%, #2d1f3d 50%, #1a1a2e 100%)',
-      tech: ['Python', 'GPT-4 API', 'React', 'FastAPI'],
-      repoUrl: 'https://github.com/ronnielgandhe/yournews',
+      repoUrl: 'https://github.com/ronnielgandhe/game-solver-suite',
+      pageUrl: '/game-solver-suite',
     },
     {
       title: 'How Many Clicks',
@@ -6387,6 +6392,7 @@ function MobileProjects({ onCardClick }: { onCardClick: (detail: DetailContent) 
       gradient: 'linear-gradient(135deg, #1a1a1a 0%, #2a1a1a 50%, #1a1a2e 100%)',
       tech: ['React', 'JavaScript', 'Wikipedia API'],
       repoUrl: 'https://github.com/ronnielgandhe/howmanyclicks',
+      pageUrl: '/how-many-clicks',
     },
   ];
 
@@ -6395,7 +6401,7 @@ function MobileProjects({ onCardClick }: { onCardClick: (detail: DetailContent) 
       {mobileProjects.map((proj, i) => (
         <div
           key={i}
-          onClick={() => window.open(proj.repoUrl, '_blank')}
+          onClick={() => { window.location.href = proj.pageUrl; }}
           style={{
             borderRadius: '16px',
             overflow: 'hidden',
@@ -6413,21 +6419,21 @@ function MobileProjects({ onCardClick }: { onCardClick: (detail: DetailContent) 
           {/* Content */}
           <div style={{ padding: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <div style={{ fontFamily: "'SF Pro Display', -apple-system, sans-serif", fontWeight: 700, fontSize: '18px', color: '#fff' }}>
+              <div style={{ fontFamily: 'var(--os-font-display)', fontWeight: 700, fontSize: '18px', color: '#fff' }}>
                 {proj.title}
               </div>
               <a href={proj.repoUrl} target="_blank" rel="noopener" onClick={e => e.stopPropagation()} style={{ color: 'rgba(255,255,255,0.5)' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
               </a>
             </div>
-            <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", fontSize: '13px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.5, marginBottom: '12px' }}>
+            <div style={{ fontFamily: 'var(--os-font)', fontSize: '13px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.5, marginBottom: '12px' }}>
               {proj.desc}
             </div>
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
               {proj.tech.map(t => (
                 <span key={t} style={{
                   padding: '3px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 600,
-                  fontFamily: "'SF Mono', monospace",
+                  fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
                   background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)',
                   border: '0.5px solid rgba(255,255,255,0.12)',
                 }}>
@@ -6482,7 +6488,7 @@ function MobileHero() {
       position: 'absolute', inset: 0, top: 28, bottom: 60,
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       padding: '20px',
-      fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+      fontFamily: 'var(--os-font)',
     }}>
       {/* Glass card */}
       <div style={{
@@ -6496,7 +6502,7 @@ function MobileHero() {
         textAlign: 'center',
       }}>
         {/* Time */}
-        <div style={{ fontSize: '42px', fontWeight: 200, color: '#fff', fontFamily: "'SF Pro Display', sans-serif", letterSpacing: '-1px', marginBottom: '4px' }}>
+        <div style={{ fontSize: '42px', fontWeight: 200, color: '#fff', fontFamily: 'var(--os-font-display)', letterSpacing: '-1px', marginBottom: '4px' }}>
           {timeStr}
         </div>
         <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '24px' }}>
@@ -6587,8 +6593,8 @@ function MobileLayout() {
     borderRadius: '16px',
     boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
   };
-  const sHead: React.CSSProperties = { color: '#fff', fontSize: '10px', fontWeight: 700, letterSpacing: '0.14em', marginBottom: '6px', fontFamily: "'SF Mono', monospace" };
-  const sPara: React.CSSProperties = { color: 'rgba(255,255,255,0.88)', fontSize: '13px', lineHeight: 1.6, fontFamily: "'SF Pro Text', -apple-system, sans-serif", fontWeight: 400 };
+  const sHead: React.CSSProperties = { color: '#fff', fontSize: '10px', fontWeight: 700, letterSpacing: '0.02em', marginBottom: '6px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' };
+  const sPara: React.CSSProperties = { color: 'rgba(255,255,255,0.88)', fontSize: '13px', lineHeight: 1.6, fontFamily: 'var(--os-font)', fontWeight: 400 };
 
   const SLIDE_TITLES = ['ABOUT', 'SOFTWARE', 'READING', 'CURRENT FOCUS'];
   const nextSlide = () => setSlideIndex(i => (i + 1) % 4);
@@ -6639,7 +6645,7 @@ function MobileLayout() {
           <div style={{
             position: 'sticky', top: 0, zIndex: 10,
             padding: '10px 0', marginBottom: '16px',
-            fontFamily: "'SF Mono', monospace", fontSize: '10px',
+            fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '10px',
             background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
             marginLeft: '-20px', marginRight: '-20px',
             borderBottom: '0.5px solid rgba(255,255,255,0.06)',
@@ -6683,26 +6689,26 @@ function MobileLayout() {
                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#febc2e' }} />
                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#28c840' }} />
                   </div>
-                  <span style={{ flex: 1, textAlign: 'center', fontFamily: "'SF Mono', monospace", fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+                  <span style={{ flex: 1, textAlign: 'center', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
                     ronnielgandhe.tech — zsh
                   </span>
                   <div style={{ width: '42px' }} />
                 </div>
                 <div style={{ padding: '20px 18px 24px' }}>
-                  <div style={{ fontFamily: "'SF Pro Display', -apple-system, sans-serif", fontWeight: 800, fontSize: '28px', color: '#fff', letterSpacing: '-0.5px', lineHeight: 1.1, marginBottom: '4px' }}>
+                  <div style={{ fontFamily: 'var(--os-font-display)', fontWeight: 800, fontSize: '28px', color: '#fff', letterSpacing: '-0.5px', lineHeight: 1.1, marginBottom: '4px' }}>
                     Ronniel Gandhe
                   </div>
-                  <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', fontFamily: "'SF Pro Text', sans-serif", marginBottom: '12px' }}>
+                  <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--os-font)', marginBottom: '12px' }}>
                     Software Engineer
                   </div>
-                  <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', lineHeight: 1.5, fontFamily: "'SF Mono', monospace" }}>
+                  <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', lineHeight: 1.5, fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
                     Using <RotatingWords /> to create<br />elegant and scalable solutions<br />to real world problems.
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
-                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontFamily: "'SF Pro Text', sans-serif" }}>
+                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--os-font)' }}>
                       {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                     </div>
-                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontFamily: "'SF Mono', monospace" }}>tap to flip ↻</div>
+                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>tap to flip ↻</div>
                   </div>
                 </div>
               </div>
@@ -6744,7 +6750,7 @@ function MobileLayout() {
                     <div>
                       {['Zero to One — Thiel', "Poor Charlie's Almanack", 'The Power Broker — Caro', 'Laws of Human Nature'].map((book, i) => (
                         <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'baseline', marginBottom: '3px' }}>
-                          <span style={{ color: '#fff', fontSize: '8px', fontFamily: "'SF Mono', monospace" }}>›</span>
+                          <span style={{ color: '#fff', fontSize: '8px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>›</span>
                           <span style={{ ...sPara, fontSize: '12px', lineHeight: 1.45 }}>{book}</span>
                         </div>
                       ))}
@@ -6754,7 +6760,7 @@ function MobileLayout() {
                     <div>
                       {['Building software & internal tools', 'Studying financial markets', 'Turning ideas into products'].map((item, i) => (
                         <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'baseline', marginBottom: '3px' }}>
-                          <span style={{ color: '#fff', fontSize: '8px', fontFamily: "'SF Mono', monospace" }}>›</span>
+                          <span style={{ color: '#fff', fontSize: '8px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>›</span>
                           <span style={{ ...sPara, fontSize: '12px', lineHeight: 1.45 }}>{item}</span>
                         </div>
                       ))}
@@ -6772,7 +6778,7 @@ function MobileLayout() {
                       }} />
                     ))}
                   </div>
-                  <div onClick={(e) => { e.stopPropagation(); setCardFlipped(false); }} style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontFamily: "'SF Mono', monospace", cursor: 'pointer' }}>↻ flip back</div>
+                  <div onClick={(e) => { e.stopPropagation(); setCardFlipped(false); }} style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', cursor: 'pointer' }}>↻ flip back</div>
                 </div>
               </div>
             </div>
@@ -6792,7 +6798,7 @@ function MobileLayout() {
                   }}
                 >
                   {app.icon}
-                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)', fontFamily: "'SF Pro Text', sans-serif", fontWeight: 500 }}>
+                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--os-font)', fontWeight: 500 }}>
                     {app.label}
                   </span>
                 </button>
@@ -6806,7 +6812,7 @@ function MobileLayout() {
           </div>
 
           {/* World Clocks */}
-          <div style={{ textAlign: 'center', fontFamily: "'SF Mono', monospace", fontSize: '10px', marginBottom: '14px' }}>
+          <div style={{ textAlign: 'center', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '10px', marginBottom: '14px' }}>
             <CompactClocks />
           </div>
 
@@ -6823,7 +6829,7 @@ function MobileLayout() {
                 <path d="M11 4.5a3.5 3.5 0 010 5" stroke="rgba(255,255,255,0.7)" strokeWidth="1.1" strokeLinecap="round" fill="none" />
                 <path d="M13 2.5a6.5 6.5 0 010 9" stroke="rgba(255,255,255,0.5)" strokeWidth="1.1" strokeLinecap="round" fill="none" />
               </svg>
-              <span style={{ fontSize: '10px', fontFamily: "'SF Pro Text', sans-serif", fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>Sound</span>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--os-font)', fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>Sound</span>
             </button>
 
             {/* WiFi */}
@@ -6837,7 +6843,7 @@ function MobileLayout() {
                 <path d="M5.17 7.17a4 4 0 015.66 0" stroke="rgba(255,255,255,0.9)" strokeWidth="1.3" strokeLinecap="round" fill="none" />
                 <path d="M2.93 4.93a7 7 0 0110.14 0" stroke="rgba(255,255,255,0.75)" strokeWidth="1.3" strokeLinecap="round" fill="none" />
               </svg>
-              <span style={{ fontSize: '10px', fontFamily: "'SF Pro Text', sans-serif", fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>Wi-Fi</span>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--os-font)', fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>Wi-Fi</span>
             </button>
 
             {/* Notifications */}
@@ -6850,7 +6856,7 @@ function MobileLayout() {
                 <path d="M8 1a4 4 0 00-4 4v3l-2 2v1h12v-1l-2-2V5a4 4 0 00-4-4z" fill="rgba(255,255,255,0.9)" />
                 <path d="M6 14a2 2 0 004 0" stroke="rgba(255,255,255,0.9)" strokeWidth="1.2" strokeLinecap="round" fill="none" />
               </svg>
-              <span style={{ fontSize: '10px', fontFamily: "'SF Pro Text', sans-serif", fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>Activity</span>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--os-font)', fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>Activity</span>
             </button>
           </div>
 
@@ -6912,7 +6918,7 @@ function MobileLayout() {
           {/* Contact */}
           <div style={{ ...glass, padding: '16px', marginBottom: '20px' }}>
             <div style={sHead}>CONTACT</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontFamily: "'SF Mono', monospace", fontSize: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '12px' }}>
               <a href="https://www.linkedin.com/in/ronniel-gandhe/" target="_blank" rel="noopener" style={{ color: '#fff', textDecoration: 'none' }}>💼 linkedin.com/in/ronniel-gandhe</a>
               <a href="https://github.com/ronnielgandhe" target="_blank" rel="noopener" style={{ color: '#fff', textDecoration: 'none' }}>🐙 github.com/ronnielgandhe</a>
               <a href="mailto:ronnielgandhe@gmail.com" style={{ color: '#fff', textDecoration: 'none' }}>✉️ ronnielgandhe@gmail.com</a>
@@ -6944,13 +6950,13 @@ function MobileLayout() {
               onClick={() => setActiveSection(null)}
               style={{
                 background: 'none', border: 'none', color: '#60a5fa', fontSize: '15px',
-                cursor: 'pointer', fontFamily: "'SF Pro Text', sans-serif", padding: '4px 0',
+                cursor: 'pointer', fontFamily: 'var(--os-font)', padding: '4px 0',
                 WebkitTapHighlightColor: 'transparent',
               }}
             >
               ← Back
             </button>
-            <span style={{ fontFamily: "'SF Mono', monospace", fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
+            <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
               {activeSection === 'education' ? 'Photos' : activeSection === 'experience' ? 'Experience' : activeSection === 'blog' ? 'My Thoughts' : activeSection === 'stocks' ? 'Stocks' : 'Calendar'}
             </span>
             <div style={{ width: '50px' }} />

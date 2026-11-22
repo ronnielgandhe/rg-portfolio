@@ -85,7 +85,7 @@ export default function NotificationCenter({ open, onClose, location }: Notifica
         transition: 'opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
         overflowY: 'auto',
         overflowX: 'hidden',
-        fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif",
+        fontFamily: 'var(--os-font)',
         scrollbarWidth: 'none',
       }}
     >
@@ -243,7 +243,7 @@ function AnalogClock() {
         fontWeight: 300,
         color: '#fff',
         letterSpacing: '-0.02em',
-        fontFamily: "'SF Pro Display', -apple-system, sans-serif",
+        fontFamily: 'var(--os-font-display)',
         textShadow: '0 1px 8px rgba(0,0,0,0.3)',
       }}>
         {timeStr}
@@ -371,7 +371,7 @@ function WeatherText({ weather, city }: { weather: WeatherData | null; city: str
         color: 'rgba(255,255,255,0.9)',
         textShadow: '0 1px 6px rgba(0,0,0,0.3)',
         marginBottom: '4px',
-        fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+        fontFamily: 'var(--os-font)',
       }}>
         {city}
       </div>
@@ -388,7 +388,7 @@ function WeatherText({ weather, city }: { weather: WeatherData | null; city: str
           color: '#fff',
           lineHeight: 1,
           letterSpacing: '-0.04em',
-          fontFamily: "'SF Pro Display', -apple-system, sans-serif",
+          fontFamily: 'var(--os-font-display)',
           textShadow: '0 2px 16px rgba(0,0,0,0.3)',
         }}>
           {weather.temp}°
@@ -401,7 +401,7 @@ function WeatherText({ weather, city }: { weather: WeatherData | null; city: str
         color: 'rgba(255,255,255,0.9)',
         marginTop: '6px',
         textShadow: '0 1px 6px rgba(0,0,0,0.3)',
-        fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+        fontFamily: 'var(--os-font)',
       }}>
         {weather.description}
       </div>
@@ -413,7 +413,7 @@ function WeatherText({ weather, city }: { weather: WeatherData | null; city: str
         fontSize: '13px',
         color: 'rgba(255,255,255,0.7)',
         textShadow: '0 1px 4px rgba(0,0,0,0.2)',
-        fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+        fontFamily: 'var(--os-font)',
       }}>
         <span>H:{weather.high}°</span>
         <span style={{ color: 'rgba(255,255,255,0.35)' }}>|</span>
@@ -483,7 +483,7 @@ function NewsList({ news }: { news: NewsItem[] }) {
         fontSize: '11px',
         fontWeight: 600,
         color: 'rgba(255,255,255,0.85)',
-        letterSpacing: '0.06em',
+        letterSpacing: '0.04em',
         textTransform: 'uppercase',
         marginBottom: '8px',
         padding: '0 4px',

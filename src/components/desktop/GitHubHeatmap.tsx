@@ -41,10 +41,10 @@ export default function GitHubHeatmap({ tone = 'dark', placeholder = false }: { 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <div style={{ fontSize: '11px', fontWeight: 700, color: fg(0.85), letterSpacing: '0.1em', fontFamily: "'SF Mono', monospace" }}>
+        <div style={{ fontSize: '11px', fontWeight: 700, color: fg(0.85), letterSpacing: '0.02em', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
           GITHUB
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '9px', color: fg(0.6), fontFamily: "'SF Mono', monospace" }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '9px', color: fg(0.6), fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
           <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#22c55e', display: 'inline-block', animation: 'livePulse 2s ease-in-out infinite' }} />
           LIVE
         </div>
@@ -66,7 +66,7 @@ export default function GitHubHeatmap({ tone = 'dark', placeholder = false }: { 
           )}
         </svg>
       </div>
-      <div style={{ marginTop: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', fontFamily: "'SF Mono', monospace" }}>
+      <div style={{ marginTop: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
         <span style={{ color: fg(0.85) }}>{total} contributions</span>
         {lastUpdated && (
           <span style={{ color: fg(0.45) }}>

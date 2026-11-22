@@ -113,7 +113,6 @@ export default function DesktopMenuBar() {
       boxShadow: '0 0.5px 0 rgba(0,0,0,0.18)',
       fontFamily: SYSTEM_FONT,
       fontSize: '13px', color: '#FFFFFF', userSelect: 'none',
-      textShadow: '0 0 1px rgba(0,0,0,0.25)',
     }}>
       {/* ── Left: Logo + Menus ── */}
       <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
@@ -130,7 +129,7 @@ export default function DesktopMenuBar() {
           <svg width="8" height="13" viewBox="0 0 8 13" fill="none" aria-hidden="true">
             <path d="M6.5 1.5L1.5 6.5L6.5 11.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          {!isMobile && <span style={{ fontWeight: 500 }}>ronnielgandhe.com</span>}
+          {!isMobile && <span>ronnielgandhe.com</span>}
         </a>
         <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.28)', margin: '0 4px 0 2px' }} />
         {/* Apple-menu-style RG logo dropdown */}
@@ -520,7 +519,7 @@ function SoundPanel({ spotify }: { spotify: SpotifyData | null }) {
 
   return (
     <div style={{ padding: '8px 0', minWidth: '290px' }}>
-      <div style={{ padding: '0 14px 6px', fontSize: '11px', color: ink(0.4), fontWeight: 600, letterSpacing: '0.05em' }}>
+      <div style={{ padding: '0 14px 6px', fontSize: '11px', color: ink(0.4), fontWeight: 600, letterSpacing: '0.04em' }}>
         NOW PLAYING
       </div>
 
