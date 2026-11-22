@@ -10,8 +10,8 @@ const PROJECTS: FeedItem[] = [
   },
   {
     id: 'harvey', nav: 'Harvey',
-    label: 'Harvey', sub: 'voice legal assistant. livekit agent + rag over 2,806 chunks of law',
-    href: 'https://github.com/ronnielgandhe/harvey', external: true,
+    label: 'Harvey', sub: 'a lawyer that picks up. built solo in 3 days',
+    href: '/harvey',
     colors: ['#a5b4fc', '#6366f1', '#312e81'],
   },
   {
