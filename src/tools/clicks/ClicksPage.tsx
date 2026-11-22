@@ -8,12 +8,27 @@ import Race, { PACE, type Speed } from './Race';
 import Result from './Result';
 import Play from './Play';
 import { CLICKS_CSS } from './styles';
+import ClicksHero from '../../components/portfolio/heroes/ClicksHero';
+import RaceLab from './lab/RaceLab';
+import ModelStory from './lab/ModelStory';
+import Diagrams from './lab/Diagrams';
+import { Llms, Numbers, Section } from './lab/sections';
+import { ALL, BENCH, LLM, MODEL_NAME } from './lab/data.ts';
+import { LAB_CSS, LAB_CSS_2 } from './lab/styles';
+
+const toPlay = (smooth = false) => {
+  const el = document.getElementById('play');
+  if (!el) return;
+  const y = el.getBoundingClientRect().top + window.scrollY - 72;
+  if (Math.abs(window.scrollY - y) > 4) window.scrollTo({ top: y, behavior: smooth ? 'smooth' : 'auto' });
+};
 
 type Phase = 'start' | 'race' | 'result' | 'play';
 interface Form { from: string; to: string; strategy: string }
 
 function readParams(): Form {
   const q = new URLSearchParams(location.search);
+  if (q.has('race') || q.has('a') || q.has('b')) return { from: '', to: '', strategy: '' };
   const strategy = q.get('strategy') ?? (q.get('mode') === 'god' ? 'beam-god' : '');
   return { from: q.get('from') ?? '', to: q.get('to') ?? '', strategy };
 }
@@ -52,7 +67,7 @@ export default function ClicksPage() {
     writeParams(f);
     dispatch({ kind: 'reset', state: initialRace(from, to, strategy) });
     setPhase('race');
-    window.scrollTo({ top: 0 });
+    toPlay();
     const onStep = (e: StepEvent) => {
       if (ctl.signal.aborted) return;
       if (e.type === 'error') { ctl.abort(); setStartError(e.message); writeParams(null); setPhase('start'); return; }
@@ -62,7 +77,7 @@ export default function ClicksPage() {
       .then(() => strategy.run(from, to, onStep, { signal: ctl.signal, pace: () => PACE[speedRef.current] }))
       .then(() => {
         if (ctl.signal.aborted) return;
-        setTimeout(() => { if (!ctl.signal.aborted) { setPhase('result'); window.scrollTo({ top: 0, behavior: 'smooth' }); } }, 1100);
+        setTimeout(() => { if (!ctl.signal.aborted) { setPhase('result'); toPlay(true); } }, 1100);
       })
       .catch((err) => {
         if (ctl.signal.aborted || err?.name === 'AbortError') return;
@@ -87,31 +102,58 @@ export default function ClicksPage() {
   }, [go]);
 
   const stop = () => { ctlRef.current?.abort(); writeParams(null); setPhase('start'); };
-  const fresh = () => { ctlRef.current?.abort(); writeParams(null); setForm({ from: '', to: '', strategy: form.strategy }); setPhase('start'); window.scrollTo({ top: 0 }); };
-  const god = findStrategy(strategies, 'beam-god');
+  const fresh = () => { ctlRef.current?.abort(); writeParams(null); setForm({ from: '', to: '', strategy: form.strategy }); setPhase('start'); toPlay(); };
+  const flagship = findStrategy(strategies, 'guided');
+  const [diff, setDiff] = useState(ALL);
 
+  const pre = BENCH?.preliminary ? 'preliminary' : null;
   return (
     <PageShell activePage="projects" crumb="how many clicks" back={{ href: '/projects', label: 'projects' }} wide>
-      <div className="site-col clk">
-        {phase === 'start' && (
-          <Start key={`${form.from}>${form.to}>${strategies.length}`} initial={form} strategies={strategies} error={startError} onGo={(a, b, id) => go(a, b, pickStrategy(strategies, id))} />
-        )}
-        {phase === 'race' && race && <Race race={race} speed={speed} onSpeed={setSpeed} onStop={stop} />}
-        {phase === 'result' && race && race.outcome !== 'error' && (
-          <Result
-            race={race}
-            onPlay={() => { setPhase('play'); window.scrollTo({ top: 0 }); }}
-            onNew={fresh}
-            retry={god && race.strategy.id !== god.id ? { label: `try ${god.name}`, run: () => go(race.start, race.target, god) } : null}
-          />
-        )}
-        {phase === 'play' && race?.path && (
-          <Play start={race.start} target={race.target} botPath={race.path} botTotal={race.explored} onGiveUp={() => { setPhase('result'); window.scrollTo({ top: 0 }); }} onNew={fresh} />
-        )}
-        <footer className="clk-foot">
-          articles, summaries and images come live from <a href="https://en.wikipedia.org" target="_blank" rel="noopener noreferrer">wikipedia</a> under <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">cc by-sa 4.0</a>. no backend, it all runs in your browser.
+      <style>{CLICKS_CSS}</style>
+      <style>{LAB_CSS + LAB_CSS_2}</style>
+      <ClicksHero
+        actions={[
+          { label: 'play', href: '#play', primary: true },
+          { label: `how ${MODEL_NAME} works`, href: '#model' },
+          { label: 'leaderboard', href: '#leaderboard' },
+        ]}
+      />
+      <div className="site-col clk lab">
+        <section id="play" className="lab-sec lab-sec-first" aria-label="the game">
+          {phase === 'start' && (
+            <Start key={`${form.from}>${form.to}>${strategies.length}`} initial={form} strategies={strategies} error={startError} onGo={(a, b, id) => go(a, b, pickStrategy(strategies, id))} />
+          )}
+          {phase === 'race' && race && <Race race={race} speed={speed} onSpeed={setSpeed} onStop={stop} />}
+          {phase === 'result' && race && race.outcome !== 'error' && (
+            <Result
+              race={race}
+              onPlay={() => { setPhase('play'); toPlay(); }}
+              onNew={fresh}
+              retry={flagship && race.strategy.id !== flagship.id ? { label: `try ${flagship.name}`, run: () => go(race.start, race.target, flagship) } : null}
+            />
+          )}
+          {phase === 'play' && race?.path && (
+            <Play start={race.start} target={race.target} botPath={race.path} botTotal={race.explored} onGiveUp={() => { setPhase('result'); toPlay(); }} onNew={fresh} />
+          )}
+        </section>
+        <Section id="race" label="race two side by side" lede="same pair, two strategies, both searching live wikipedia. filled squares are pages opened, hollow ones are queued up next.">
+          <RaceLab />
+        </Section>
+        <Section id="model" label={`the model: ${MODEL_NAME}`} tag={pre}>
+          <ModelStory />
+        </Section>
+        <Section id="leaderboard" label="leaderboard" tag={pre} lede="a race is one pair. this is every strategy on the same held-out races with a known shortest path, so you can see who is good and who got lucky.">
+          <Numbers diff={diff} setDiff={setDiff} />
+        </Section>
+        <Section id="llms" label="llms play it too" tag={LLM?.preliminary || (LLM && BENCH?.preliminary) ? 'preliminary' : null} lede="the same game, handed to large language models: the page title and its links as text, pick one, repeat. how often they get there, and what each win costs.">
+          <Llms diff={diff} setDiff={setDiff} />
+        </Section>
+        <Section id="how" label="how each search works" lede="the same little graph, every strategy through it. a is the start, b is the target.">
+          <Diagrams />
+        </Section>
+        <footer className="clk-foot lab-foot">
+          live races, articles, summaries and images come from wikipedia, text under cc by-sa 4.0. the benchmark runs on wikispeedia by robert west and jure leskovec (stanford snap). no backend: every search and the model run in your browser.
         </footer>
-        <style>{CLICKS_CSS}</style>
       </div>
     </PageShell>
   );

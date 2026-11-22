@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Thumb, useSummary } from '../ui';
 import { articleUrl } from '../wiki';
-import { BENCH, MODEL_IDS, llmStatsFor, statsFor, type LlmBench, type LlmStats, type Replay } from './data.ts';
+import { BENCH, MODEL_IDS, MODEL_NAME, llmStatsFor, shownStrategies, statsFor, type LlmBench, type LlmStats, type Replay } from './data.ts';
 import { declutter, useWidth } from './charts';
 import { num, pct, useInView, useReducedMotion } from './motion.ts';
 
@@ -20,11 +20,11 @@ export function MoneyChart({ llm, diff }: { llm: LlmBench; diff: string }) {
   const [wrap, W] = useWidth<HTMLDivElement>();
   const [ref, seen] = useInView<HTMLDivElement>();
   const narrow = W < 560;
-  const H = narrow ? 320 : 400;
+  const H = narrow ? 360 : 440;
   const pad = { l: 44, r: narrow ? 12 : 130, t: 24, b: 48 };
   const free = 64;
   const pts: Pt[] = [];
-  for (const s of BENCH?.strategies ?? []) {
+  for (const s of BENCH ? shownStrategies(BENCH) : []) {
     const st = statsFor(s, diff);
     if (st) pts.push({ id: `s:${s.id}`, name: s.name, x: null, y: st.success, kind: 'free', accent: MODEL_IDS.has(s.id) });
   }
@@ -43,9 +43,12 @@ export function MoneyChart({ llm, diff }: { llm: LlmBench; diff: string }) {
   const x0 = pad.l + 18, xL = pad.l + free + 16, xR = Math.max(W - pad.r, xL + 40);
   const ih = H - pad.t - pad.b;
   const X = (v: number | null) => (v === null ? x0 : xL + ((Math.log10(v) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo) || 1)) * (xR - xL));
-  const Y = (v: number) => pad.t + ih - Math.max(0, Math.min(1, v)) * ih;
-  const placed = pts.map((p) => ({ ...p, px: X(p.x), py: Y(p.y) }));
-  const labelY = declutter(placed.map((p) => ({ id: p.id, x: p.px, y: p.py, text: p.name, left: narrow && p.px > W * 0.62 })));
+  const floor = Math.max(0, Math.floor(Math.min(...pts.map((p) => Math.min(p.y, p.ci?.[0] ?? p.y))) * 10 - 0.5) / 10);
+  const Y = (v: number) => pad.t + ih - ((Math.max(floor, Math.min(1, v)) - floor) / (1 - floor || 1)) * ih;
+  const yTicks = Array.from({ length: Math.round((1 - floor) / 0.1) + 1 }, (_, i) => floor + i * 0.1).filter((_, i, a) => a.length <= 6 || i % 2 === (a.length - 1) % 2);
+  const placed = pts.map((p) => ({ ...p, px: X(p.x), py: Y(p.y) })).sort((a, b) => Number(a.accent) - Number(b.accent));
+  const labelled = (p: Pt) => !narrow || p.kind === 'free';
+  const labelY = declutter(placed.filter(labelled).map((p) => ({ id: p.id, x: p.px, y: p.py, text: p.name, left: narrow && p.px > W * 0.62 })));
   const base = pad.t + ih;
 
   return (
@@ -53,7 +56,7 @@ export function MoneyChart({ llm, diff }: { llm: LlmBench; diff: string }) {
       <div ref={wrap}>
         {W > 0 && (
           <svg width={W} height={H} role="img" aria-label="success rate against cost per solved game">
-            {[0, 0.25, 0.5, 0.75, 1].map((v) => (
+            {yTicks.map((v) => (
               <g key={v}>
                 <line x1={pad.l} x2={xR} y1={Math.round(Y(v)) + 0.5} y2={Math.round(Y(v)) + 0.5} className="lab-grid" />
                 <text x={pad.l - 10} y={Y(v) + 4} textAnchor="end" className="lab-tick">{pct(v)}</text>
@@ -86,8 +89,8 @@ export function MoneyChart({ llm, diff }: { llm: LlmBench; diff: string }) {
                     </g>
                   )}
                   <rect x={-3.5} y={-3.5} width={7} height={7} />
-                  {Math.abs(ly - p.py) > 1 && <line className="lab-mp-lead" x1={left ? -6 : 6} x2={left ? -12 : 12} y1={0} y2={ly - p.py} />}
-                  <text x={left ? -14 : 14} y={ly - p.py + 4} textAnchor={left ? 'end' : 'start'}>{p.name}</text>
+                  {labelled(p) && Math.abs(ly - p.py) > 1 && <line className="lab-mp-lead" x1={left ? -6 : 6} x2={left ? -12 : 12} y1={0} y2={ly - p.py} />}
+                  {labelled(p) && <text x={left ? -14 : 14} y={ly - p.py + 4} textAnchor={left ? 'end' : 'start'}>{p.name}</text>}
                   <title>{`${p.name}: ${pct(p.y)} solved${p.x === null ? ', free to run' : `, ${usd(p.x)} per solved game`}`}</title>
                 </g>
               );
@@ -96,7 +99,7 @@ export function MoneyChart({ llm, diff }: { llm: LlmBench; diff: string }) {
         )}
       </div>
       <p className="lab-note lab-board-note">
-        filled squares are the searches and my models, which cost nothing to run beyond the wikipedia requests, so they sit at $0 behind the break. hollow squares are llms, priced per solved game at list price, with the 95% interval on success as whiskers.
+        filled squares are the classic searches and {MODEL_NAME}, which cost nothing to run beyond the wikipedia requests, so they sit at $0 behind the break. hollow squares are llms, priced per solved game at list price, with the 95% interval on success as whiskers.{narrow ? ' on a phone the llm names are in the table below.' : ''}
         {skipped.length > 0 && ` ${skipped.join(', ')} solved none at this difficulty, so there is no cost per solved game to plot.`}
       </p>
     </div>

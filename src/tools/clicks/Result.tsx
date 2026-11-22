@@ -57,7 +57,7 @@ export default function Result({ race, onPlay, onNew, retry }: { race: RaceState
     <div className="clk-view">
       <div className="clk-head">
         <div className="clk-kicker">{found ? 'found it' : race.outcome === 'error' ? 'that did not work' : 'no luck this time'}</div>
-        <h1 className="clk-title clk-title-pair">{race.start} <Arrow size={26} /> {race.target}</h1>
+        <h2 className="clk-title clk-title-pair">{race.start} <Arrow size={26} /> {race.target}</h2>
         <p className="clk-lede">
           {found ? verdict(race)
             : race.outcome === 'error' ? race.error

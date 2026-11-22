@@ -84,6 +84,9 @@ img.clk-thumb.clk-thumb-on { opacity: 1; }
 .clk-example:hover { border-color: var(--line-strong); }
 .clk-example-thumbs { display: flex; align-items: center; }
 .clk-example-line { flex: 1; height: 1px; background: var(--line); }
+.clk-example-thumbs { gap: 0; }
+.clk-example-img { width: auto; flex: 1 1 0; min-width: 0; aspect-ratio: 1; height: auto; font-size: 22px; }
+.clk-example-arrow { flex: none; width: 28px; display: inline-flex; justify-content: center; color: var(--half); }
 .clk-example-title { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); }
 .clk-example-title svg { display: inline-block; vertical-align: -1px; color: var(--half); margin: 0 2px; }
 .clk-how { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
@@ -260,7 +263,7 @@ img.clk-thumb.clk-thumb-on { opacity: 1; }
   .clk-form-row .st-btn { flex: 1; }
   .clk-examples { grid-template-columns: 1fr; gap: 10px; }
   .clk-example { flex-direction: row; align-items: center; gap: 14px; padding: 14px; }
-  .clk-example-thumbs { width: 96px; flex-shrink: 0; }
+  .clk-example-thumbs { width: 120px; flex-shrink: 0; }
   .clk-how { grid-template-columns: 1fr; }
   .clk-section { margin-top: 48px; }
   .clk-blurb { margin: 10px 0 0; font-size: 14px; line-height: 22px; color: var(--faint); }

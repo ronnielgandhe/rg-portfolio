@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import type { Strategy } from './pathfinder';
 import { Arrow, TitleInput, Thumb, useSummary } from './ui';
-import ClicksHero from '../../components/portfolio/heroes/ClicksHero';
 
 export const EXAMPLES: [string, string][] = [
   ['Batman', 'Bank of England'],
   ['Pizza', 'Moon'],
   ['Taylor Swift', 'Roman Empire'],
-  ['Penguin', 'Jazz'],
+  ['Volcano', 'William Shakespeare'],
 ];
 
 const POOL = [
@@ -25,13 +24,7 @@ export function randomPair(): [string, string] {
   return [a, b];
 }
 
-export const LAB_HREF = '/how-many-clicks/lab';
-
-const HOW = [
-  { n: '1', title: 'it reads every link', text: 'for the page it is on, the bot pulls up to a thousand outgoing article links from the wikipedia api.' },
-  { n: '2', title: 'it scores each one', text: 'word overlap with the target, a list of related terms, a bonus for hub pages like london or film, and a penalty for circling the same topic.' },
-  { n: '3', title: 'it keeps the best few', text: 'a beam search: the top links go into a queue, it always opens the best scoring page next, and backs up when a branch dies.' },
-];
+export const LAB_HREF = '#leaderboard';
 
 function ExampleCard({ pair, onPick }: { pair: [string, string]; onPick: () => void }) {
   const a = useSummary(pair[0]);
@@ -39,9 +32,9 @@ function ExampleCard({ pair, onPick }: { pair: [string, string]; onPick: () => v
   return (
     <button type="button" className="clk-example" onClick={onPick}>
       <span className="clk-example-thumbs">
-        <Thumb src={a?.thumbnail} title={pair[0]} size={40} />
-        <span className="clk-example-line" />
-        <Thumb src={b?.thumbnail} title={pair[1]} size={40} />
+        <Thumb src={a?.thumbnail} title={pair[0]} className="clk-example-img" />
+        <span className="clk-example-arrow"><Arrow size={14} /></span>
+        <Thumb src={b?.thumbnail} title={pair[1]} className="clk-example-img" />
       </span>
       <span className="clk-example-title">{pair[0]} <Arrow size={12} /> {pair[1]}</span>
     </button>
@@ -62,9 +55,11 @@ export default function Start({ initial, strategies, error, onGo }: {
 
   return (
     <div className="clk-view">
-      <ClicksHero />
-
-      <form className="clk-form" onSubmit={(e) => { e.preventDefault(); go(); }}>
+      <div className="lab-sec-head lab-play-head">
+        <h2 className="lab-label lab-sec-label">play</h2>
+        <p className="lab-sec-lede">pick two articles and a strategy. watch it search live, then try to beat it yourself.</p>
+      </div>
+      <form className="clk-form lab-play-form" onSubmit={(e) => { e.preventDefault(); go(); }}>
         <div className="clk-pair">
           <TitleInput label="from" value={from} onChange={setFrom} placeholder="any article" autoFocus={!initial.from} />
           <span className="clk-pair-arrow"><Arrow size={18} /></span>
@@ -88,7 +83,7 @@ export default function Start({ initial, strategies, error, onGo }: {
       </form>
 
       <section className="clk-section">
-        <div className="clk-label">or try one</div>
+        <div className="clk-label">or try a real pair</div>
         <div className="clk-examples">
           {EXAMPLES.map((p) => (
             <ExampleCard key={p.join('>')} pair={p} onPick={() => { setFrom(p[0]); setTo(p[1]); onGo(p[0], p[1], mode); }} />
@@ -96,19 +91,6 @@ export default function Start({ initial, strategies, error, onGo }: {
         </div>
       </section>
 
-      <section className="clk-section">
-        <div className="clk-label">how the default bot thinks</div>
-        <div className="clk-how">
-          {HOW.map((h) => (
-            <div key={h.n} className="clk-how-item">
-              <div className="clk-how-n">{h.n}</div>
-              <div className="clk-how-title">{h.title}</div>
-              <p className="clk-how-text">{h.text}</p>
-            </div>
-          ))}
-        </div>
-        <p className="clk-small">two numbers come out the other end. prime clicks is the length of the path it found. total clicks is every page it opened to find it.</p>
-      </section>
     </div>
   );
 }

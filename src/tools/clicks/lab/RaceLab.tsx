@@ -9,7 +9,7 @@ import { MODEL_IDS } from './data.ts';
 
 type Pace = 'watch' | 'quick';
 const PACE: Record<Pace, number> = { watch: 1, quick: 0.35 };
-const PRESETS: [string, string][] = [...EXAMPLES, ['Volcano', 'William Shakespeare'], ['Chess', 'Ancient Egypt']];
+const PRESETS: [string, string][] = [...EXAMPLES, ['Chess', 'Ancient Egypt'], ['Coffee', 'Albert Einstein']];
 
 type Act = { kind: 'reset'; lane: Lane } | { kind: 'event'; e: LabEvent } | { kind: 'stop' };
 function reducer(s: Lane | null, a: Act): Lane | null {
@@ -82,6 +82,20 @@ function LaneView({ name, strategy, lane, tags, onPick, locked, slot }: {
         <p className="lab-miss">{`gave up after ${lane.opened} pages without finding it.`}</p>
       )}
     </section>
+  );
+}
+
+function PresetPair({ from, to, on, disabled, onPick }: { from: string; to: string; on: boolean; disabled: boolean; onPick: () => void }) {
+  const a = useSummary(from), b = useSummary(to);
+  return (
+    <button type="button" className={`lab-repair${on ? ' lab-repair-on' : ''}`} aria-pressed={on} disabled={disabled} onClick={onPick}>
+      <span className="lab-repair-imgs">
+        <Thumb src={a?.thumbnail} title={from} size={28} />
+        <Arrow size={11} />
+        <Thumb src={b?.thumbnail} title={to} size={28} />
+      </span>
+      <span className="lab-repair-t">{from.toLowerCase()} to {to.toLowerCase()}</span>
+    </button>
   );
 }
 
@@ -163,7 +177,7 @@ export default function RaceLab() {
     if (qb && strategyById(qb)) setIds((p) => [p[0], qb]);
     if (qf) setFrom(qf);
     if (qt) setTo(qt);
-    if (q.get('race') === '1' && qf && qt) setPending([qf, qt]);
+    if (q.get('race') === '1' && qf && qt) { setPending([qf, qt]); requestAnimationFrame(() => document.getElementById('race')?.scrollIntoView()); }
   }, []);
   const [pending, setPending] = useState<[string, string] | null>(null);
   useEffect(() => { if (pending) { setPending(null); go(pending[0], pending[1]); } }, [pending, go]);
@@ -174,16 +188,10 @@ export default function RaceLab() {
   return (
     <div className="lab-race">
       <form className="lab-controls" onSubmit={(e) => { e.preventDefault(); if (live) stop(); else go(from, to); }}>
-        <div className="lab-presets" role="group" aria-label="preset pairs">
-          {PRESETS.map(([pf, pt]) => {
-            const on = pf === from && pt === to;
-            return (
-              <button key={`${pf}>${pt}`} type="button" className={`lab-preset${on ? ' lab-preset-on' : ''}`} aria-pressed={on} disabled={live}
-                onClick={() => { setFrom(pf); setTo(pt); }}>
-                {pf.toLowerCase()} <Arrow size={11} /> {pt.toLowerCase()}
-              </button>
-            );
-          })}
+        <div className="lab-repairs" role="group" aria-label="preset pairs">
+          {PRESETS.map(([pf, pt]) => (
+            <PresetPair key={`${pf}>${pt}`} from={pf} to={pt} on={pf === from && pt === to} disabled={live} onPick={() => { setFrom(pf); setTo(pt); }} />
+          ))}
         </div>
         <div className="lab-pair">
           <TitleInput label="from" value={from} onChange={setFrom} placeholder="any article" />

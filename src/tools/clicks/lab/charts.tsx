@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ALL, MODEL_IDS, statsFor, type Benchmark, type ModelInfo, type Stats } from './data.ts';
+import { ALL, MODEL_IDS, shownStrategies, statsFor, type Benchmark, type ModelInfo, type Stats } from './data.ts';
 import { num, pct, useInView } from './motion.ts';
 
 type Key = 'success' | 'clicks' | 'pages' | 'name';
@@ -49,7 +49,7 @@ export function Leaderboard({ bench, diff }: { bench: Benchmark; diff: string })
   const [sort, setSort] = useState<Key>('success');
   const [ref, seen] = useInView<HTMLDivElement>();
   const human = bench.humans?.[diff]?.medianClicks ?? null;
-  const rows = useMemo(() => bench.strategies.map((s) => ({ s, st: statsFor(s, diff) })).filter((r): r is { s: typeof r.s; st: Stats } => !!r.st), [bench, diff]);
+  const rows = useMemo(() => shownStrategies(bench).map((s) => ({ s, st: statsFor(s, diff) })).filter((r): r is { s: typeof r.s; st: Stats } => !!r.st), [bench, diff]);
   const order = useMemo(() => {
     const { get, dir } = SORTS[sort];
     return [...rows].sort((a, b) => {
@@ -118,12 +118,11 @@ export function declutter(pts: LabelBox[], gap = 15) {
   };
   const ls = pts.map((p) => ({ ...p, ly: p.y, b: box(p) })).sort((a, b) => a.y - b.y);
   for (let i = 1; i < ls.length; i++) {
-    let moved = true;
-    while (moved) {
+    for (let pass = 0, moved = true; moved && pass < 50; pass++) {
       moved = false;
       for (let j = 0; j < i; j++) {
         const hit = ls[i].b[0] < ls[j].b[1] && ls[j].b[0] < ls[i].b[1];
-        if (hit && Math.abs(ls[i].ly - ls[j].ly) < gap) { ls[i].ly = ls[j].ly + gap; moved = true; }
+        if (hit && Math.abs(ls[i].ly - ls[j].ly) < gap && ls[j].ly + gap > ls[i].ly) { ls[i].ly = ls[j].ly + gap; moved = true; }
       }
     }
   }
@@ -138,7 +137,7 @@ export function Tradeoff({ bench, diff }: { bench: Benchmark; diff: string }) {
   const narrow = W < 520;
   const H = narrow ? 400 : 400;
   const pad = { l: 44, r: W < 520 ? 16 : 120, t: 20, b: 44 };
-  const pts = bench.strategies.map((s) => ({ s, st: statsFor(s, diff) })).filter((p): p is { s: typeof p.s; st: Stats } => !!p.st);
+  const pts = shownStrategies(bench).map((s) => ({ s, st: statsFor(s, diff) })).filter((p): p is { s: typeof p.s; st: Stats } => !!p.st).sort((a, b) => Number(MODEL_IDS.has(a.s.id)) - Number(MODEL_IDS.has(b.s.id)));
   const human = bench.humans?.[diff]?.medianClicks ?? null;
   const xMax = 8, yMin = 2, yMax = 8;
   const iw = Math.max(W - pad.l - pad.r, 10), ih = H - pad.t - pad.b;
@@ -206,7 +205,7 @@ export function DifficultyGrid({ bench }: { bench: Benchmark }) {
     <div ref={ref} className="lab-dgrid" style={{ gridTemplateColumns: `minmax(120px, 1.3fr) repeat(${bench.difficulties.length}, minmax(0, 1fr))` }} role="table" aria-label="success by difficulty">
       <div className="lab-label" role="columnheader">strategy</div>
       {bench.difficulties.map((d) => <div key={d} className="lab-label" role="columnheader">{d}</div>)}
-      {bench.strategies.map((s, i) => (
+      {shownStrategies(bench).map((s, i) => (
         <div key={s.id} role="row" style={{ display: 'contents' }}>
           <div className={`lab-dgrid-name${MODEL_IDS.has(s.id) ? ' lab-accent' : ''}`} role="cell">{s.name}</div>
           {bench.difficulties.map((d) => {

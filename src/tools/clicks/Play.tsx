@@ -124,7 +124,7 @@ export default function Play({ start, target, botPath, botTotal, onGiveUp, onNew
       <div className="clk-view">
         <div className="clk-head">
           <div className="clk-kicker">you made it</div>
-          <h1 className="clk-title clk-title-pair">{start} <Arrow size={26} /> {target}</h1>
+          <h2 className="clk-title clk-title-pair">{start} <Arrow size={26} /> {target}</h2>
           <p className="clk-lede">{line} you opened {total} link{total === 1 ? '' : 's'} in total, the bot opened {botTotal} pages to find its path.</p>
         </div>
         <div className="clk-big">
@@ -152,13 +152,13 @@ export default function Play({ start, target, botPath, botTotal, onGiveUp, onNew
           </div>
         ) : !doc ? (
           <>
-            <h1 className="clk-title">{current}</h1>
+            <h2 className="clk-title">{current}</h2>
             <div className="clk-read-skel" aria-label="loading article">{Array.from({ length: 7 }, (_, i) => <i key={i} style={{ width: `${[96, 88, 92, 70, 94, 84, 60][i]}%` }} />)}</div>
           </>
         ) : (
           <div className={loading ? 'clk-doc clk-doc-wait' : 'clk-doc'} aria-busy={loading}>
             <div className="clk-fade" key={doc.title}>
-              <h1 className="clk-title">{doc.title}</h1>
+              <h2 className="clk-title">{doc.title}</h2>
               <div className="clk-read-desc">{doc.summary.description || 'wikipedia article'}</div>
               {doc.summary.thumbnail && <figure className="clk-read-lead"><img src={doc.summary.thumbnail} alt="" /></figure>}
               <div className="clk-read">{body}</div>

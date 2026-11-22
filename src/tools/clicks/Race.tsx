@@ -73,7 +73,7 @@ export default function Race({ race, speed, onSpeed, onStop }: { race: RaceState
     <div className="clk-view">
       <div className="clk-head">
         <div className="clk-kicker">the race, {race.strategy.name}</div>
-        <h1 className="clk-title clk-title-pair">{race.start} <Arrow size={26} /> {race.target}</h1>
+        <h2 className="clk-title clk-title-pair">{race.start} <Arrow size={26} /> {race.target}</h2>
         {race.strategy.blurb && <p className="clk-blurb">{race.strategy.blurb}</p>}
         <p className="clk-status" aria-live="polite">{race.status}</p>
       </div>
