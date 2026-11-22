@@ -13,13 +13,6 @@ export default function BootScreen() {
       setPhase('done');
       return;
     }
-    let booted = false;
-    try { booted = sessionStorage.getItem('rg-booted') === '1'; sessionStorage.setItem('rg-booted', '1'); } catch {}
-    if (booted) {
-      setPhase('done');
-      dispatch({ type: 'SET_BOOT_COMPLETE' });
-      return;
-    }
 
     // Timeline:
     // 0.0s — RG logo fades in + progress bar starts filling

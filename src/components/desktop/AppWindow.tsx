@@ -1,32 +1,36 @@
 import { useRef, useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { useDesktop } from './DesktopContext';
 import type { WindowState } from './types';
-import { SYSTEM_FONT, MENU_BAR_HEIGHT, chromeTokens } from './chrome';
+import { SYSTEM_FONT, MENU_BAR_HEIGHT, VIBRANCY, chromeTokens } from './chrome';
 
 interface AppWindowProps {
   windowState: WindowState;
   children: React.ReactNode;
   darkMode?: boolean;
-  material?: 'opaque' | 'terminal';
-  unified?: boolean;
   titleBarBg?: string;
   titleBarDark?: boolean;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
 }
 
-export default function AppWindow({ windowState, children, darkMode, material = 'opaque', unified = false, titleBarBg, titleBarDark, onMouseEnter, onMouseLeave }: AppWindowProps) {
+export default function AppWindow({ windowState, children, darkMode, titleBarBg, titleBarDark, onMouseEnter, onMouseLeave }: AppWindowProps) {
   const { state, dispatch } = useDesktop();
   const dragRef = useRef<{ startX: number; startY: number; winX: number; winY: number } | null>(null);
   const resizeRef = useRef<{ startX: number; startY: number; startW: number; startH: number; edge: string } | null>(null);
   const windowRef = useRef<HTMLDivElement>(null);
+  const [entering, setEntering] = useState(true);
   const [trafficHover, setTrafficHover] = useState(false);
   const [interacting, setInteracting] = useState(false);
   const [minTransform, setMinTransform] = useState<string | null>(null);
   const [parked, setParked] = useState(false);
   const chrome = chromeTokens(state.dark);
 
-  const isFocused = state.focusedWindowId === windowState.id && !state.spotlightOpen;
+  const isFocused = state.focusedWindowId === windowState.id;
+
+  useEffect(() => {
+    const t = setTimeout(() => setEntering(false), 20);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     if (!windowState.isClosing) return;
@@ -49,7 +53,7 @@ export default function AppWindow({ windowState, children, darkMode, material = 
     const wx = windowState.position.x + windowState.size.width / 2;
     const wy = windowState.position.y + windowState.size.height / 2;
     setMinTransform(`translate(${Math.round(cx - wx)}px, ${Math.round(cy - wy)}px) scale(0.06)`);
-    const t = setTimeout(() => setParked(true), 480);
+    const t = setTimeout(() => setParked(true), 420);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [windowState.isMinimized]);
@@ -148,20 +152,16 @@ export default function AppWindow({ windowState, children, darkMode, material = 
 
   const minimized = windowState.isMinimized;
   const closing = !!windowState.isClosing;
-  const geometry = interacting ? '' : ', left 0.25s ease-out, top 0.25s ease-out, width 0.25s ease-out, height 0.25s ease-out';
-  const transform = minimized && minTransform ? minTransform : closing ? 'scale(0.97)' : 'none';
+  const borderRadius = '10px';
+  const geometry = interacting ? '' : ', left 0.25s ease, top 0.25s ease, width 0.25s ease, height 0.25s ease';
+  const transform = minimized && minTransform
+    ? minTransform
+    : entering ? 'scale(0.94)' : closing ? 'scale(0.97)' : 'scale(1)';
   const transition = minimized || minTransform !== null
-    ? `transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)${geometry}`
+    ? `transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.6, 1)${geometry}`
     : closing
       ? 'opacity 0.14s ease-out, transform 0.14s ease-out'
-      : `transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 0.15s ease-out${geometry}`;
-  const darkChrome = material === 'terminal' || !!titleBarDark || (state.dark && !titleBarBg);
-  const frame = material === 'terminal'
-    ? { background: 'rgba(30, 30, 30, 0.55)', backdropFilter: 'blur(30px) saturate(1.4)', WebkitBackdropFilter: 'blur(30px) saturate(1.4)' }
-    : { background: darkMode ? '#f6f6f6' : chrome.windowBg };
-  const edge = darkChrome
-    ? '0 0 0 0.5px rgba(0,0,0,0.6), inset 0 0 0 0.5px rgba(255,255,255,0.15)'
-    : '0 0 0 0.5px rgba(0,0,0,0.22)';
+      : `opacity 0.18s ease-out, transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 0.2s ease${geometry}`;
 
   return (
     <div
@@ -176,153 +176,99 @@ export default function AppWindow({ windowState, children, darkMode, material = 
         width: windowState.size.width,
         height: windowState.size.height,
         zIndex: windowState.zIndex,
-        borderRadius: '10px',
-        ...frame,
-        boxShadow: isFocused
-          ? `${edge}, 0 22px 70px 4px rgba(0,0,0,0.45)`
-          : `${edge}, 0 8px 30px rgba(0,0,0,0.25)`,
-        opacity: closing ? 0 : 1,
+        borderRadius,
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        background: darkMode ? 'rgba(244, 244, 245, 0.72)' : chrome.glass,
+        backdropFilter: VIBRANCY,
+        WebkitBackdropFilter: VIBRANCY,
+        boxShadow: windowState.isFullscreen
+          ? '0 0 0 0.5px rgba(0,0,0,0.3)'
+          : isFocused
+            ? '0 0 0 0.5px rgba(0,0,0,0.28), 0 36px 100px rgba(0,0,0,0.36), 0 14px 30px rgba(0,0,0,0.18), inset 0 0.5px 0 rgba(255,255,255,0.45)'
+            : '0 0 0 0.5px rgba(0,0,0,0.2), 0 16px 44px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.1), inset 0 0.5px 0 rgba(255,255,255,0.3)',
+        opacity: entering || closing || minimized ? 0 : 1,
         transform,
         transition,
-        animation: 'winIn 0.2s cubic-bezier(0.2, 0.9, 0.3, 1) both',
         pointerEvents: minimized || closing ? 'none' : undefined,
         visibility: minimized && parked ? 'hidden' : 'visible',
         willChange: 'transform',
       }}
     >
-      <style>{`@keyframes winIn { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }`}</style>
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        borderRadius: '10px',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-      }}>
-      {unified ? (
-        <>
-          {/* Traffic lights */}
-          <div
-            style={{ position: 'absolute', left: 20, top: 20, zIndex: 5, display: 'flex', gap: '8px', alignItems: 'center' }}
-            onMouseEnter={() => setTrafficHover(true)}
-            onMouseLeave={() => setTrafficHover(false)}
-          >
-            <TrafficButton
-              kind="close"
-              lit={isFocused || trafficHover}
-              hovered={trafficHover}
-              dark={darkChrome}
-              onClick={(e) => { e.stopPropagation(); dispatch({ type: 'REQUEST_CLOSE', id: windowState.id }); }}
-              label="Close window"
-            />
-            <TrafficButton
-              kind="minimize"
-              lit={isFocused || trafficHover}
-              hovered={trafficHover}
-              dark={darkChrome}
-              onClick={(e) => { e.stopPropagation(); dispatch({ type: 'MINIMIZE_WINDOW', id: windowState.id }); }}
-              label="Minimize window"
-            />
-            <TrafficButton
-              kind="zoom"
-              lit={isFocused || trafficHover}
-              hovered={trafficHover}
-              dark={darkChrome}
-              onClick={(e) => { e.stopPropagation(); dispatch({ type: 'TOGGLE_FULLSCREEN', id: windowState.id }); }}
-              label="Zoom window"
-            />
-          </div>
-        </>
-      ) : (
-        <>
-        {/* Title bar — draggable */}
+      {/* Title bar — draggable */}
+      <div
+        onMouseDown={handleMouseDownTitleBar}
+        onDoubleClick={handleDoubleClickTitleBar}
+        style={{
+          height: '38px',
+          minHeight: '38px',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 13px',
+          borderBottom: titleBarDark ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(0, 0, 0, 0.04)',
+          cursor: 'default',
+          userSelect: 'none',
+          background: titleBarBg || 'transparent',
+        }}
+      >
+        {/* Traffic lights */}
         <div
-          onMouseDown={handleMouseDownTitleBar}
-          onDoubleClick={handleDoubleClickTitleBar}
-          style={{
-            height: '28px',
-            minHeight: '28px',
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0 8px',
-            borderBottom: titleBarDark ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(0, 0, 0, 0.04)',
-            cursor: 'default',
-            userSelect: 'none',
-            background: titleBarBg || 'transparent',
-          }}
+          style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
+          onMouseEnter={() => setTrafficHover(true)}
+          onMouseLeave={() => setTrafficHover(false)}
         >
-          {/* Traffic lights */}
-          <div
-            style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
-            onMouseEnter={() => setTrafficHover(true)}
-            onMouseLeave={() => setTrafficHover(false)}
-          >
-            <TrafficButton
-              kind="close"
-              lit={isFocused || trafficHover}
-              hovered={trafficHover}
-              dark={darkChrome}
-              onClick={(e) => { e.stopPropagation(); dispatch({ type: 'REQUEST_CLOSE', id: windowState.id }); }}
-              label="Close window"
-            />
-            <TrafficButton
-              kind="minimize"
-              lit={isFocused || trafficHover}
-              hovered={trafficHover}
-              dark={darkChrome}
-              onClick={(e) => { e.stopPropagation(); dispatch({ type: 'MINIMIZE_WINDOW', id: windowState.id }); }}
-              label="Minimize window"
-            />
-            <TrafficButton
-              kind="zoom"
-              lit={isFocused || trafficHover}
-              hovered={trafficHover}
-              dark={darkChrome}
-              onClick={(e) => { e.stopPropagation(); dispatch({ type: 'TOGGLE_FULLSCREEN', id: windowState.id }); }}
-              label="Zoom window"
-            />
-          </div>
-
-          {/* Window title */}
-          <span style={{
-            flex: 1,
-            textAlign: 'center',
-            fontFamily: SYSTEM_FONT,
-            fontSize: '13px',
-            fontWeight: 700,
-            color: darkChrome
-              ? (isFocused ? 'rgba(255, 255, 255, 0.86)' : 'rgba(255, 255, 255, 0.25)')
-              : (isFocused ? 'rgba(0, 0, 0, 0.85)' : 'rgba(0, 0, 0, 0.26)'),
-            transition: 'color 0.15s ease',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}>
-            {windowState.title}
-          </span>
-
-          {/* Spacer to balance traffic lights */}
-          <div style={{ width: '52px' }} />
+          <TrafficButton
+            kind="close"
+            lit={isFocused || trafficHover}
+            hovered={trafficHover}
+            dark={!!titleBarDark || state.dark}
+            onClick={(e) => { e.stopPropagation(); dispatch({ type: 'REQUEST_CLOSE', id: windowState.id }); }}
+            label="Close window"
+          />
+          <TrafficButton
+            kind="minimize"
+            lit={isFocused || trafficHover}
+            hovered={trafficHover}
+            dark={!!titleBarDark || state.dark}
+            onClick={(e) => { e.stopPropagation(); dispatch({ type: 'MINIMIZE_WINDOW', id: windowState.id }); }}
+            label="Minimize window"
+          />
+          <TrafficButton
+            kind="zoom"
+            lit={isFocused || trafficHover}
+            hovered={trafficHover}
+            dark={!!titleBarDark || state.dark}
+            onClick={(e) => { e.stopPropagation(); dispatch({ type: 'TOGGLE_FULLSCREEN', id: windowState.id }); }}
+            label="Zoom window"
+          />
         </div>
-        </>
-      )}
+
+        {/* Window title */}
+        <span style={{
+          flex: 1,
+          textAlign: 'center',
+          fontFamily: SYSTEM_FONT,
+          fontSize: '13px',
+          fontWeight: 600,
+          letterSpacing: '-0.005em',
+          color: (titleBarDark || (state.dark && !titleBarBg))
+            ? (isFocused ? 'rgba(255, 255, 255, 0.86)' : 'rgba(255, 255, 255, 0.4)')
+            : (isFocused ? 'rgba(0, 0, 0, 0.82)' : 'rgba(0, 0, 0, 0.36)'),
+          transition: 'color 0.15s ease',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}>
+          {windowState.title}
+        </span>
+
+        {/* Spacer to balance traffic lights */}
+        <div style={{ width: '52px' }} />
+      </div>
 
       {/* Content area — scrollable */}
-      <div
-        className={darkMode ? 'dark-window' : 'light-window'}
-        onMouseDown={unified ? (e) => {
-          const top = windowRef.current?.getBoundingClientRect().top ?? 0;
-          const el = e.target as HTMLElement;
-          if (e.clientY - top > 52 || el.closest('button, a, input, textarea, select, [role="button"], [contenteditable="true"]')) return;
-          handleMouseDownTitleBar(e);
-        } : undefined}
-        onDoubleClick={unified ? (e) => {
-          const top = windowRef.current?.getBoundingClientRect().top ?? 0;
-          const el = e.target as HTMLElement;
-          if (e.clientY - top > 52 || el.closest('button, a, input, textarea, select, [role="button"]')) return;
-          handleDoubleClickTitleBar();
-        } : undefined}
-        style={{
+      <div className={darkMode ? 'dark-window' : 'light-window'} style={{
         flex: 1,
         overflowY: 'auto',
         overflowX: 'hidden',
@@ -331,18 +277,14 @@ export default function AppWindow({ windowState, children, darkMode, material = 
         {children}
       </div>
 
-      </div>
-
+      {/* Resize handles (hidden in fullscreen) */}
       {!windowState.isFullscreen && (
         <>
-          <ResizeEdge edge="n" onStart={handleResizeStart} cursor="ns-resize" style={{ top: -5, left: 10, right: 10, height: 10 }} />
-          <ResizeEdge edge="s" onStart={handleResizeStart} cursor="ns-resize" style={{ bottom: -5, left: 10, right: 10, height: 10 }} />
-          <ResizeEdge edge="e" onStart={handleResizeStart} cursor="ew-resize" style={{ right: -5, top: 10, bottom: 10, width: 10 }} />
-          <ResizeEdge edge="w" onStart={handleResizeStart} cursor="ew-resize" style={{ left: -5, top: 10, bottom: 10, width: 10 }} />
-          <ResizeEdge edge="nw" onStart={handleResizeStart} cursor="nwse-resize" style={{ left: -6, top: -6, width: 16, height: 16 }} />
-          <ResizeEdge edge="ne" onStart={handleResizeStart} cursor="nesw-resize" style={{ right: -6, top: -6, width: 16, height: 16 }} />
-          <ResizeEdge edge="se" onStart={handleResizeStart} cursor="nwse-resize" style={{ right: -6, bottom: -6, width: 16, height: 16 }} />
-          <ResizeEdge edge="sw" onStart={handleResizeStart} cursor="nesw-resize" style={{ left: -6, bottom: -6, width: 16, height: 16 }} />
+          <ResizeEdge edge="e" onStart={handleResizeStart} cursor="ew-resize" style={{ right: 0, top: 0, width: '4px', height: '100%' }} />
+          <ResizeEdge edge="w" onStart={handleResizeStart} cursor="ew-resize" style={{ left: 0, top: 0, width: '4px', height: '100%' }} />
+          <ResizeEdge edge="s" onStart={handleResizeStart} cursor="ns-resize" style={{ bottom: 0, left: 0, width: '100%', height: '4px' }} />
+          <ResizeEdge edge="se" onStart={handleResizeStart} cursor="nwse-resize" style={{ right: 0, bottom: 0, width: '12px', height: '12px' }} />
+          <ResizeEdge edge="sw" onStart={handleResizeStart} cursor="nesw-resize" style={{ left: 0, bottom: 0, width: '12px', height: '12px' }} />
         </>
       )}
     </div>
@@ -366,8 +308,8 @@ function TrafficButton({ kind, lit, hovered, dark, onClick, label }: {
   label: string;
 }) {
   const c = TRAFFIC[kind];
-  const idleFill = dark ? '#4d4d4d' : '#dcdcdc';
-  const idleRing = dark ? '#404040' : '#c8c8c8';
+  const idleFill = dark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.14)';
+  const idleRing = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
   return (
     <button
       onClick={onClick}
@@ -392,13 +334,13 @@ function TrafficButton({ kind, lit, hovered, dark, onClick, label }: {
     >
       <svg width="12" height="12" viewBox="0 0 12 12" style={{ opacity: hovered ? 1 : 0, display: 'block' }}>
         {kind === 'close' && (
-          <path d="M4 4l4 4M8 4L4 8" stroke={c.glyph} strokeOpacity="0.75" strokeWidth="1" strokeLinecap="round" />
+          <path d="M3.6 3.6l4.8 4.8M8.4 3.6L3.6 8.4" stroke={c.glyph} strokeWidth="1.15" strokeLinecap="round" />
         )}
         {kind === 'minimize' && (
-          <path d="M3.5 6h5" stroke={c.glyph} strokeOpacity="0.8" strokeWidth="1.1" strokeLinecap="round" />
+          <path d="M2.8 6h6.4" stroke={c.glyph} strokeWidth="1.3" strokeLinecap="round" />
         )}
         {kind === 'zoom' && (
-          <path d="M3.5 7.2V3.5h3.7z M8.5 4.8v3.7H4.8z" fill={c.glyph} fillOpacity="0.75" />
+          <path d="M3.3 6.9V3.3h3.6zM8.7 5.1v3.6H5.1z" fill={c.glyph} />
         )}
       </svg>
     </button>

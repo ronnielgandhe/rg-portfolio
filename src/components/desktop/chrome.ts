@@ -1,8 +1,8 @@
 export const SYSTEM_FONT =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', 'Inter', system-ui, sans-serif";
 
-export const MENU_BAR_HEIGHT = 24;
-export const DOCK_RESERVED = 67;
+export const MENU_BAR_HEIGHT = 28;
+export const ACCENT = '#0a84ff';
 
 export interface ChromeTokens {
   panelBg: string;
@@ -22,8 +22,6 @@ export interface ChromeTokens {
   tooltipBg: string;
   tooltipText: string;
   glass: string;
-  windowBg: string;
-  accent: string;
   tile: string;
 }
 
@@ -47,8 +45,6 @@ export function chromeTokens(dark: boolean): ChromeTokens {
         tooltipBg: 'rgba(44, 44, 48, 0.86)',
         tooltipText: 'rgba(255,255,255,0.9)',
         glass: 'rgba(28, 28, 32, 0.46)',
-        windowBg: '#323232',
-        accent: '#0a84ff',
         tile: 'rgba(255,255,255,0.09)',
       }
     : {
@@ -69,8 +65,6 @@ export function chromeTokens(dark: boolean): ChromeTokens {
         tooltipBg: 'rgba(246, 246, 246, 0.9)',
         tooltipText: 'rgba(0,0,0,0.85)',
         glass: 'rgba(255, 255, 255, 0.32)',
-        windowBg: '#ececec',
-        accent: '#007aff',
         tile: 'rgba(255,255,255,0.55)',
       };
 }

@@ -28,7 +28,6 @@ export default function DesktopDock() {
   const dockRef = useRef<HTMLDivElement>(null);
 
   const windowItems: DockItem[] = [
-    { id: 'experience', label: 'Finder', icon: <DockImage src="/icons/folder.png" alt="Finder" cropScale={1} /> },
     { id: 'terminal', label: 'Terminal', icon: <DockImage src="/usethisTERMIANL.png" alt="Terminal" cropScale={1.15} /> },
     { id: 'projects', label: 'Projects', icon: <DockImage src="/vscode.png" alt="VS Code" /> },
     { id: 'blog', label: 'My Thoughts', icon: <DockImage src="/notes.png" alt="Notes" /> },
@@ -67,7 +66,7 @@ export default function DesktopDock() {
       dispatch({ type: 'FOCUS_WINDOW', id });
     } else {
       setBouncing(id);
-      window.setTimeout(() => setBouncing(b => (b === id ? null : b)), 1250);
+      window.setTimeout(() => setBouncing(b => (b === id ? null : b)), 620);
       dispatch({ type: 'OPEN_WINDOW', id });
     }
   };
@@ -104,25 +103,6 @@ export default function DesktopDock() {
     return 1 + (MAX_SCALE - 1) * Math.cos((dist / MAGNIFY_RANGE) * (Math.PI / 2)) ** 2;
   };
 
-  let shift = 0;
-  if (mouseX !== null && !isMobile) {
-    const widths = allItems.map((item) => (item.id === 'divider' ? DIVIDER_SLOT : BASE_SIZE));
-    let icon = 0;
-    const magnified = allItems.map((item, i) => (item.id === 'divider' ? widths[i] : widths[i] * getScale(icon++)));
-    const sum = (list: number[]) => list.reduce((a, b) => a + b, 0) + SLOT_GAP * (list.length - 1);
-    let rest = -sum(widths) / 2;
-    let mag = -sum(magnified) / 2;
-    for (let i = 0; i < widths.length; i++) {
-      if (mouseX <= rest + widths[i] + SLOT_GAP || i === widths.length - 1) {
-        const frac = Math.min(1, Math.max(0, (mouseX - rest) / widths[i]));
-        shift = mouseX - (mag + frac * magnified[i]);
-        break;
-      }
-      rest += widths[i] + SLOT_GAP;
-      mag += magnified[i] + SLOT_GAP;
-    }
-  }
-
   let iconIndex = 0;
 
   return (
@@ -130,8 +110,7 @@ export default function DesktopDock() {
       position: 'fixed',
       bottom: '5px',
       left: '50%',
-      transform: isMobile ? 'translateX(-50%) scale(0.72)' : `translateX(calc(-50% + ${shift.toFixed(1)}px))`,
-      transition: mouseX === null ? 'transform 0.2s cubic-bezier(0.22, 1, 0.36, 1)' : 'none',
+      transform: isMobile ? 'translateX(-50%) scale(0.72)' : 'translateX(-50%)',
       transformOrigin: 'bottom center',
       zIndex: 9998,
       display: 'flex',
@@ -189,9 +168,10 @@ export default function DesktopDock() {
       </div>
       <style>{`
         @keyframes dockBounce {
-          0% { transform: none; animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94); }
-          50% { transform: translateY(-22px); animation-timing-function: cubic-bezier(0.55, 0.06, 0.68, 0.19); }
-          100% { transform: none; }
+          0%, 100% { transform: translateY(0); }
+          35% { transform: translateY(-22px); }
+          65% { transform: translateY(0); }
+          82% { transform: translateY(-7px); }
         }
       `}</style>
     </div>
@@ -210,7 +190,7 @@ function DockButton({ item, scale, magnifying, bouncing, running, onClick }: {
   const chrome = chromeTokens(state.dark);
   const [hovered, setHovered] = useState(false);
   const ease = magnifying
-    ? 'none'
+    ? 'width 0.09s linear, transform 0.09s linear'
     : 'width 0.24s cubic-bezier(0.22, 1, 0.36, 1), transform 0.24s cubic-bezier(0.22, 1, 0.36, 1)';
 
   return (
@@ -287,7 +267,7 @@ function DockButton({ item, scale, magnifying, bouncing, running, onClick }: {
         <div style={{
           width: '100%',
           height: '100%',
-          animation: bouncing ? 'dockBounce 0.6s 2' : undefined,
+          animation: bouncing ? 'dockBounce 0.62s cubic-bezier(0.3, 0, 0.4, 1)' : undefined,
           filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.22))',
         }}>
           {item.icon}

@@ -1,7 +1,6 @@
 import { createContext, useContext, useReducer, type Dispatch, type ReactNode } from 'react';
 import type { DesktopState, DesktopAction, WindowId, WindowState } from './types';
 import { WINDOW_DEFAULTS } from './types';
-import { MENU_BAR_HEIGHT, DOCK_RESERVED } from './chrome';
 
 function createWindow(id: WindowId, zIndex: number, titleOverride?: string): WindowState {
   const defaults = WINDOW_DEFAULTS[id];
@@ -17,13 +16,13 @@ function createWindow(id: WindowId, zIndex: number, titleOverride?: string): Win
       isMinimized: false,
       isFullscreen: true,
       zIndex,
-      position: { x: 0, y: MENU_BAR_HEIGHT },
-      size: { width: screenW, height: screenH - MENU_BAR_HEIGHT - 80 },
+      position: { x: 0, y: 28 },
+      size: { width: screenW, height: screenH - 28 - 80 },
     };
   }
   // Clamp window size to fit screen (leave room for dock + menu bar)
   const maxW = screenW - 40;
-  const maxH = screenH - MENU_BAR_HEIGHT - DOCK_RESERVED - 12;
+  const maxH = screenH - 28 - 70;
   let w = Math.min(defaults.width, maxW);
   let h = Math.min(defaults.height, maxH);
 
@@ -31,15 +30,15 @@ function createWindow(id: WindowId, zIndex: number, titleOverride?: string): Win
   // edge to avoid the center→right slide flicker. The DesktopShell layout
   // effect uses the same math; matching it here means it won't dispatch
   // MOVE_WINDOW after mount.
-  const isSideWindow = false;
+  const isSideWindow = id === 'education' || id === 'experience' || id === 'stocks';
   const isWideEnoughForSide = screenW >= 1024;
 
   let x: number;
   let y: number;
 
   if (isSideWindow && isWideEnoughForSide) {
-    const menuBarH = MENU_BAR_HEIGHT;
-    const dockH = DOCK_RESERVED + 5;
+    const menuBarH = 28;
+    const dockH = 72;
     const gap = 10;
     const usableH = screenH - menuBarH - dockH;
     const is13Inch = screenH < 900 || screenW < 1500;
@@ -51,7 +50,7 @@ function createWindow(id: WindowId, zIndex: number, titleOverride?: string): Win
     y = menuBarH + Math.round((usableH - h) / 2);
   } else {
     x = Math.max(0, Math.round((screenW - w) / 2));
-    y = Math.max(MENU_BAR_HEIGHT, Math.round((screenH - DOCK_RESERVED - MENU_BAR_HEIGHT - h) / 2) + MENU_BAR_HEIGHT);
+    y = Math.max(28, Math.round((screenH - h) / 2));
   }
 
   return {
@@ -235,8 +234,8 @@ function desktopReducer(state: DesktopState, action: DesktopAction): DesktopStat
             ...win,
             isFullscreen: true,
             prevBounds: { position: win.position, size: win.size },
-            position: { x: 0, y: MENU_BAR_HEIGHT },
-            size: { width: window.innerWidth, height: window.innerHeight - MENU_BAR_HEIGHT - DOCK_RESERVED },
+            position: { x: 20, y: 28 },
+            size: { width: window.innerWidth - 40, height: window.innerHeight - 28 - 80 },
           },
         },
       };

@@ -378,7 +378,7 @@ function ScrollModeFallback({ sectionRef, titleAnimated, cardAnimated, onContent
     >
       <h2 className="cs-title" style={{
         fontSize: '1.5rem', color: 'rgba(0, 0, 0, 0.65)',
-        fontFamily: 'inherit', fontStyle: 'italic',
+        fontFamily: 'NeueMontreal-MediumItalic, sans-serif', fontStyle: 'italic',
         margin: '0 0 1rem 0', fontWeight: '500',
         opacity: titleAnimated ? 1 : 0, transform: titleAnimated ? 'translateY(0)' : 'translateY(20px)',
         transition: 'opacity 0.8s ease-out, transform 0.8s ease-out',
@@ -400,11 +400,11 @@ function ScrollModeFallback({ sectionRef, titleAnimated, cardAnimated, onContent
               </div>
               <h3 style={{
                 fontSize: 'clamp(1.1rem, 3vw, 1.5rem)', color: 'rgba(0, 0, 0, 0.8)',
-                fontFamily: 'inherit', margin: '0.5rem 0 1rem', fontWeight: '500', lineHeight: '1.4',
+                fontFamily: 'NeueMontreal-Medium, sans-serif', margin: '0.5rem 0 1rem', fontWeight: '500', lineHeight: '1.4',
               }}>{paper.title}</h3>
               <p style={{
                 color: 'rgba(0, 0, 0, 0.5)', fontSize: '0.95rem',
-                fontFamily: 'inherit', lineHeight: '1.7', margin: '0 0 1.25rem',
+                fontFamily: 'NeueMontreal-Light, sans-serif', lineHeight: '1.7', margin: '0 0 1.25rem',
               }}>{paper.summary}</p>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
@@ -412,14 +412,14 @@ function ScrollModeFallback({ sectionRef, titleAnimated, cardAnimated, onContent
                     const tc = getTagColor(tag);
                     return (
                       <span key={i} className="cs-tag-pill" style={{
-                        fontSize: '0.7rem', fontFamily: 'inherit',
+                        fontSize: '0.7rem', fontFamily: 'NeueMontreal-Light, sans-serif',
                         color: tc.text, padding: '0.2rem 0.5rem', borderRadius: '12px',
                         background: tc.bg, border: `0.5px solid ${tc.border}`,
                       }}>{tag}</span>
                     );
                   })}
                 </div>
-                <span style={{ fontSize: '0.85rem', fontFamily: 'inherit', color: 'rgba(0, 0, 0, 0.45)' }}>
+                <span style={{ fontSize: '0.85rem', fontFamily: 'NeueMontreal-Medium, sans-serif', color: 'rgba(0, 0, 0, 0.45)' }}>
                   Read &rarr;
                 </span>
               </div>

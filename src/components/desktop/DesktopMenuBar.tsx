@@ -1,7 +1,7 @@
 import { useDesktop } from './DesktopContext';
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
 import GitHubHeatmap from './GitHubHeatmap';
-import { SYSTEM_FONT, MENU_BAR_HEIGHT, VIBRANCY, chromeTokens, type ChromeTokens } from './chrome';
+import { SYSTEM_FONT, MENU_BAR_HEIGHT, VIBRANCY, ACCENT, chromeTokens, type ChromeTokens } from './chrome';
 
 const ChromeCtx = createContext<{ dark: boolean; c: ChromeTokens }>({ dark: false, c: chromeTokens(false) });
 const useChrome = () => useContext(ChromeCtx);
@@ -55,12 +55,8 @@ export default function DesktopMenuBar() {
       setDate(`${pick('weekday')} ${pick('month')} ${pick('day')}`);
     };
     tick();
-    let id: ReturnType<typeof setTimeout>;
-    const schedule = () => {
-      id = setTimeout(() => { tick(); schedule(); }, 60_000 - (Date.now() % 60_000) + 20);
-    };
-    schedule();
-    return () => clearTimeout(id);
+    const id = setInterval(tick, 30_000);
+    return () => clearInterval(id);
   }, []);
 
   // Geolocation via IP
@@ -104,19 +100,6 @@ export default function DesktopMenuBar() {
   const close = () => setActiveMenu(null);
 
   const hasFocused = !!state.focusedWindowId;
-  const APP_NAMES: Record<string, string> = {
-    terminal: 'Ronniel Gandhe', projects: 'Code', blog: 'Notes', stocks: 'Stocks', photos: 'Photos', calendar: 'Calendar',
-    email: 'Mail', education: 'Finder', experience: 'Finder', detail: 'Finder', content: 'Notes',
-  };
-  const appName = (state.focusedWindowId && APP_NAMES[state.focusedWindowId]) || 'Finder';
-  const openFolder = (id: 'education' | 'experience') => {
-    if (state.windows.terminal?.isFullscreen) {
-      dispatch({ type: 'TOGGLE_FULLSCREEN', id: 'terminal' });
-      setTimeout(() => dispatch({ type: 'OPEN_WINDOW', id }), 150);
-    } else {
-      dispatch({ type: 'OPEN_WINDOW', id });
-    }
-  };
   const chrome = chromeTokens(state.dark);
   const panelStyle = makePanelStyle(chrome);
 
@@ -130,6 +113,7 @@ export default function DesktopMenuBar() {
       boxShadow: '0 0.5px 0 rgba(0,0,0,0.18)',
       fontFamily: SYSTEM_FONT,
       fontSize: '13px', color: '#FFFFFF', userSelect: 'none',
+      textShadow: '0 0 1px rgba(0,0,0,0.25)',
     }}>
       {/* ── Left: Logo + Menus ── */}
       <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
@@ -143,7 +127,7 @@ export default function DesktopMenuBar() {
               background: activeMenu === 'apple' ? 'rgba(255,255,255,0.22)' : 'transparent',
             }}
           >
-            <img src="/icons/rglogo.png" alt="RG" style={{ height: '16px', transform: 'scale(1.7)', opacity: 1, filter: 'brightness(0) saturate(0) invert(1)' }} />
+            <img src="/icons/rglogo.png" alt="RG" style={{ height: '17px', opacity: 1, filter: 'brightness(0) saturate(0) invert(1)' }} />
           </div>
           {activeMenu === 'apple' && (
             <div style={{ ...panelStyle, left: 0, minWidth: '250px' }}>
@@ -152,16 +136,23 @@ export default function DesktopMenuBar() {
               <DropItem label={state.dark ? 'Use Light Appearance' : 'Use Dark Appearance'} onClick={() => { dispatch({ type: 'TOGGLE_APPEARANCE' }); close(); }} />
               <DropItem label="Spotlight Search" shortcut="⌘K" onClick={() => { dispatch({ type: 'SET_SPOTLIGHT', open: true }); close(); }} />
               <DropDivider />
+              <DropItem label="Force Quit…" shortcut="⌥⌘⎋" onClick={() => {
+                Object.keys(state.windows).forEach(id => dispatch({ type: 'CLOSE_WINDOW', id: id as any }));
+                close();
+              }} />
+              <DropDivider />
+              <DropItem label="Sleep" disabled />
+              <DropItem label="Restart…" disabled />
+              <DropItem label="Shut Down…" disabled />
+              <DropDivider />
               <DropItem label="Lock Screen" shortcut="⌃⌘Q" onClick={() => { dispatch({ type: 'LOCK_SCREEN' }); close(); }} />
               <DropItem label="Log Out Ronniel Gandhe…" shortcut="⇧⌘Q" onClick={() => { window.location.reload(); }} />
             </div>
           )}
         </div>
 
-        {!isMobile && <div style={{ ...barItem, fontWeight: 700, padding: '0 10px 0 4px' }}>{appName}</div>}
+        {!isMobile && <div style={{ ...barItem, fontWeight: 700, padding: '0 10px 0 4px' }}>Ronniel Gandhe</div>}
 
-        {isMobile ? (
-          <>
         <div
           onMouseDown={() => {
             const termWin = state.windows.terminal;
@@ -197,17 +188,6 @@ export default function DesktopMenuBar() {
           onMouseEnter={() => hover('_resume')}
           style={{ ...barItem, padding: '0 10px' }}
         >Resume</div>
-          </>
-        ) : (
-          <BarDropdown label="Go" id="go" active={activeMenu} toggle={toggle} hover={hover}>
-            <DropItem label="Experience" onClick={() => { openFolder('experience'); close(); }} />
-            <DropItem label="Education" onClick={() => { openFolder('education'); close(); }} />
-            <DropDivider />
-            <DropItem label="Resume" onClick={() => { window.open('/Ronniel_Gandhe_Resume.pdf', '_blank'); close(); }} />
-            <DropItem label="Projects" onClick={() => { dispatch({ type: 'OPEN_WINDOW', id: 'projects' }); close(); }} />
-            <DropItem label="Notes" onClick={() => { dispatch({ type: 'OPEN_WINDOW', id: 'blog' }); close(); }} />
-          </BarDropdown>
-        )}
 
         {!isMobile && (
           <BarDropdown label="Window" id="window" active={activeMenu} toggle={toggle} hover={hover}>
@@ -216,9 +196,10 @@ export default function DesktopMenuBar() {
             <DropItem label="Zoom" disabled={!hasFocused}
               onClick={() => { if (state.focusedWindowId) dispatch({ type: 'TOGGLE_FULLSCREEN', id: state.focusedWindowId }); close(); }} />
             <DropDivider />
-            <DropItem label="Close Window" disabled={!hasFocused}
+            <DropItem label="Close Window" shortcut="⌘W" disabled={!hasFocused}
               onClick={() => { if (state.focusedWindowId) dispatch({ type: 'REQUEST_CLOSE', id: state.focusedWindowId }); close(); }} />
-
+            <DropDivider />
+            <DropItem label="Bring All to Front" onClick={close} />
           </BarDropdown>
         )}
       </div>
@@ -232,7 +213,7 @@ export default function DesktopMenuBar() {
         <div style={{ padding: '0 7px', display: 'flex', alignItems: 'center' }}><BatteryIcon /></div>
 
         <TrayDropdown id="wifi" active={activeMenu} toggle={toggle} icon={<WifiIcon />} align="right" panelStyle={panelStyle}>
-          <WifiPanel location={location} />
+          <WifiPanel location={location} onOpenSettings={() => { dispatch({ type: 'OPEN_WINDOW', id: 'wifi-settings' }); close(); }} />
         </TrayDropdown>
 
         {!isMobile && (
@@ -347,14 +328,14 @@ function TrayDropdown({ id, active, toggle, icon, children, align, panelStyle }:
   return (
     <div style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center' }}>
       <div
-        onPointerDown={() => toggle(id)}
+        onClick={() => toggle(id)}
         style={{
           height: '22px', padding: '0 7px', borderRadius: '5px', cursor: 'default',
           background: open ? 'rgba(255,255,255,0.22)' : 'transparent',
           display: 'flex', alignItems: 'center',
         }}
       >{icon}</div>
-      {open && <div style={{ ...panelStyle, ...(align === 'right' ? { right: 0 } : { left: 0 }) }}>{children}</div>}
+      {open && <div style={{ ...panelStyle, ...(align === 'right' ? { right: 0 } : { left: 0 }), borderRadius: '12px' }}>{children}</div>}
     </div>
   );
 }
@@ -377,7 +358,7 @@ function DropItem({ label, shortcut, onClick, disabled }: {
         height: '22px', padding: '0 9px', margin: '0 5px', borderRadius: '4px',
         fontSize: '13px', cursor: 'default', whiteSpace: 'nowrap',
         color: disabled ? c.textDisabled : active ? '#fff' : c.text,
-        background: active ? c.accent : 'transparent',
+        background: active ? ACCENT : 'transparent',
       }}
     >
       <span>{label}</span>
@@ -398,7 +379,7 @@ function DropDivider() {
 
 /* ── WiFi Panel ────────────────────────────────────── */
 
-function WifiPanel({ location }: { location: LocationData | null }) {
+function WifiPanel({ location, onOpenSettings }: { location: LocationData | null; onOpenSettings: () => void }) {
   const ink = useInk();
   return (
     <div style={{ padding: '4px 0', minWidth: '280px' }}>
@@ -493,7 +474,8 @@ function WifiPanel({ location }: { location: LocationData | null }) {
 
       <DropDivider />
 
-      <DropItem label="Wi-Fi Settings…" disabled />
+      {/* Wi-Fi Settings */}
+      <DropItem label="Wi-Fi Settings..." onClick={onOpenSettings} />
     </div>
   );
 }
@@ -651,7 +633,7 @@ function ControlCenterPanel({ dark, onToggleDark, location, spotify }: {
   };
   const badge = (on: boolean): React.CSSProperties => ({
     width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0,
-    background: on ? c.accent : c.hover,
+    background: on ? ACCENT : c.hover,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
   });
   const title: React.CSSProperties = { fontSize: '13px', fontWeight: 600, color: c.text, lineHeight: '16px' };

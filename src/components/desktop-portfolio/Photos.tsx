@@ -1,19 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
-import type { ReactNode } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { photos } from '../../data/photos';
-import { SYS_FONT, LABEL, LABEL_2, Icon, MacStyles } from './mac';
 
 interface PhotosProps {
   windowMode?: boolean;
 }
 
-const SELECT_BLUE = '#007AFF';
-const MIN_COLS = 3;
-const MAX_COLS = 9;
-
-function LazyThumb({ thumb, alt, selected, onClick, onOpen }: {
-  thumb: string; alt: string; selected: boolean; onClick: () => void; onOpen: () => void;
-}) {
+/* Lazy-loaded thumbnail that only renders the <img> when visible */
+function LazyThumb({ thumb, alt, onClick }: { thumb: string; alt: string; onClick: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
@@ -32,134 +25,275 @@ function LazyThumb({ thumb, alt, selected, onClick, onOpen }: {
     <div
       ref={ref}
       onClick={onClick}
-      onDoubleClick={onOpen}
-      style={{ aspectRatio: '1', overflow: 'hidden', position: 'relative', background: '#e5e5e5', cursor: 'default' }}
+      style={{
+        aspectRatio: '1',
+        overflow: 'hidden',
+        cursor: 'pointer',
+        borderRadius: '2px',
+        position: 'relative',
+        background: '#1a1a1f',
+        containIntrinsicSize: '140px 140px',
+        contentVisibility: 'auto',
+      } as React.CSSProperties}
+      className="photos-grid-item"
     >
       {visible && (
-        <img src={thumb} alt={alt} decoding="async" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <img
+          src={thumb}
+          alt={alt}
+          decoding="async"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+          }}
+        />
       )}
-      {selected && <div style={{ position: 'absolute', inset: 0, boxShadow: `inset 0 0 0 3px ${SELECT_BLUE}` }} />}
     </div>
   );
 }
 
-function ToolBtn({ children, onClick, disabled, tooltip, dark }: {
-  children: ReactNode; onClick?: () => void; disabled?: boolean; tooltip?: string; dark?: boolean;
-}) {
-  const [hover, setHover] = useState(false);
-  return (
-    <div
-      title={tooltip}
-      onClick={disabled ? undefined : onClick}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      style={{
-        width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: dark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.6)',
-        opacity: disabled ? 0.35 : 1,
-        background: hover && !disabled ? (dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)') : 'transparent',
-        cursor: 'default',
-      }}
-    >
-      {children}
-    </div>
-  );
-}
+const Photos = ({ windowMode }: PhotosProps) => {
+  const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
 
-const Photos = (_props: PhotosProps) => {
-  const [openIdx, setOpenIdx] = useState<number | null>(null);
-  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
-  const [cols, setCols] = useState(6);
+  const selected = selectedPhoto !== null ? photos[selectedPhoto] : null;
 
+  // Keyboard navigation
   useEffect(() => {
-    if (openIdx === null) return;
+    if (selectedPhoto === null) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight' && openIdx < photos.length - 1) setOpenIdx(openIdx + 1);
-      if (e.key === 'ArrowLeft' && openIdx > 0) setOpenIdx(openIdx - 1);
-      if (e.key === 'Escape') { setSelectedIdx(openIdx); setOpenIdx(null); }
+      if (e.key === 'ArrowRight' && selectedPhoto < photos.length - 1) setSelectedPhoto(selectedPhoto + 1);
+      if (e.key === 'ArrowLeft' && selectedPhoto > 0) setSelectedPhoto(selectedPhoto - 1);
+      if (e.key === 'Escape') setSelectedPhoto(null);
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [openIdx]);
-
-  const open = openIdx !== null ? photos[openIdx] : null;
-  const viewing = open !== null;
+  }, [selectedPhoto]);
 
   return (
     <div style={{
-      height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden',
-      background: viewing ? '#000000' : '#ffffff', fontFamily: SYS_FONT, fontSize: '13px', color: LABEL,
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      background: 'rgba(15, 15, 20, 0.72)',
+      backdropFilter: 'blur(12px)',
+      WebkitBackdropFilter: 'blur(12px)',
+      borderRadius: '0 0 12px 12px',
+      overflow: 'hidden',
     }}>
-      <MacStyles />
+      {/* Toolbar */}
       <div style={{
-        height: '52px', flexShrink: 0, display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center',
-        padding: '0 80px', boxSizing: 'border-box', background: viewing ? '#1e1e1e' : '#f6f6f6',
-        borderBottom: viewing ? '0.5px solid rgba(255,255,255,0.1)' : '0.5px solid rgba(0,0,0,0.1)',
+        display: 'flex',
+        alignItems: 'center',
+        padding: '8px 16px',
+        borderBottom: '0.5px solid rgba(255, 255, 255, 0.08)',
+        gap: '12px',
+        flexShrink: 0,
       }}>
-        {viewing && openIdx !== null ? (
+        {selectedPhoto !== null ? (
           <>
-            <div style={{ display: 'flex' }}>
-              <ToolBtn dark tooltip="Back" onClick={() => { setSelectedIdx(openIdx); setOpenIdx(null); }}>
-                <Icon.ChevronLeft size={18} />
-              </ToolBtn>
-            </div>
-            <div style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.85)', fontVariantNumeric: 'tabular-nums' }}>
-              {openIdx + 1} of {photos.length}
-            </div>
-            <div />
+            <button
+              onClick={() => setSelectedPhoto(null)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '4px 10px',
+                borderRadius: '6px',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                background: 'rgba(255, 255, 255, 0.06)',
+                color: 'rgba(255, 255, 255, 0.8)',
+                fontSize: '12px',
+                fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+                cursor: 'pointer',
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              All Photos
+            </button>
+            <div style={{ flex: 1 }} />
+            <span style={{
+              fontSize: '11px',
+              color: 'rgba(255, 255, 255, 0.35)',
+              fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+            }}>
+              {selectedPhoto + 1} of {photos.length}
+            </span>
           </>
         ) : (
           <>
-            <div style={{ display: 'flex', gap: '2px' }}>
-              <ToolBtn tooltip="Zoom Out" disabled={cols >= MAX_COLS} onClick={() => setCols(c => Math.min(MAX_COLS, c + 1))}>
-                <Icon.Minus size={16} />
-              </ToolBtn>
-              <ToolBtn tooltip="Zoom In" disabled={cols <= MIN_COLS} onClick={() => setCols(c => Math.max(MIN_COLS, c - 1))}>
-                <Icon.Plus size={16} />
-              </ToolBtn>
-            </div>
-            <div style={{ display: 'flex', background: 'rgba(0,0,0,0.06)', borderRadius: '6px', padding: '2px', height: '24px', boxSizing: 'border-box' }}>
-              {['Years', 'Months', 'All Photos'].map(label => {
-                const active = label === 'All Photos';
-                return (
-                  <div key={label} style={{
-                    padding: '0 12px', display: 'flex', alignItems: 'center', borderRadius: '5px', fontSize: '12px',
-                    background: active ? '#ffffff' : 'transparent',
-                    boxShadow: active ? '0 0.5px 1.5px rgba(0,0,0,0.2)' : undefined,
-                    color: active ? LABEL : 'rgba(0,0,0,0.3)',
-                    cursor: 'default',
-                  }}>{label}</div>
-                );
-              })}
-            </div>
-            <div />
+            <span style={{
+              fontSize: '13px',
+              color: 'rgba(255, 255, 255, 0.9)',
+              fontWeight: 600,
+              fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+            }}>
+              All Photos
+            </span>
+            <div style={{ flex: 1 }} />
+            <span style={{
+              fontSize: '11px',
+              color: 'rgba(255, 255, 255, 0.35)',
+              fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+            }}>
+              {photos.length} photos
+            </span>
           </>
         )}
       </div>
 
-      {viewing && open ? (
-        <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
-          <img src={open.src} alt={open.alt} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+      {/* Content */}
+      {selectedPhoto !== null && selected ? (
+        /* Expanded single photo view — loads full-size original */
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px',
+          minHeight: 0,
+          position: 'relative',
+        }}>
+          {/* Navigation arrows */}
+          {selectedPhoto > 0 && (
+            <button
+              onClick={() => setSelectedPhoto(selectedPhoto - 1)}
+              style={{
+                position: 'absolute',
+                left: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                color: 'rgba(255, 255, 255, 0.8)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 2,
+                backdropFilter: 'blur(8px)',
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+          )}
+          {selectedPhoto < photos.length - 1 && (
+            <button
+              onClick={() => setSelectedPhoto(selectedPhoto + 1)}
+              style={{
+                position: 'absolute',
+                right: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                color: 'rgba(255, 255, 255, 0.8)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 2,
+                backdropFilter: 'blur(8px)',
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          )}
+
+          <img
+            src={selected.src}
+            alt={selected.alt}
+            style={{
+              maxWidth: '100%',
+              maxHeight: 'calc(100% - 60px)',
+              objectFit: 'contain',
+              borderRadius: '8px',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            }}
+          />
+          <div style={{
+            marginTop: '12px',
+            textAlign: 'center',
+          }}>
+            {selected.caption && (
+              <p style={{
+                color: 'rgba(255, 255, 255, 0.8)',
+                fontSize: '13px',
+                fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+                margin: 0,
+                fontWeight: 500,
+              }}>
+                {selected.caption}
+              </p>
+            )}
+            {selected.createdAt && (
+              <p style={{
+                color: 'rgba(255, 255, 255, 0.35)',
+                fontSize: '11px',
+                fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+                margin: '4px 0 0',
+              }}>
+                {new Date(selected.createdAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </p>
+            )}
+          </div>
         </div>
       ) : (
-        <div className="mac-scroll" style={{ flex: 1 }} onClick={(e) => { if (e.target === e.currentTarget) setSelectedIdx(null); }}>
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: '2px' }}>
+        /* Grid view — uses compressed thumbnails */
+        <div style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '8px',
+        }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+            gap: '4px',
+          }}>
             {photos.map((photo, i) => (
               <LazyThumb
-                key={photo.src}
+                key={i}
                 thumb={photo.thumb}
                 alt={photo.alt}
-                selected={selectedIdx === i}
-                onClick={() => setSelectedIdx(i)}
-                onOpen={() => setOpenIdx(i)}
+                onClick={() => setSelectedPhoto(i)}
               />
             ))}
           </div>
-          <div style={{ textAlign: 'center', fontSize: '11px', color: LABEL_2, padding: '14px 0 18px' }}>
-            {photos.length} Photos
-          </div>
         </div>
       )}
+
+      <style>{`
+        .photos-grid-item {
+          transition: transform 0.2s ease;
+        }
+        .photos-grid-item:hover {
+          transform: scale(1.03);
+          z-index: 1;
+        }
+        .photos-grid-item img {
+          transition: filter 0.2s ease;
+        }
+        .photos-grid-item:hover img {
+          filter: brightness(1.1);
+        }
+      `}</style>
     </div>
   );
 };
