@@ -1,0 +1,16 @@
+---
+import SiteHead from '../../components/portfolio/SiteHead.astro';
+import BenchDev from '../../tools/bench/BenchDev';
+
+const raw = import.meta.env.DEV && Astro.url.searchParams.get('raw') === '1';
+if (!raw) return Astro.redirect('/leanfetch?view=benchmarks');
+---
+
+<html lang="en">
+  <head>
+    <SiteHead title="llm benchmarks | LeanFetch" description="public llm benchmarks joined to price per token. find the cheapest model that is good enough." path="/leanfetch/benchmarks" />
+  </head>
+  <body>
+    <BenchDev client:only="react" />
+  </body>
+</html>

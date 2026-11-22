@@ -1,0 +1,88 @@
+{
+ "buckets": 16384,
+ "dim": 32,
+ "hid": 32,
+ "mlp": 64,
+ "feats": 6,
+ "hash": "fnv1a32",
+ "tokens": "w:<word> + g:<char trigram of <word>>",
+ "id": "human",
+ "name": "base + human clicks",
+ "tensors": {
+  "E_q": {
+   "offset": 0,
+   "dtype": "int8",
+   "shape": [
+    16384,
+    32
+   ]
+  },
+  "E_scale": {
+   "offset": 524288,
+   "dtype": "float32",
+   "shape": [
+    16384
+   ]
+  },
+  "Ws": {
+   "offset": 589824,
+   "dtype": "float32",
+   "shape": [
+    32,
+    32
+   ]
+  },
+  "bs": {
+   "offset": 593920,
+   "dtype": "float32",
+   "shape": [
+    32
+   ]
+  },
+  "Wt": {
+   "offset": 594048,
+   "dtype": "float32",
+   "shape": [
+    32,
+    32
+   ]
+  },
+  "bt": {
+   "offset": 598144,
+   "dtype": "float32",
+   "shape": [
+    32
+   ]
+  },
+  "W1": {
+   "offset": 598272,
+   "dtype": "float32",
+   "shape": [
+    102,
+    64
+   ]
+  },
+  "b1": {
+   "offset": 624384,
+   "dtype": "float32",
+   "shape": [
+    64
+   ]
+  },
+  "w2": {
+   "offset": 624640,
+   "dtype": "float32",
+   "shape": [
+    64
+   ]
+  },
+  "b2": {
+   "offset": 624896,
+   "dtype": "float32",
+   "shape": [
+    1
+   ]
+  }
+ },
+ "bytes": 624900
+}

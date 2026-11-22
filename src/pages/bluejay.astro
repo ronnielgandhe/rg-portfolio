@@ -1,0 +1,13 @@
+---
+import SiteHead from '../components/portfolio/SiteHead.astro';
+import WorkPage from '../components/portfolio/work/WorkPage';
+---
+
+<html lang="en">
+  <head>
+    <SiteHead title="my time at bluejay | Ronniel Gandhe" description="my time at bluejay. ronniel gandhe, software engineer in san francisco." path="/bluejay" />
+  </head>
+  <body>
+    <WorkPage slug="bluejay" client:load />
+  </body>
+</html>
