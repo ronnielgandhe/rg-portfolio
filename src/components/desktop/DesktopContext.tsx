@@ -31,7 +31,7 @@ function createWindow(id: WindowId, zIndex: number, titleOverride?: string): Win
   // edge to avoid the center→right slide flicker. The DesktopShell layout
   // effect uses the same math; matching it here means it won't dispatch
   // MOVE_WINDOW after mount.
-  const isSideWindow = id === 'education' || id === 'experience';
+  const isSideWindow = false;
   const isWideEnoughForSide = screenW >= 1024;
 
   let x: number;

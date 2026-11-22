@@ -63,13 +63,13 @@ export type DesktopAction =
 // Default window configs
 export const WINDOW_DEFAULTS: Record<WindowId, { title: string; width: number; height: number; x: number; y: number }> = {
   terminal:        { title: 'Ronniel Gandhe',               width: 520, height: 600, x: 120,  y: 50 },
-  education:       { title: 'Education',                    width: 880, height: 780, x: 120, y: 50 },
-  experience:      { title: 'Experience',                   width: 960, height: 820, x: 160, y: 40 },
+  education:       { title: 'Education',                    width: 940, height: 620, x: 250, y: 90 },
+  experience:      { title: 'Experience',                   width: 940, height: 620, x: 250, y: 90 },
   projects:        { title: 'Projects — Visual Studio Code', width: 960, height: 680, x: 80, y: 35 },
   blog:            { title: 'Notes',                        width: 900, height: 620, x: 110, y: 60 },
   calendar:        { title: 'Calendar',                      width: 900, height: 600, x: 120, y: 35 },
   email:           { title: 'New Message',                   width: 640, height: 520, x: 180, y: 80 },
-  photos:          { title: 'Photos',                        width: 900, height: 640, x: 100, y: 50 },
+  photos:          { title: 'Photos',                        width: 900, height: 600, x: 100, y: 50 },
   detail:          { title: 'Detail',                       width: 650, height: 600, x: 200, y: 80 },
   stocks:          { title: 'Stocks',                       width: 980, height: 640, x: 230, y: 60 },
   content:         { title: 'Reader',                       width: 900, height: 700, x: 150, y: 40 },

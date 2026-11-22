@@ -6011,7 +6011,7 @@ function Desktop() {
     const MIN_WIDTH_FOR_SLIDE = 1024;
     if (window.innerWidth < MIN_WIDTH_FOR_SLIDE) return;
 
-    const sideWindows = ['education', 'experience'] as const;
+    const sideWindows: ('education' | 'experience')[] = [];
     const openSideWindow = sideWindows.find(id => {
       const w = state.windows[id];
       return w && w.isOpen && !w.isMinimized;
@@ -6083,7 +6083,7 @@ function Desktop() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     // Stable dependency: only re-run when the set of open side windows changes
-    ['education', 'experience'].filter(id => state.windows[id]?.isOpen && !state.windows[id]?.isMinimized).join(','),
+    '',
     state.windows['terminal']?.isOpen,
   ]);
 
@@ -6143,16 +6143,13 @@ function Desktop() {
             const isTerminalFullscreen = win.id === 'terminal' && win.isFullscreen;
             const isTerminalDashboard = isTerminalFullscreen && bbAuthState;
             const titleBarBgMap: Record<string, string> = {
-              projects: '#252526',
-              blog: '#f6f6f6',
-              calendar: '#ffffff',
-              photos: '#1a1a1f',
+              projects: '#181818',
               stocks: '#1c1c1e',
-              email: '#ececec',
               ...(isTerminalDashboard ? { terminal: 'rgba(0,0,0,0.4)' } : {}),
             };
             // Apps with dark content need light title bar text
-            const darkTitleBars = ['projects', 'terminal', 'photos', 'stocks'];
+            const darkTitleBars = ['projects', 'terminal', 'stocks'];
+            const unified = ['blog', 'photos', 'calendar', 'email', 'education', 'experience'].includes(win.id);
             const titleBarBg = titleBarBgMap[win.id];
             const titleBarDark = darkTitleBars.includes(win.id);
             const material = (win.id as string) === 'terminal' ? 'terminal' as const : 'opaque' as const;
@@ -6183,7 +6180,7 @@ function Desktop() {
               );
             }
             return (
-              <AppWindow key={win.id} windowState={win} material={material} titleBarBg={titleBarBg} titleBarDark={titleBarDark} {...hoverProps}>
+              <AppWindow key={win.id} windowState={win} material={material} unified={unified} titleBarBg={titleBarBg} titleBarDark={titleBarDark} {...hoverProps}>
                 <WindowContent id={win.id} />
               </AppWindow>
             );

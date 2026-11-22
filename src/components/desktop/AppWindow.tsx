@@ -8,13 +8,14 @@ interface AppWindowProps {
   children: React.ReactNode;
   darkMode?: boolean;
   material?: 'opaque' | 'terminal';
+  unified?: boolean;
   titleBarBg?: string;
   titleBarDark?: boolean;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
 }
 
-export default function AppWindow({ windowState, children, darkMode, material = 'opaque', titleBarBg, titleBarDark, onMouseEnter, onMouseLeave }: AppWindowProps) {
+export default function AppWindow({ windowState, children, darkMode, material = 'opaque', unified = false, titleBarBg, titleBarDark, onMouseEnter, onMouseLeave }: AppWindowProps) {
   const { state, dispatch } = useDesktop();
   const dragRef = useRef<{ startX: number; startY: number; winX: number; winY: number } | null>(null);
   const resizeRef = useRef<{ startX: number; startY: number; startW: number; startH: number; edge: string } | null>(null);
@@ -198,78 +199,130 @@ export default function AppWindow({ windowState, children, darkMode, material = 
         display: 'flex',
         flexDirection: 'column',
       }}>
-      {/* Title bar — draggable */}
-      <div
-        onMouseDown={handleMouseDownTitleBar}
-        onDoubleClick={handleDoubleClickTitleBar}
-        style={{
-          height: '28px',
-          minHeight: '28px',
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 8px',
-          borderBottom: titleBarDark ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(0, 0, 0, 0.04)',
-          cursor: 'default',
-          userSelect: 'none',
-          background: titleBarBg || 'transparent',
-        }}
-      >
-        {/* Traffic lights */}
+      {unified ? (
+        <>
+          {/* Traffic lights */}
+          <div
+            style={{ position: 'absolute', left: 20, top: 20, zIndex: 5, display: 'flex', gap: '8px', alignItems: 'center' }}
+            onMouseEnter={() => setTrafficHover(true)}
+            onMouseLeave={() => setTrafficHover(false)}
+          >
+            <TrafficButton
+              kind="close"
+              lit={isFocused || trafficHover}
+              hovered={trafficHover}
+              dark={darkChrome}
+              onClick={(e) => { e.stopPropagation(); dispatch({ type: 'REQUEST_CLOSE', id: windowState.id }); }}
+              label="Close window"
+            />
+            <TrafficButton
+              kind="minimize"
+              lit={isFocused || trafficHover}
+              hovered={trafficHover}
+              dark={darkChrome}
+              onClick={(e) => { e.stopPropagation(); dispatch({ type: 'MINIMIZE_WINDOW', id: windowState.id }); }}
+              label="Minimize window"
+            />
+            <TrafficButton
+              kind="zoom"
+              lit={isFocused || trafficHover}
+              hovered={trafficHover}
+              dark={darkChrome}
+              onClick={(e) => { e.stopPropagation(); dispatch({ type: 'TOGGLE_FULLSCREEN', id: windowState.id }); }}
+              label="Zoom window"
+            />
+          </div>
+        </>
+      ) : (
+        <>
+        {/* Title bar — draggable */}
         <div
-          style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
-          onMouseEnter={() => setTrafficHover(true)}
-          onMouseLeave={() => setTrafficHover(false)}
+          onMouseDown={handleMouseDownTitleBar}
+          onDoubleClick={handleDoubleClickTitleBar}
+          style={{
+            height: '28px',
+            minHeight: '28px',
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0 8px',
+            borderBottom: titleBarDark ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(0, 0, 0, 0.04)',
+            cursor: 'default',
+            userSelect: 'none',
+            background: titleBarBg || 'transparent',
+          }}
         >
-          <TrafficButton
-            kind="close"
-            lit={isFocused || trafficHover}
-            hovered={trafficHover}
-            dark={darkChrome}
-            onClick={(e) => { e.stopPropagation(); dispatch({ type: 'REQUEST_CLOSE', id: windowState.id }); }}
-            label="Close window"
-          />
-          <TrafficButton
-            kind="minimize"
-            lit={isFocused || trafficHover}
-            hovered={trafficHover}
-            dark={darkChrome}
-            onClick={(e) => { e.stopPropagation(); dispatch({ type: 'MINIMIZE_WINDOW', id: windowState.id }); }}
-            label="Minimize window"
-          />
-          <TrafficButton
-            kind="zoom"
-            lit={isFocused || trafficHover}
-            hovered={trafficHover}
-            dark={darkChrome}
-            onClick={(e) => { e.stopPropagation(); dispatch({ type: 'TOGGLE_FULLSCREEN', id: windowState.id }); }}
-            label="Zoom window"
-          />
+          {/* Traffic lights */}
+          <div
+            style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
+            onMouseEnter={() => setTrafficHover(true)}
+            onMouseLeave={() => setTrafficHover(false)}
+          >
+            <TrafficButton
+              kind="close"
+              lit={isFocused || trafficHover}
+              hovered={trafficHover}
+              dark={darkChrome}
+              onClick={(e) => { e.stopPropagation(); dispatch({ type: 'REQUEST_CLOSE', id: windowState.id }); }}
+              label="Close window"
+            />
+            <TrafficButton
+              kind="minimize"
+              lit={isFocused || trafficHover}
+              hovered={trafficHover}
+              dark={darkChrome}
+              onClick={(e) => { e.stopPropagation(); dispatch({ type: 'MINIMIZE_WINDOW', id: windowState.id }); }}
+              label="Minimize window"
+            />
+            <TrafficButton
+              kind="zoom"
+              lit={isFocused || trafficHover}
+              hovered={trafficHover}
+              dark={darkChrome}
+              onClick={(e) => { e.stopPropagation(); dispatch({ type: 'TOGGLE_FULLSCREEN', id: windowState.id }); }}
+              label="Zoom window"
+            />
+          </div>
+
+          {/* Window title */}
+          <span style={{
+            flex: 1,
+            textAlign: 'center',
+            fontFamily: SYSTEM_FONT,
+            fontSize: '13px',
+            fontWeight: 700,
+            color: darkChrome
+              ? (isFocused ? 'rgba(255, 255, 255, 0.86)' : 'rgba(255, 255, 255, 0.25)')
+              : (isFocused ? 'rgba(0, 0, 0, 0.85)' : 'rgba(0, 0, 0, 0.26)'),
+            transition: 'color 0.15s ease',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {windowState.title}
+          </span>
+
+          {/* Spacer to balance traffic lights */}
+          <div style={{ width: '52px' }} />
         </div>
-
-        {/* Window title */}
-        <span style={{
-          flex: 1,
-          textAlign: 'center',
-          fontFamily: SYSTEM_FONT,
-          fontSize: '13px',
-          fontWeight: 700,
-          color: darkChrome
-            ? (isFocused ? 'rgba(255, 255, 255, 0.86)' : 'rgba(255, 255, 255, 0.25)')
-            : (isFocused ? 'rgba(0, 0, 0, 0.85)' : 'rgba(0, 0, 0, 0.26)'),
-          transition: 'color 0.15s ease',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}>
-          {windowState.title}
-        </span>
-
-        {/* Spacer to balance traffic lights */}
-        <div style={{ width: '52px' }} />
-      </div>
+        </>
+      )}
 
       {/* Content area — scrollable */}
-      <div className={darkMode ? 'dark-window' : 'light-window'} style={{
+      <div
+        className={darkMode ? 'dark-window' : 'light-window'}
+        onMouseDown={unified ? (e) => {
+          const top = windowRef.current?.getBoundingClientRect().top ?? 0;
+          const el = e.target as HTMLElement;
+          if (e.clientY - top > 52 || el.closest('button, a, input, textarea, select, [role="button"], [contenteditable="true"]')) return;
+          handleMouseDownTitleBar(e);
+        } : undefined}
+        onDoubleClick={unified ? (e) => {
+          const top = windowRef.current?.getBoundingClientRect().top ?? 0;
+          const el = e.target as HTMLElement;
+          if (e.clientY - top > 52 || el.closest('button, a, input, textarea, select, [role="button"]')) return;
+          handleDoubleClickTitleBar();
+        } : undefined}
+        style={{
         flex: 1,
         overflowY: 'auto',
         overflowX: 'hidden',
