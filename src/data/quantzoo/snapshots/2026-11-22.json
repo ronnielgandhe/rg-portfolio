@@ -2,66 +2,62 @@
   "date": "2026-11-22",
   "gauge": -56,
   "breadth": 0.273,
-  "mood": -0.271,
+  "mood": -0.297,
   "themes": {
-    "tech": -0.495,
-    "stocks": -0.472,
-    "rates": -0.444,
-    "inflation": -0.233,
-    "energy": -0.278,
+    "tech": -0.515,
+    "stocks": -0.453,
+    "rates": -0.5,
+    "energy": -0.222,
     "trade": -0.444,
-    "economy": -0.833,
+    "inflation": -0.183,
+    "economy": -0.667,
     "gold": -0.5,
     "banks": -0.5
   },
   "odds": [
     {
-      "question": "fed decision in december?",
-      "outcome": "no change",
-      "p": 0.067,
-      "source": "polymarket"
-    },
-    {
-      "question": "will the federal reserve hike rates by 0bps at their december 2026 meeting?",
-      "outcome": null,
-      "p": 0.08,
-      "source": "kalshi"
-    },
-    {
-      "question": "presidential election winner 2028?",
-      "outcome": "gavin newsom",
+      "question": "will the fed leave interest rates alone in december?",
       "p": 0.064,
-      "source": "polymarket"
+      "sources": [
+        "polymarket",
+        "kalshi"
+      ]
     },
     {
-      "question": "anthropic closes below ipo price ($83) by...?",
-      "outcome": "november 25",
-      "p": 0.3,
-      "source": "polymarket"
+      "question": "will the us fall into a recession in 2027?",
+      "p": 0.23,
+      "sources": [
+        "kalshi"
+      ]
     },
     {
-      "question": "ai bubble burst by...?",
-      "outcome": "june 30, 2027",
-      "p": 0.67,
-      "source": "polymarket"
-    },
-    {
-      "question": "next senate majority leader?",
-      "outcome": "chuck schumer",
-      "p": 0.925,
-      "source": "polymarket"
-    },
-    {
-      "question": "fed decision in january?",
-      "outcome": "25 bps increase",
+      "question": "will the fed leave interest rates alone in january?",
       "p": 0.485,
-      "source": "polymarket"
+      "sources": [
+        "polymarket",
+        "kalshi"
+      ]
     },
     {
-      "question": "another fed rate hike in 2026?",
-      "outcome": null,
-      "p": 0.928,
-      "source": "polymarket"
+      "question": "will the us government shut down by december 31?",
+      "p": 0.33,
+      "sources": [
+        "polymarket"
+      ]
+    },
+    {
+      "question": "will prices be up more than 3.7% from a year ago in the november inflation report?",
+      "p": 0.33,
+      "sources": [
+        "kalshi"
+      ]
+    },
+    {
+      "question": "will gold reach $3,800 by the end of november?",
+      "p": 0.225,
+      "sources": [
+        "polymarket"
+      ]
     }
   ]
 }

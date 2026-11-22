@@ -3,7 +3,7 @@ import { Tick } from '../ui/Tick';
 import { BOARD_CSS } from './styles.ts';
 import { useBoard, useInView, useNow, type Slot } from './useBoard.ts';
 import { BAD_WHEN_UP, BOOSTERS, MOVES, NEGATORS, RULE, TONE_DOWN, TONE_UP } from './lexicon.ts';
-import { breadthLine, dir, happened, meaning, moodLine, moodOf, niceDay, oddsLine, oddsTitle, price, readOf, signed, topicLine, why } from './plain.ts';
+import { breadthLine, dir, happened, meaning, moodLine, moodOf, niceDay, newsAbout, oddsLine, price, readOf, signed, why } from './plain.ts';
 import type { Down, HistoryData, NewsData, OddsData, Quote, TapeData } from './types.ts';
 
 const live = (x: Quote | Down): x is Quote => !('down' in x);
@@ -184,19 +184,19 @@ function useFlip(keys: string) {
 }
 
 function Odds({ d }: { d: OddsData }) {
-  const rows = d.rows.slice(0, 8);
+  const rows = d.rows;
   const bind = useFlip(rows.map((r) => r.id).join('|'));
   return (
     <>
+      <p className="qzb-odds-intro qzb-in">people put real money on yes or no questions. the price of a yes is the crowd's odds.</p>
       <div className="qzb-odds">
         {rows.map((r, i) => {
           const ch = r.d7 ?? r.d1;
           return (
-            <a className="qzb-odd qzb-in" key={r.id} ref={bind(r.id)} href={r.url} target="_blank" rel="noopener noreferrer" style={vars({ '--i': i })}>
-              <div className="qzb-odd-q">
-                <span className="qzb-odd-title">{oddsTitle(r).title}</span>
-                {oddsTitle(r).bet ? <span className="qzb-odd-out">the bet: {oddsTitle(r).bet}</span> : null}
-              </div>
+            <article className="qzb-odd qzb-in" key={r.id} ref={bind(r.id)} style={vars({ '--i': i })}>
+              <a className="qzb-odd-title" href={r.prices[0]?.url} target="_blank" rel="noopener noreferrer" title={r.prices.map((x) => `${x.source}: ${x.title}`).join('\n')}>
+                {r.question}
+              </a>
               <div className="qzb-odd-p">
                 <Tick value={r.p * 100} format={(x) => `${Math.round(x)}%`} />
               </div>
@@ -204,28 +204,31 @@ function Odds({ d }: { d: OddsData }) {
                 <span className={`qzb-odd-fill ${dir(ch)}`} style={{ width: `${(r.p * 100).toFixed(1)}%` }} />
               </div>
               <p className="qzb-odd-line">
-                <span className={dir(ch)}>{oddsLine(r)}</span> <span className="qzb-odd-src">on {r.source}</span>
+                <span className={dir(ch)}>{oddsLine(r)}</span>
+                <span className="qzb-odd-src">
+                  {r.prices.map((x, k) => (
+                    <span key={x.source}>
+                      {k ? ', ' : ''}
+                      <a className="qzb-link" href={x.url} target="_blank" rel="noopener noreferrer" title={x.title}>
+                        {x.source} {Math.round(x.p * 100)}%
+                      </a>
+                    </span>
+                  ))}
+                </span>
               </p>
-            </a>
+              <p className="qzb-odd-why">why it matters: {r.why}</p>
+            </article>
           );
         })}
       </div>
-      <p className="qzb-fine qzb-note">
-        the percent is what a yes costs, which works out to the crowd's guess at the chance. picked automatically from the busiest money questions.{' '}
-        {d.sources.filter((s) => !s.ok).map((s) => (
-          <span key={s.id} className="qzb-down">{s.id} is down right now. </span>
-        ))}
-      </p>
+      {d.sources.some((s) => !s.ok) ? (
+        <p className="qzb-fine qzb-note">
+          {d.sources.filter((s) => !s.ok).map((s) => (
+            <span key={s.id} className="qzb-down">{s.id} is down right now, showing the other one. </span>
+          ))}
+        </p>
+      ) : null}
     </>
-  );
-}
-
-function Bar({ v }: { v: number }) {
-  const half = Math.min(1, Math.abs(v)) * 50;
-  return (
-    <span className="qzb-bar-track">
-      <span className={`qzb-bar-fill ${v < 0 ? 'qzb-neg' : 'qzb-pos'}`} style={{ left: v >= 0 ? '50%' : `${50 - half}%`, width: `${half}%` }} />
-    </span>
   );
 }
 
@@ -238,6 +241,7 @@ const words = (o: Record<string, number>) =>
 function News({ d, now }: { d: NewsData; now: number }) {
   return (
     <>
+      <p className="qzb-big-line qzb-in qzb-about">{newsAbout(d.themes)}</p>
       <div className="qzb-news">
         <div className="qzb-heads">
           {d.reads.map((h, i) => {
@@ -253,18 +257,6 @@ function News({ d, now }: { d: NewsData; now: number }) {
               </a>
             );
           })}
-        </div>
-        <div>
-          <div className="qzb-label">what the news is about</div>
-          <div className="qzb-topics">
-            {d.themes.slice(0, 7).map((t, i) => (
-              <div className="qzb-topic qzb-in" key={t.id} style={vars({ '--i': i })}>
-                <span className="qzb-topic-name">{t.name}</span>
-                <Bar v={t.mean} />
-                <span className={`qzb-topic-r ${dir(Math.abs(t.mean) > 0.15 ? t.mean : 0)}`}>{topicLine(t.mean, t.count)}</span>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
       <details className="qzb-how">
@@ -358,7 +350,7 @@ export default function MarketBoard() {
         </Pending>
       </Block>
 
-      <Block title="what traders are betting on" sub="real money odds, biggest moves first">
+      <Block title="what traders are betting on" sub="biggest moves first">
         <Pending slot={odds} name="the betting markets">
           {(d) => <Odds d={d} />}
         </Pending>
@@ -370,11 +362,13 @@ export default function MarketBoard() {
         </Pending>
       </Block>
 
+      {(history.data?.snapshots.filter((x) => x.gauge != null).length ?? 0) > 1 ? (
       <Block title="the mood over time">
         <Pending slot={history} name="the daily log">
           {(d) => <History d={d} />}
         </Pending>
       </Block>
+      ) : null}
 
       <footer className="qzb-foot">
         <p>prices from yahoo finance, can run 15 minutes behind. odds from polymarket and kalshi, each linked to its market. headlines from each publisher's public feed, linked to the original story.</p>

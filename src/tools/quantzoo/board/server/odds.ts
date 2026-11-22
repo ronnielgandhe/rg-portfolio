@@ -4,20 +4,176 @@ import type { OddsData, OddsRow } from '../types.ts';
 const GAMMA = 'https://gamma-api.polymarket.com';
 const CLOB = 'https://clob.polymarket.com';
 const KALSHI = 'https://api.elections.kalshi.com/trade-api/v2';
-
-export const MACRO = /\b(fed|fomc|rate cuts?|rate hikes?|interest rates?|recession|inflation|cpi|pce|gdp|unemployment|payrolls|jobs report|s&p|nasdaq|dow|treasury|10.year|yield|shutdown|tariffs?|debt ceiling|largest company|market cap|oil|wti|gold|bitcoin|ai bubble|ipo|presidential election|midterm|house|senate|fed chair)\b/i;
-export const SKIP = /\b(argentina|china|chinese|japan|uk|euro|eurozone|ecb|brazil|india|canada|mexico|korea|turkey|french|spain|taipei|australia|eggs|gas hit|mention|say|tweet|week of|(january|february|march|april|may|june|july|august|september|october|november|december) \d+|what price|above ___|today|hourly|between \d|corn|wheat|decisions)\b/i;
-const FLOOR_24H = 5000;
-const FLOOR_TOTAL = 100000;
-const PM_TAGS = ['economy', 'fed', 'finance', 'stocks', 'tariffs', 'government-shutdown', 'elections'];
+const PM_TAGS = ['economy', 'fed', 'finance', 'government-shutdown', 'commodities'];
 const KS_CATEGORIES = ['Economics', 'Financials', 'Politics'];
-const KS_SKIP_FREQ = new Set(['hourly', 'daily', 'weekly', 'fifteen_min']);
+const KS_SERIES = /^(fed meeting|recession|inflation|government shutdown|shutdown by|unemployment)$/i;
+const FLOOR_24H = 1000;
+const FLOOR_TOTAL = 50000;
+const SHOW = 6;
+const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
 
-const lower = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
+interface Cand {
+  source: 'polymarket' | 'kalshi';
+  event: string;
+  outcome: string;
+  title: string;
+  p: number;
+  d1: number | null;
+  d7: number | null;
+  vol24: number;
+  vol: number;
+  url: string;
+  closes: string | null;
+  token?: string;
+  series?: string;
+  ticker?: string;
+}
+
+interface Topic {
+  key: string;
+  group: string;
+  question: string;
+  why: string;
+  weight: number;
+  pick: 'exact' | 'mid';
+}
+
+const lower = (s: unknown) => String(s ?? '').toLowerCase().replace(/\s+/g, ' ').trim();
 const num = (x: unknown) => {
   const n = Number(x);
   return Number.isFinite(n) ? n : 0;
 };
+const soon = (iso: string | null, days: number) => !!iso && Date.parse(iso) - Date.now() < days * 86400_000 && Date.parse(iso) > Date.now();
+const money = (s: string) => s.replace(/[^\d.,k$]/gi, '');
+
+const RULES: ((c: Cand) => Topic | null)[] = [
+  (c) => {
+    if (!soon(c.closes, 100)) return null;
+    let month: string | undefined;
+    if (c.source === 'polymarket') {
+      const m = c.event.match(/^fed decision in (\w+)\?$/);
+      if (!m || !/^no change$/.test(c.outcome)) return null;
+      month = m[1];
+    } else {
+      const m = c.title.match(/hike rates by 0 ?bps at their (\w+) \d{4} meeting/);
+      if (!m) return null;
+      month = m[1];
+    }
+    if (!MONTHS.includes(month)) return null;
+    return { key: `fed-hold-${month}`, group: `fed-hold-${month}`, question: `will the fed leave interest rates alone in ${month}?`, why: 'any surprise moves stocks, bonds and the dollar fast. a cut usually lifts stocks and gold, a hike does the opposite.', weight: 10, pick: 'exact' };
+  },
+  (c) => {
+    const m = (c.event + ' ' + c.title).match(/(?:will there be a )?recession in (\d{4})/);
+    if (!m || /japan|uk|euro|china|germany|canada/.test(c.event + c.title)) return null;
+    return { key: `recession-${m[1]}`, group: `recession-${m[1]}`, question: `will the us fall into a recession in ${m[1]}?`, why: 'in a recession jobs and profits shrink, and stocks usually fall before it is official.', weight: 9, pick: 'exact' };
+  },
+  (c) => {
+    const m = c.title.match(/rate of cpi inflation be above ([\d.]+)% for the year ending in (\w+) (\d{4})/);
+    if (!m) return null;
+    return { key: `cpi-${m[2]}-${m[1]}`, group: `cpi-${m[2]}`, question: `will prices be up more than ${m[1]}% from a year ago in the ${m[2]} inflation report?`, why: 'hot inflation keeps interest rates high, which weighs on stocks and bonds.', weight: 8, pick: 'mid' };
+  },
+  (c) => {
+    if (c.source !== 'polymarket' || !/^another fed rate hike in (\d{4})\?$/.test(c.event)) return null;
+    const y = c.event.match(/\d{4}/)![0];
+    return { key: `fed-hike-${y}`, group: `fed-hike-${y}`, question: `will the fed raise interest rates again before the end of ${y}?`, why: 'higher rates make loans and mortgages pricier, which usually cools stocks.', weight: 7, pick: 'exact' };
+  },
+  (c) => {
+    if (!/government shutdown/.test(c.event + ' ' + c.title)) return null;
+    const by = c.outcome.match(/(\w+ \d{1,2}(?:, \d{4})?)/)?.[1] ?? c.title.match(/by (\w+ \d{1,2}(?:, \d{4})?)/)?.[1];
+    if (!by) return null;
+    return { key: `shutdown-${by}`, group: 'shutdown', question: `will the us government shut down by ${by}?`, why: 'a shutdown pauses government data and pay. markets usually shrug unless it drags on.', weight: 6, pick: 'mid' };
+  },
+  (c) => {
+    if (c.source !== 'polymarket') return null;
+    const m = c.event.match(/^what will (gold|wti crude oil|crude oil|silver) \(\w+\) hit.* by end of (\w+)\?$/) ?? c.event.match(/^what will (gold|wti crude oil|crude oil) \(\w+\) hit in (\w+) \d{4}\?$/);
+    if (!m) return null;
+    const what = m[1].includes('oil') ? 'oil' : m[1];
+    const down = /↓|low/.test(c.outcome);
+    const level = money(c.outcome);
+    if (!level) return null;
+    return {
+      key: `${what}-${down ? 'lo' : 'hi'}-${level}`,
+      group: `${what}-${down ? 'lo' : 'hi'}`,
+      question: `will ${what} ${down ? 'drop to' : 'reach'} ${level} by the end of ${m[2]}?`,
+      why: what === 'gold' ? 'gold is what people buy when they are scared, so its price is a fear gauge.' : 'oil feeds straight into gas prices and inflation.',
+      weight: 4,
+      pick: 'mid',
+    };
+  },
+];
+
+async function polymarket(): Promise<Cand[]> {
+  const lists = await Promise.allSettled(PM_TAGS.map((t) => getJson(`${GAMMA}/events?closed=false&active=true&limit=30&tag_slug=${t}&order=volume24hr&ascending=false`, 8000)));
+  if (lists.every((l) => l.status === 'rejected')) throw new Error('gamma api down');
+  const seen = new Set<string>();
+  const out: Cand[] = [];
+  for (const l of lists) {
+    if (l.status !== 'fulfilled' || !Array.isArray(l.value)) continue;
+    for (const e of l.value) {
+      if (seen.has(e.slug) || num(e.volume) < FLOOR_TOTAL) continue;
+      seen.add(e.slug);
+      const markets = (e.markets ?? []).filter((m: any) => m.active && !m.closed);
+      for (const m of markets) {
+        const p = Number(JSON.parse(m.outcomePrices ?? '[]')[0]);
+        if (!Number.isFinite(p)) continue;
+        out.push({
+          source: 'polymarket',
+          event: lower(e.title),
+          outcome: markets.length === 1 ? '' : lower(m.groupItemTitle || ''),
+          title: lower(m.question),
+          p,
+          d1: m.oneDayPriceChange ?? null,
+          d7: m.oneWeekPriceChange ?? null,
+          vol24: num(m.volume24hr ?? e.volume24hr),
+          vol: num(m.volumeNum ?? m.volume),
+          url: `https://polymarket.com/event/${e.slug}`,
+          closes: m.endDate ?? e.endDate ?? null,
+          token: JSON.parse(m.clobTokenIds ?? '[]')[0],
+        });
+      }
+    }
+  }
+  return out;
+}
+
+async function kalshiSeries(): Promise<{ ticker: string; title: string }[]> {
+  return cached('board:ks-series2', 12 * 3600_000, async () => {
+    const lists = await Promise.allSettled(KS_CATEGORIES.map((c) => getJson(`${KALSHI}/series?category=${c}`, 10000)));
+    const out = lists.flatMap((l) => (l.status === 'fulfilled' ? (l.value.series ?? []) : [])).filter((s: any) => KS_SERIES.test(String(s.title ?? '').trim()) && String(s.ticker).startsWith('KX'));
+    if (!out.length) throw new Error('kalshi series empty');
+    return out.map((s: any) => ({ ticker: s.ticker, title: s.title }));
+  });
+}
+
+async function kalshi(): Promise<Cand[]> {
+  const series = await kalshiSeries();
+  const res = await pool(series, 3, (s) => getJsonRetry(`${KALSHI}/markets?series_ticker=${s.ticker}&status=open&limit=500`, 8000).then((j) => ({ s, markets: (j.markets ?? []) as any[] })));
+  if (res.every((r) => r.status === 'rejected')) throw new Error('kalshi markets down');
+  const out: Cand[] = [];
+  for (const r of res) {
+    if (r.status !== 'fulfilled') continue;
+    for (const m of r.value.markets) {
+      const prev = Number(m.previous_price_dollars);
+      const p = num(m.last_price_dollars);
+      out.push({
+        source: 'kalshi',
+        event: lower(r.value.s.title),
+        outcome: lower(m.yes_sub_title),
+        title: lower(m.title),
+        p,
+        d1: Number.isFinite(prev) && prev > 0 ? p - prev : null,
+        d7: null,
+        vol24: num(m.volume_24h_fp),
+        vol: num(m.volume_fp),
+        url: `https://kalshi.com/markets/${r.value.s.ticker.toLowerCase()}`,
+        closes: m.close_time ?? null,
+        series: r.value.s.ticker,
+        ticker: m.ticker,
+      });
+    }
+  }
+  return out;
+}
 
 async function polySpark(token: string): Promise<number[]> {
   try {
@@ -26,74 +182,6 @@ async function polySpark(token: string): Promise<number[]> {
   } catch {
     return [];
   }
-}
-
-async function polymarket(): Promise<OddsRow[]> {
-  const lists = await Promise.allSettled(PM_TAGS.map((t) => getJson(`${GAMMA}/events?closed=false&active=true&limit=25&tag_slug=${t}&order=volume24hr&ascending=false`, 8000)));
-  if (lists.every((l) => l.status === 'rejected')) throw new Error('gamma api down');
-  const seen = new Set<string>();
-  const rows: (OddsRow & { token?: string })[] = [];
-  for (const l of lists) {
-    if (l.status !== 'fulfilled' || !Array.isArray(l.value)) continue;
-    for (const e of l.value) {
-      const title = String(e.title ?? '');
-      if (seen.has(e.slug) || !MACRO.test(title) || SKIP.test(title)) continue;
-      if (num(e.volume24hr) < FLOOR_24H || num(e.volume) < FLOOR_TOTAL) continue;
-      seen.add(e.slug);
-      const markets = (e.markets ?? []).filter((m: any) => m.active && !m.closed);
-      const outs = markets
-        .map((m: any) => {
-          const prices = JSON.parse(m.outcomePrices ?? '[]');
-          const tokens = JSON.parse(m.clobTokenIds ?? '[]');
-          return { m, p: Number(prices[0]), token: tokens[0] as string | undefined };
-        })
-        .filter((o: any) => Number.isFinite(o.p) && o.p > 0.02 && o.p < 0.98);
-      const pick = outs.sort((a: any, b: any) => Math.abs(b.m.oneDayPriceChange ?? 0) - Math.abs(a.m.oneDayPriceChange ?? 0) || b.p - a.p)[0];
-      if (!pick) continue;
-      const single = markets.length === 1;
-      rows.push({
-        id: `pm:${pick.m.id ?? e.slug}`,
-        source: 'polymarket',
-        question: lower(title).replace(/\?*$/, '?'),
-        outcome: single ? null : lower(pick.m.groupItemTitle || pick.m.question || ''),
-        p: pick.p,
-        d1: pick.m.oneDayPriceChange ?? null,
-        d7: pick.m.oneWeekPriceChange ?? null,
-        spark: [],
-        volume24h: num(e.volume24hr),
-        volume: num(e.volume),
-        url: `https://polymarket.com/event/${e.slug}`,
-        closes: e.endDate ?? null,
-        token: pick.token,
-      });
-    }
-  }
-  rows.sort((a, b) => b.volume24h - a.volume24h);
-  const top = rows.slice(0, 10);
-  const sparks = await pool(top, 4, (r) => (r.token ? polySpark(r.token) : Promise.resolve([])));
-  return top.map(({ token, ...r }, i) => ({ ...r, spark: sparks[i].status === 'fulfilled' ? sparks[i].value : [] }));
-}
-
-async function kalshiSeries(): Promise<{ ticker: string; title: string }[]> {
-  return cached('board:ks-series', 12 * 3600_000, async () => {
-    const lists = await Promise.allSettled(KS_CATEGORIES.map((c) => getJson(`${KALSHI}/series?category=${c}`, 10000)));
-    const out: { ticker: string; title: string }[] = [];
-    for (const l of lists) {
-      if (l.status !== 'fulfilled') continue;
-      for (const s of l.value.series ?? []) {
-        const title = String(s.title ?? '');
-        if (KS_SKIP_FREQ.has(s.frequency) || !MACRO.test(title) || SKIP.test(title)) continue;
-        if ((s.tags ?? []).some((t: string) => /international|global central/i.test(t))) continue;
-        out.push({ ticker: s.ticker, title });
-      }
-    }
-    if (!out.length) throw new Error('kalshi series empty');
-    const titles = new Set(out.filter((s) => s.ticker.startsWith('KX')).map((s) => s.title.toLowerCase()));
-    return out
-      .filter((s) => s.ticker.startsWith('KX') || !titles.has(s.title.toLowerCase()))
-      .sort((a, b) => a.title.length - b.title.length)
-      .slice(0, 70);
-  });
 }
 
 const mid = (c: any) => {
@@ -114,72 +202,84 @@ async function kalshiSpark(series: string, ticker: string): Promise<number[]> {
   }
 }
 
-async function kalshi(): Promise<OddsRow[]> {
-  const series = await kalshiSeries();
-  const res = await pool(series, 3, (s) => getJsonRetry(`${KALSHI}/markets?series_ticker=${s.ticker}&status=open&limit=200`, 8000).then((j) => ({ s, markets: (j.markets ?? []) as any[] })));
-  if (res.every((r) => r.status === 'rejected')) throw new Error('kalshi markets down');
-  const rows: (OddsRow & { series: string; ticker: string })[] = [];
-  for (const r of res) {
-    if (r.status !== 'fulfilled') continue;
-    const byEvent = new Map<string, any[]>();
-    for (const m of r.value.markets) byEvent.set(m.event_ticker, [...(byEvent.get(m.event_ticker) ?? []), m]);
-    for (const [, ms] of byEvent) {
-      const vol24 = ms.reduce((a, m) => a + num(m.volume_24h_fp ?? m.volume_24h), 0);
-      const vol = ms.reduce((a, m) => a + num(m.volume_fp ?? m.volume), 0);
-      if (vol24 < FLOOR_24H / 5 || vol < FLOOR_TOTAL / 2) continue;
-      const live = ms
-        .map((m) => ({ m, p: num(m.last_price_dollars), prev: Number(m.previous_price_dollars) }))
-        .filter((x) => x.p > 0.02 && x.p < 0.98);
-      const pick = live.sort((a, b) => Math.abs(b.p - b.prev) - Math.abs(a.p - a.prev) || num(b.m.volume_24h_fp) - num(a.m.volume_24h_fp))[0];
-      if (!pick) continue;
-      const q = lower(String(pick.m.title ?? r.value.s.title));
-      rows.push({
-        id: `ks:${pick.m.ticker}`,
-        source: 'kalshi',
-        question: q.replace(/\?*$/, '?'),
-        outcome: null,
-        p: pick.p,
-        d1: Number.isFinite(pick.prev) && pick.prev > 0 ? pick.p - pick.prev : null,
-        d7: null,
-        spark: [],
-        volume24h: vol24,
-        volume: vol,
-        url: `https://kalshi.com/markets/${r.value.s.ticker.toLowerCase()}`,
-        closes: pick.m.close_time ?? null,
-        series: r.value.s.ticker,
-        ticker: pick.m.ticker,
-      });
+function choose(cands: Cand[]): OddsRow[] {
+  const groups = new Map<string, { t: Topic; c: Cand }[]>();
+  for (const c of cands) {
+    if (!(c.p > 0.03 && c.p < 0.97) || c.vol < FLOOR_TOTAL / 10) continue;
+    for (const rule of RULES) {
+      const t = rule(c);
+      if (t) {
+        groups.set(t.group, [...(groups.get(t.group) ?? []), { t, c }]);
+        break;
+      }
     }
   }
-  rows.sort((a, b) => b.volume24h - a.volume24h);
-  const top = rows.slice(0, 8);
-  const sparks = await pool(top, 2, (r) => kalshiSpark(r.series, r.ticker));
-  return top.map(({ series, ticker, ...r }, i) => {
-    const sp = sparks[i].status === 'fulfilled' ? sparks[i].value : [];
-    return { ...r, spark: sp, d7: sp.length > 1 ? r.p - sp[0] : null };
+  const rows: (OddsRow & { weight: number; c: Cand })[] = [];
+  for (const items of groups.values()) {
+    const liquid = items.filter((x) => x.c.vol24 >= FLOOR_24H || x.c.vol >= FLOOR_TOTAL);
+    if (!liquid.length) continue;
+    const best = liquid.slice().sort((a, b) => (a.t.pick === 'mid' ? Math.abs(a.c.p - 0.5) - Math.abs(b.c.p - 0.5) : 0) || b.c.vol24 - a.c.vol24)[0];
+    const same = liquid.filter((x) => x.t.key === best.t.key);
+    const prices = (['polymarket', 'kalshi'] as const)
+      .map((src) => same.filter((x) => x.c.source === src).sort((a, b) => b.c.vol24 - a.c.vol24)[0])
+      .filter(Boolean)
+      .map((x) => ({ source: x.c.source, p: x.c.p, url: x.c.url, title: x.c.source === 'kalshi' || !x.c.outcome ? x.c.title : `${x.c.event} ${x.c.outcome}`, volume24h: x.c.vol24 }));
+    const lead = same.slice().sort((a, b) => b.c.vol24 - a.c.vol24)[0];
+    rows.push({
+      id: best.t.key,
+      question: best.t.question,
+      why: best.t.why,
+      p: lead.c.p,
+      d1: lead.c.d1,
+      d7: lead.c.d7,
+      spark: [],
+      prices,
+      volume24h: prices.reduce((a, x) => a + x.volume24h, 0),
+      closes: lead.c.closes,
+      weight: best.t.weight,
+      c: lead.c,
+    });
+  }
+  const family = (id: string) => (id.startsWith('fed-') ? id.split('-').slice(0, 2).join('-') : id.split('-')[0]);
+  const byClose = rows.slice().sort((a, b) => Date.parse(a.closes ?? '') - Date.parse(b.closes ?? ''));
+  const count = new Map<string, number>();
+  const keep = byClose.filter((r) => {
+    const f = family(r.id);
+    const n = count.get(f) ?? 0;
+    if (n >= (f === 'fed-hold' ? 2 : 1)) return false;
+    count.set(f, n + 1);
+    return true;
   });
+  const decHold = keep.find((r) => r.id === 'fed-hold-december');
+  const lastMeetingYear = decHold?.closes?.slice(0, 4);
+  return keep
+    .filter((r) => !(lastMeetingYear && r.id === `fed-hike-${lastMeetingYear}`))
+    .sort((a, b) => b.weight - a.weight || b.volume24h - a.volume24h)
+    .slice(0, SHOW)
+    .map((r) => r as OddsRow & { c: Cand });
 }
 
-const moved = (r: OddsRow) => Math.abs(r.d1 ?? 0) * 2 + Math.abs(r.d7 ?? 0);
+const moved = (r: OddsRow) => Math.abs(r.d7 ?? r.d1 ?? 0);
 
 export function buildOdds(down: Set<string> = new Set()): Promise<OddsData> {
   const load = async () => {
-    const [pm, ks] = await Promise.allSettled([
-      (async () => (guard(down, 'polymarket'), polymarket()))(),
-      (async () => (guard(down, 'kalshi'), kalshi()))(),
-    ]);
+    const [pm, ks] = await Promise.allSettled([(async () => (guard(down, 'polymarket'), polymarket()))(), (async () => (guard(down, 'kalshi'), kalshi()))()]);
+    if (pm.status === 'rejected' && ks.status === 'rejected') throw new Error('both odds sources down');
     const err = (r: PromiseSettledResult<unknown>) => (r.status === 'rejected' ? String(r.reason instanceof Error ? r.reason.message : r.reason) : undefined);
-    const pmRows = pm.status === 'fulfilled' ? pm.value : [];
-    const ksRows = ks.status === 'fulfilled' ? ks.value : [];
-    if (!pmRows.length && !ksRows.length && pm.status === 'rejected' && ks.status === 'rejected') throw new Error('both odds sources down');
+    const picked = choose([...(pm.status === 'fulfilled' ? pm.value : []), ...(ks.status === 'fulfilled' ? ks.value : [])]) as (OddsRow & { c: Cand; weight?: number })[];
+    const sparks = await pool(picked, 3, (r) => (r.c.token ? polySpark(r.c.token) : r.c.series && r.c.ticker ? kalshiSpark(r.c.series, r.c.ticker) : Promise.resolve([])));
+    const rows: OddsRow[] = picked.map(({ c, weight, ...r }, i) => {
+      const sp = sparks[i].status === 'fulfilled' ? sparks[i].value : [];
+      return { ...r, spark: sp, d7: r.d7 ?? (sp.length > 1 ? r.p - sp[0] : null) };
+    });
     return {
-      rows: [...pmRows, ...ksRows].sort((a, b) => moved(b) - moved(a)),
+      rows: rows.sort((a, b) => moved(b) - moved(a)),
       sources: [
-        { id: 'polymarket' as const, ok: pm.status === 'fulfilled', count: pmRows.length, error: err(pm) },
-        { id: 'kalshi' as const, ok: ks.status === 'fulfilled', count: ksRows.length, error: err(ks) },
+        { id: 'polymarket' as const, ok: pm.status === 'fulfilled', count: rows.filter((r) => r.prices.some((x) => x.source === 'polymarket')).length, error: err(pm) },
+        { id: 'kalshi' as const, ok: ks.status === 'fulfilled', count: rows.filter((r) => r.prices.some((x) => x.source === 'kalshi')).length, error: err(ks) },
       ],
       fetchedAt: new Date().toISOString(),
     };
   };
-  return down.size ? load() : cached('board:odds', 5 * 60_000, load);
+  return down.size ? load() : cached('board:odds2', 5 * 60_000, load);
 }

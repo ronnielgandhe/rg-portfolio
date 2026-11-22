@@ -79,19 +79,22 @@ export const BOARD_CSS = `
 .qzb-odds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 48px; border-top: 1px solid var(--rule); }
 .qzb-odd { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 16px; align-items: start; padding: 18px 0; border-bottom: 1px solid var(--rule); background: var(--bg); transition: background 0.2s; }
 .qzb-odd:hover { background: var(--hover); }
-.qzb-odd-q { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.qzb-odd-title { font-size: 16px; line-height: 23px; color: var(--ink); }
-.qzb-odd-out { font-size: 13px; line-height: 19px; color: var(--half); }
+.qzb-odds-intro { margin: 0 0 20px; font-size: 18px; line-height: 28px; color: var(--text); max-width: 640px; }
+.qzb-odd-title { min-width: 0; font-size: 17px; line-height: 25px; color: var(--ink) !important; }
+.qzb-odd-title:hover { text-decoration: underline !important; text-decoration-color: var(--rule) !important; text-underline-offset: 3px; }
+.qzb-odd-why { grid-column: 1 / -1; margin: 0; font-size: 13px; line-height: 20px; color: var(--half); }
 .qzb-odd-p { font-size: 36px; line-height: 1; font-weight: 300; letter-spacing: -0.04em; color: var(--ink); text-align: right; }
 .qzb-odd-bar { grid-column: 1 / -1; position: relative; height: 6px; background: var(--rule); }
 .qzb-odd-fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ink); transition: width 0.8s var(--qzb-ease); }
 .qzb-odd-fill.qzb-up { background: var(--up); }
 .qzb-odd-fill.qzb-down { background: var(--down); }
 .qzb-odd-fill.qzb-flat { background: var(--half); }
-.qzb-odd-line { grid-column: 1 / -1; margin: 0; font-size: 14px; line-height: 21px; }
-.qzb-odd-src { color: var(--faint); }
+.qzb-odd-line { grid-column: 1 / -1; margin: 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 16px; font-size: 15px; line-height: 22px; }
+.qzb-odd-src { font-size: 12px; color: var(--faint); }
+.qzb-odd-src .qzb-link { color: var(--half); }
 
-.qzb-news { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 32px 64px; align-items: start; }
+.qzb-news { max-width: 820px; }
+.qzb-about { margin: 0 0 24px; max-width: 820px; }
 .qzb-heads { border-top: 1px solid var(--rule); }
 .qzb-head-row { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 4px 16px; padding: 16px 0; border-bottom: 1px solid var(--rule); }
 .qzb-head-row:hover .qzb-head-t { text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 3px; }
@@ -137,14 +140,14 @@ export const BOARD_CSS = `
 
 @media (max-width: 900px) {
   .qzb-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .qzb-news, .qzb-sectors { grid-template-columns: minmax(0, 1fr); }
+  .qzb-sectors { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 720px) {
   .qzb-title { font-size: 30px; }
   .qzb-sec { margin-top: 52px; }
   .qzb-mood { grid-template-columns: minmax(0, 1fr); }
   .qzb-mood-word { font-size: 64px; }
-  .qzb-mood-line { font-size: 16px; line-height: 25px; }
+  .qzb-mood-line, .qzb-odds-intro { font-size: 16px; line-height: 25px; }
   .qzb-dial { max-width: 280px; }
   .qzb-tiles { grid-template-columns: minmax(0, 1fr); }
   .qzb-odds { grid-template-columns: minmax(0, 1fr); }

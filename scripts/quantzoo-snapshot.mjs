@@ -39,7 +39,7 @@ const snap = {
         .slice()
         .sort((a, b) => b.volume24h - a.volume24h)
         .slice(0, 8)
-        .map((r) => ({ question: r.question, outcome: r.outcome, p: round(r.p), source: r.source }))
+        .map((r) => ({ question: r.question, p: round(r.p), sources: r.prices.map((x) => x.source) }))
     : [],
 };
 

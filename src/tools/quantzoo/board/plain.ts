@@ -85,7 +85,7 @@ export function moodLine(t: TapeData, now: number) {
 
 export const partLine = (p: GaugePart) => p.name;
 
-export function plainText(s: string) {
+function plainText(s: string) {
   return s
     .replace(/hike rates by 0 ?bps/gi, 'keep rates the same')
     .replace(/>\s?(\d+)\s?bps/gi, (_, n) => `more than ${Number(n) / 100}%`)
@@ -96,20 +96,17 @@ export function plainText(s: string) {
     .trim();
 }
 
-export function oddsTitle(r: OddsRow): { title: string; bet: string | null } {
-  const q = plainText(r.question).replace(/\s\([a-z]{1,5}\)/g, '');
-  if (!r.outcome) return { title: q, bet: null };
-  const out = plainText(r.outcome).replace(/^↓\s*/, 'as low as ').replace(/^↑\s*/, 'as high as ');
-  if (q.includes('...')) return { title: q.replace(/\s*\.\.\.\s*/, ` ${out} `).replace(/\s+\?/, '?').replace(/\s+/g, ' '), bet: null };
-  return { title: q, bet: out };
+export function oddsLine(r: OddsRow) {
+  const ref = r.d7 != null ? { d: r.d7, when: 'a week ago' } : r.d1 != null ? { d: r.d1, when: 'yesterday' } : null;
+  if (!ref || Math.round(Math.abs(ref.d) * 100) < 1) return `about the same as ${ref ? ref.when : 'before'}`;
+  return `${ref.d > 0 ? 'up' : 'down'} from ${Math.round((r.p - ref.d) * 100)}% ${ref.when}`;
 }
 
-export function oddsLine(r: OddsRow) {
-  const pct = Math.round(r.p * 100);
-  const ref = r.d7 != null ? { d: r.d7, when: 'a week ago' } : r.d1 != null ? { d: r.d1, when: 'yesterday' } : null;
-  if (!ref || Math.round(Math.abs(ref.d) * 100) < 1) return `traders give it a ${pct}% chance, about the same as ${ref ? ref.when : 'before'}.`;
-  const was = Math.round((r.p - ref.d) * 100);
-  return `traders give it a ${pct}% chance, ${ref.d > 0 ? 'up' : 'down'} from ${was}% ${ref.when}.`;
+export function newsAbout(themes: { name: string; count: number; mean: number }[]) {
+  const top = themes.slice().sort((a, b) => b.count - a.count).slice(0, 3);
+  if (!top.length) return '';
+  const bit = (t: (typeof top)[number]) => `${t.name} (${t.count} stories, ${readOf(t.mean) === 'mixed' ? 'mixed' : `mostly ${readOf(t.mean)}`})`;
+  return `most of the news is about ${bit(top[0])}${top[1] ? `, then ${top.slice(1).map(bit).join(' and ')}` : ''}.`;
 }
 
 export type Read = 'good news' | 'bad news' | 'mixed';
@@ -132,7 +129,3 @@ export function why(h: Headline) {
   return 'no strong words';
 }
 
-export function topicLine(mean: number, n: number) {
-  const r = readOf(mean);
-  return r === 'mixed' ? `mixed, ${n} stories` : `mostly ${r}, ${n} stories`;
-}

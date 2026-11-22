@@ -30,18 +30,24 @@ export interface TapeData {
   fetchedAt: string;
 }
 
+export interface OddsPrice {
+  source: 'polymarket' | 'kalshi';
+  p: number;
+  url: string;
+  title: string;
+  volume24h: number;
+}
+
 export interface OddsRow {
   id: string;
-  source: 'polymarket' | 'kalshi';
   question: string;
-  outcome: string | null;
+  why: string;
   p: number;
   d1: number | null;
   d7: number | null;
   spark: number[];
+  prices: OddsPrice[];
   volume24h: number;
-  volume: number;
-  url: string;
   closes: string | null;
 }
 
@@ -87,7 +93,7 @@ export interface Snapshot {
   breadth: number | null;
   mood: number | null;
   themes: Record<string, number>;
-  odds: { question: string; outcome: string | null; p: number; source: string }[];
+  odds: { question: string; p: number; sources?: string[]; outcome?: string | null; source?: string }[];
 }
 
 export interface HistoryData {

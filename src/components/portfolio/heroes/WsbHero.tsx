@@ -87,7 +87,7 @@ ${Q} .wsh-logo .pl-c{animation:wshCandle 300ms ${SPRING} both}
 
 export default function WsbHero({
   title = 'wallstreetbets',
-  lede = "what's going on in the market right now, and my ideas for making money from it. a macro letter in plain english.",
+  lede = "what's going on in the market right now, and my ideas for making money from it.",
   actions = [],
   className,
 }: {
