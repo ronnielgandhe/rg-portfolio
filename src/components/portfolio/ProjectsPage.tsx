@@ -1,192 +1,67 @@
-import { useState } from 'react';
-import PageShell, { useTheme, themeColors, SLink } from './PageShell';
+import PageShell from './PageShell';
+import CardFeed, { type FeedItem } from './CardFeed';
 
-const PROJECTS = [
+const PROJECTS: FeedItem[] = [
   {
-    title: 'LeanFetch',
-    cover: '/leanfetch-cover.png',
-    repo: 'https://github.com/ronnielgandhe/leanfetch',
-    desc: 'a tool that stops startups from losing cash to unnecessary api calls. paste a repo or drop in code, it finds the wasteful patterns (calls in loops, retry storms, oversized contexts, wrong-model calls, no caching) and returns a cost-waste report with estimated savings.',
-    tech: ['TypeScript', 'Next.js', 'Anthropic SDK'],
+    id: 'leanfetch', nav: 'LeanFetch',
+    label: 'LeanFetch', sub: 'finds the money your code burns on llm api calls',
+    href: 'https://github.com/ronnielgandhe/leanfetch', external: true,
+    colors: ['#fcd34d', '#f59e0b', '#fb7185'],
   },
   {
-    title: 'Harvey',
-    cover: '/harvey-cover.png',
-    repo: 'https://github.com/ronnielgandhe/harvey',
-    desc: 'voice legal assistant. a livekit voice agent with rag over a 2,806 chunk corpus of ontario and federal law. you ask out loud, it answers and cites the statute on screen.',
-    tech: ['Python', 'LiveKit', 'Deepgram', 'ElevenLabs', 'OpenAI'],
+    id: 'harvey', nav: 'Harvey',
+    label: 'Harvey', sub: 'voice legal assistant. livekit agent + rag over 2,806 chunks of law',
+    href: 'https://github.com/ronnielgandhe/harvey', external: true,
+    colors: ['#a5b4fc', '#6366f1', '#312e81'],
   },
   {
-    title: 'LinkedIn Games Solver',
-    cover: '/linkdensolver.png',
-    repo: 'https://github.com/ronnielgandhe/linkedin-games-solver',
-    desc: 'chrome extension to solve linkedin games in real time. backtracking solvers, react fiber traversal and the chrome debugger protocol for trusted input. built with vanilla js, no ai, no server.',
-    tech: ['JavaScript', 'Chrome Extension API', 'Chrome Debugger Protocol', 'Manifest V3'],
+    id: 'linkedin-solver', nav: 'LinkedIn Solver',
+    label: 'LinkedIn Games Solver', sub: 'chrome extension that solves all 5 linkedin games in real time',
+    href: 'https://github.com/ronnielgandhe/linkedin-games-solver', external: true,
+    colors: ['#67e8f9', '#06b6d4', '#0891b2'],
   },
   {
-    title: 'NYT Games Solver',
-    cover: '/nytsolver.png',
-    repo: 'https://github.com/ronnielgandhe/nyt-games-solver',
-    desc: 'chrome extension that solves wordle, connections, strands, the mini crossword and spelling bee. reads the answer from the game\'s own data and plays it for you.',
-    tech: ['JavaScript', 'Chrome Extension API', 'Chrome Debugger Protocol', 'Manifest V3'],
+    id: 'nyt-solver', nav: 'NYT Solver',
+    label: 'NYT Games Solver', sub: 'wordle, connections, strands, the mini and spelling bee',
+    href: 'https://github.com/ronnielgandhe/nyt-games-solver', external: true,
+    colors: ['#bef264', '#84cc16', '#65a30d'],
   },
   {
-    title: 'RonnielOS',
-    cover: '/icons/rglogo.png',
-    repo: 'https://github.com/ronnielgandhe/rg-portfolio',
-    demo: '/desktop',
-    demoNewTab: true,
-    desc: 'my portfolio as a macos desktop. draggable windows, a dock, spotlight, a working terminal, a stock tracker and spotify, all in the browser.',
-    tech: ['React', 'TypeScript', 'Astro'],
-    coverStyle: { objectFit: 'contain' as const, background: '#111', padding: '40px' },
+    id: 'ronnielos', nav: 'RonnielOS',
+    label: 'RonnielOS', sub: 'my old portfolio, a macos desktop you can click around',
+    href: '/desktop',
+    colors: ['#f9a8d4', '#ec4899', '#f43f5e'],
   },
   {
-    title: 'CreatorScope',
-    cover: '/cover.png',
-    repo: 'https://github.com/ronnielgandhe/creatorscope',
-    demoVideo: '/creatorscope-demo.mov',
-    desc: 'tiktok ugc creator discovery tool. finds brand-ready creators in minutes instead of scrolling for hours.',
-    tech: ['Python', 'FastAPI', 'SQLAlchemy', 'SQLite', 'RapidAPI'],
+    id: 'creatorscope', nav: 'CreatorScope',
+    label: 'CreatorScope', sub: 'finds brand-ready tiktok creators in minutes instead of hours of scrolling',
+    href: 'https://github.com/ronnielgandhe/creatorscope', external: true,
+    colors: ['#6ee7b7', '#34d399', '#10b981'],
   },
   {
-    title: 'YourNews',
-    cover: '/yournews-cover.png',
-    repo: 'https://github.com/ronnielgandhe/yournews',
-    demoVideo: '/yournews-demo.mp4',
-    desc: 'personalized news aggregator. the news you want, minus the noise.',
-    tech: ['Python', 'FastAPI', 'React'],
+    id: 'how-many-clicks', nav: 'How Many Clicks',
+    label: 'How Many Clicks', sub: 'the wikipedia game. watch an ai race through links, then try to beat it',
+    href: 'https://github.com/ronnielgandhe/how-many-clicks', external: true,
+    colors: ['#bfdbfe', '#60a5fa', '#3b82f6'],
   },
   {
-    title: 'How Many Clicks',
-    cover: '/howmanyclicks-cover.png',
-    repo: 'https://github.com/ronnielgandhe/how-many-clicks',
-    demoVideo: '/howmanyclicks-demo.mp4',
-    desc: 'the wikipedia connection game. watch an ai race through links to connect two articles, then try to beat it.',
-    tech: ['React', 'Vite', 'JavaScript', 'Wikipedia API'],
+    id: 'yournews', nav: 'YourNews',
+    label: 'YourNews', sub: 'the news you want, minus the noise',
+    href: 'https://github.com/ronnielgandhe/yournews', external: true,
+    colors: ['#ddd6fe', '#a78bfa', '#8b5cf6'],
   },
 ];
 
-function ProjectCard({ project, dark }: { project: typeof PROJECTS[number]; dark: boolean }) {
-  const [hovered, setHovered] = useState(false);
-  const t = themeColors(dark);
-
-  return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        borderRadius: 16,
-        overflow: 'hidden',
-        background: dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
-        border: `1px solid ${t.border}`,
-        transition: 'transform 0.3s, box-shadow 0.3s',
-        transform: hovered ? 'translateY(-2px)' : 'none',
-        boxShadow: hovered ? '0 4px 20px rgba(0,0,0,0.2)' : 'none',
-      }}
-    >
-      {/* Cover image */}
-      <a href={(project as any).demo || project.repo} target={((project as any).demoNewTab || (project as any).demo?.startsWith('http') || !(project as any).demo) ? '_blank' : undefined} rel="noopener noreferrer" style={{ display: 'block', overflow: 'hidden' }}>
-        <img
-          src={project.cover}
-          alt={project.title}
-          style={{
-            width: '100%',
-            height: hovered ? 275 : 250,
-            objectFit: 'cover',
-            objectPosition: 'center',
-            display: 'block',
-            transition: 'height 0.5s ease',
-            ...((project as any).coverStyle || {}),
-          }}
-        />
-      </a>
-
-      {/* Content */}
-      <div style={{ padding: '20px 24px 24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
-          <a
-            href={(project as any).demo || project.repo}
-            target={((project as any).demoNewTab || (project as any).demo?.startsWith('http') || !(project as any).demo) ? '_blank' : undefined}
-            rel="noopener noreferrer"
-            style={{ textDecoration: 'none', color: t.textStrong, transition: 'color 0.2s' }}
-          >
-            <h3 style={{
-              margin: 0,
-              fontSize: 18,
-              fontWeight: 500,
-            }}>
-              {project.title}
-            </h3>
-          </a>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <a
-              href={project.repo}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`${project.title} GitHub`}
-              style={{ color: t.text, transition: 'color 0.2s', display: 'flex', alignItems: 'center', padding: 4, borderRadius: 6 }}
-              onMouseEnter={e => (e.currentTarget.style.color = t.textStrong)}
-              onMouseLeave={e => (e.currentTarget.style.color = t.text)}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-              </svg>
-            </a>
-            {(project as any).demo && (
-              <a
-                href={(project as any).demo}
-                target={((project as any).demoNewTab || (project as any).demo?.startsWith('http')) ? '_blank' : undefined}
-                rel="noopener noreferrer"
-                aria-label={`${project.title} Demo`}
-                style={{ color: t.text, transition: 'color 0.2s', display: 'flex', alignItems: 'center', padding: 4, borderRadius: 6 }}
-                onMouseEnter={e => (e.currentTarget.style.color = t.textStrong)}
-                onMouseLeave={e => (e.currentTarget.style.color = t.text)}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                  <polyline points="15 3 21 3 21 9" />
-                  <line x1="10" y1="14" x2="21" y2="3" />
-                </svg>
-              </a>
-            )}
-          </div>
-        </div>
-
-        <p style={{
-          margin: 0,
-          fontSize: 15,
-          lineHeight: 1.6,
-          color: t.text,
-        }}>
-          {project.desc}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function ProjectsContent() {
-  const { dark } = useTheme();
-  const t = themeColors(dark);
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-      {PROJECTS.map(p => (
-        <ProjectCard key={p.title} project={p} dark={dark} />
-      ))}
-
-      <p style={{ fontSize: 14, color: t.text, marginTop: 8 }}>
-        you can check out the rest of my projects{' '}
-        <SLink href="https://github.com/ronnielgandhe">here</SLink>
-      </p>
-    </div>
-  );
-}
-
 export default function ProjectsPage() {
   return (
-    <PageShell activePage="projects">
-      <ProjectsContent />
+    <PageShell activePage="projects" wide>
+      <div className="site-col site-enter">
+        <h1 className="site-h1">projects</h1>
+        <p className="site-p" style={{ marginTop: 0 }}>
+          small tools i wanted to exist. most of them started because something annoyed me.
+        </p>
+      </div>
+      <CardFeed items={PROJECTS} />
     </PageShell>
   );
 }

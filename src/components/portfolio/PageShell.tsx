@@ -57,22 +57,20 @@ export function SLink({
   );
 }
 
-const PAGE_LABEL: Record<string, string> = { about: 'Home', projects: 'Projects', writing: 'Writing' };
-
-export default function PageShell({ activePage, children }: { activePage: string; children: React.ReactNode }) {
+export default function PageShell({ activePage, crumb, wide, children }: { activePage: string; crumb?: string; wide?: boolean; children: React.ReactNode }) {
   return (
     <ThemeProvider>
-      <PageShellInner activePage={activePage}>{children}</PageShellInner>
+      <PageShellInner activePage={activePage} crumb={crumb} wide={wide}>{children}</PageShellInner>
     </ThemeProvider>
   );
 }
 
-function PageShellInner({ activePage, children }: { activePage: string; children: React.ReactNode }) {
+function PageShellInner({ activePage, crumb, wide, children }: { activePage: string; crumb?: string; wide?: boolean; children: React.ReactNode }) {
   const { dark, toggle } = useTheme();
   return (
     <div className={`site ${dark ? 'site-dark' : ''}`}>
-      <SiteNav page={PAGE_LABEL[activePage] ?? 'Home'} dark={dark} onToggleTheme={toggle} />
-      <div className="site-col site-enter">{children}</div>
+      <SiteNav active={activePage} crumb={crumb} dark={dark} onToggleTheme={toggle} />
+      {wide ? <div style={{ margin: '0 auto', width: '100%', maxWidth: 1152 }}>{children}</div> : <div className="site-col site-enter">{children}</div>}
       <style>{`
         .rg-slink { text-decoration: none; font-weight: 500; position: relative; transition: color 0.2s; }
         .rg-slink::after {

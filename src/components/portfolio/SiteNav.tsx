@@ -1,10 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-const PAGES = [
-  { label: 'Home', href: '/' },
-  { label: 'Projects', href: '/projects' },
-  { label: 'Writing', href: '/writing' },
-  { label: 'RonnielOS', href: '/desktop' },
+const LINKS = [
+  { id: 'projects', label: 'projects', href: '/projects' },
+  { id: 'writing', label: 'writing', href: '/writing' },
 ];
 
 export const SITE_FONT = "'Geist', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif";
@@ -27,37 +25,26 @@ export function useSiteTheme() {
   return { dark, toggle };
 }
 
-export default function SiteNav({ page, dark, onToggleTheme }: { page: string; dark: boolean; onToggleTheme: () => void }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const close = (e: MouseEvent) => { if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false); };
-    document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
-  }, [menuOpen]);
-
+export default function SiteNav({ active, crumb, dark, onToggleTheme }: { active?: string; crumb?: string; dark: boolean; onToggleTheme: () => void }) {
   return (
     <>
       <nav className="sn-nav">
         <div className="sn-crumb">
           <span className="sn-dot" />
           <a href="/" className="sn-name">Ronniel Gandhe</a>
-          <span className="sn-sep">›</span>
-          <span className="sn-menu-wrap" ref={menuRef}>
-            <button className="sn-page" onClick={() => setMenuOpen((o) => !o)} aria-expanded={menuOpen}>{page}</button>
-            {menuOpen && (
-              <div className="sn-menu">
-                {PAGES.map((p) => (
-                  <a key={p.href} href={p.href} className={p.label === page ? 'sn-item sn-item-on' : 'sn-item'}>{p.label}</a>
-                ))}
-                <a href="/Ronniel_Gandhe_Resume.pdf" target="_blank" rel="noopener noreferrer" className="sn-item">Resume</a>
-                <div className="sn-rule" />
-                <button className="sn-item" onClick={onToggleTheme}>{dark ? 'Light mode' : 'Dark mode'}</button>
-              </div>
-            )}
-          </span>
+          {crumb && (
+            <>
+              <span className="sn-sep">›</span>
+              <span className="sn-here">{crumb}</span>
+            </>
+          )}
+          <span className="sn-gap" />
+          {LINKS.map((l) => (
+            <a key={l.id} href={l.href} className={active === l.id ? 'sn-link sn-link-on' : 'sn-link'}>{l.label}</a>
+          ))}
+          <button className="sn-theme" onClick={onToggleTheme} aria-label={dark ? 'switch to light mode' : 'switch to dark mode'}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 2.2v15.6a7.8 7.8 0 010-15.6z" /></svg>
+          </button>
         </div>
       </nav>
       <div className="sn-fade-top" />
@@ -103,39 +90,39 @@ export default function SiteNav({ page, dark, onToggleTheme }: { page: string; d
           display: flex; align-items: center; justify-content: center;
           padding: 20px 0; margin-top: 40px; pointer-events: none;
         }
-        .sn-crumb { display: flex; align-items: center; gap: 12px; pointer-events: auto; animation: snCrumb 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+        .sn-crumb { display: flex; align-items: center; gap: 12px; padding: 0 16px; pointer-events: auto; animation: snCrumb 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
         .sn-dot { width: 10px; height: 10px; border-radius: 50%; background: #3a3a3a; animation: snDot 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
         .site-dark .sn-dot { background: #d4d4d4; }
         .sn-name { font-size: 14px; line-height: 20px; color: var(--ink); text-decoration: none; }
         .sn-sep { font-size: 14px; line-height: 20px; color: var(--faint); }
-        .sn-menu-wrap { position: relative; display: inline-flex; align-items: center; }
-        .sn-page { font-size: 14px; line-height: 20px; color: var(--text); user-select: none; transition: color 0.2s; }
-        .sn-page:hover { color: var(--ink); }
-        .sn-menu {
-          position: absolute; top: 28px; left: -12px; min-width: 148px; padding: 6px;
-          background: var(--bg); border: 1px solid var(--rule); border-radius: 12px;
-          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08); display: flex; flex-direction: column;
-          animation: snMenu 0.16s ease-out both;
-        }
-        .sn-item {
-          display: block; width: 100%; text-align: left; padding: 6px 10px; border-radius: 7px;
-          font-size: 13px; line-height: 18px; color: var(--text); text-decoration: none;
-          transition: background 0.15s, color 0.15s;
-        }
-        .sn-item:hover { background: var(--rule); color: var(--ink); }
-        .sn-item-on { color: var(--ink); }
-        .sn-rule { height: 1px; background: var(--rule); margin: 5px 4px; }
+        .sn-here { font-size: 14px; line-height: 20px; color: var(--text); }
+        .sn-gap { width: 12px; }
+        .sn-link { font-size: 14px; line-height: 20px; color: var(--text); text-decoration: none; transition: color 0.2s; }
+        .sn-link:hover, .sn-link-on { color: var(--ink); }
+        .sn-theme { display: inline-flex; align-items: center; color: var(--faint); transition: color 0.2s; }
+        .sn-theme:hover { color: var(--ink); }
         .sn-fade-top { position: fixed; top: 0; left: 0; right: 0; height: 100px; z-index: 10; pointer-events: none; background: linear-gradient(to bottom, var(--bg), transparent); }
         .sn-fade-bottom { position: fixed; bottom: 0; left: 0; right: 0; height: 120px; z-index: 10; pointer-events: none; background: linear-gradient(to top, var(--bg), transparent); }
 
         .site-col { margin: 0 auto; width: 100%; max-width: 576px; }
+        .site-meta { display: flex; align-items: center; gap: 6px; height: 16px; margin-bottom: 16px; font-size: 12px; line-height: 16px; color: var(--half); font-variant-numeric: tabular-nums; }
+        .site-h1 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 400; color: var(--ink); }
+        .site-p { margin: 0; font-size: 16px; line-height: 26px; color: var(--text); }
+        .site-body { margin-top: 32px; display: flex; flex-direction: column; gap: 24px; }
+        .site-link { color: var(--strong); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; transition: opacity 0.2s; white-space: nowrap; }
+        .site-link:hover { opacity: 0.6; }
+        .site-ico { display: inline-block; width: 14px; height: 14px; object-fit: contain; vertical-align: -2px; margin-right: 5px; border-radius: 3px; }
+        .site-socials { display: flex; align-items: center; gap: 8px; line-height: 26px; flex-wrap: wrap; }
+        .site-social { position: relative; color: var(--strong); text-decoration: none; }
+        .site-social::after { content: ''; position: absolute; left: 0; right: 0; bottom: 2px; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: left; transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .site-social:hover::after { transform: scaleX(1); }
+        .site-bar { color: var(--text); }
         .site-enter { animation: siteEnter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
         @keyframes siteEnter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes snCrumb { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes snDot { from { transform: scale(0); } to { transform: scale(1); } }
-        @keyframes snMenu { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
         @media (max-width: 640px) { .site { padding-bottom: 64px; } }
-        @media (prefers-reduced-motion: reduce) { .site-enter, .sn-crumb, .sn-dot, .sn-menu { animation: none; } }
+        @media (prefers-reduced-motion: reduce) { .site-enter, .sn-crumb, .sn-dot { animation: none; } }
       `}</style>
     </>
   );
