@@ -7,6 +7,7 @@ export interface FeedItem {
   sub: string;
   href: string;
   external?: boolean;
+  image?: string;
   colors: [string, string, string];
 }
 
@@ -101,7 +102,7 @@ function useGradientCanvases(colors: [string, string, string][]) {
       painted.add(i);
       target.style.opacity = '1';
     };
-    for (let i = 0; i < count; i++) paint(i, i * 13);
+    for (let i = 0; i < count; i++) if (refs.current[i]) paint(i, i * 13);
 
     const io = new IntersectionObserver((entries) => {
       for (const e of entries) {
@@ -173,19 +174,31 @@ export default function CardFeed({ items }: { items: FeedItem[] }) {
       <main className="site-col hf-feed site-enter hf-enter-late">
         {items.map((f, i) => (
           <div key={f.id} id={f.id} className="hf-anchor">
-            <a href={f.href} target={f.external ? '_blank' : undefined} rel={f.external ? 'noopener noreferrer' : undefined} className="hf-card">
-              <div className="hf-card-art" style={{ backgroundImage: `linear-gradient(135deg, ${f.colors[0]}, ${f.colors[1]}, ${f.colors[2]})` }}>
-                <canvas
-                  ref={(el) => { canvases.current[i] = el; }}
-                  data-i={i}
-                  width={GL_W}
-                  height={GL_H}
-                />
-              </div>
-              <div className="hf-card-text">
-                <h3>{f.label}</h3>
-                <p>{f.sub}</p>
-              </div>
+            <a href={f.href} target={f.external ? '_blank' : undefined} rel={f.external ? 'noopener noreferrer' : undefined} className={f.image ? 'hf-shot' : 'hf-card'}>
+              {f.image ? (
+                <>
+                  <div className="hf-shot-media"><img src={f.image} alt={f.label} loading="lazy" /></div>
+                  <div className="hf-shot-caption">
+                    <h3>{f.label}</h3>
+                    <p>{f.sub}</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="hf-card-art" style={{ backgroundImage: `linear-gradient(135deg, ${f.colors[0]}, ${f.colors[1]}, ${f.colors[2]})` }}>
+                    <canvas
+                      ref={(el) => { canvases.current[i] = el; }}
+                      data-i={i}
+                      width={GL_W}
+                      height={GL_H}
+                    />
+                  </div>
+                  <div className="hf-card-text">
+                    <h3>{f.label}</h3>
+                    <p>{f.sub}</p>
+                  </div>
+                </>
+              )}
             </a>
           </div>
         ))}
@@ -205,6 +218,13 @@ export default function CardFeed({ items }: { items: FeedItem[] }) {
         .hf-card-text h3 { margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: #fff; filter: drop-shadow(0 1px 10px rgba(0, 0, 0, 0.4)); }
         .hf-card-text p { margin: 4px 0 0; font-size: 14px; line-height: 20px; color: rgba(255, 255, 255, 0.85); filter: drop-shadow(0 1px 8px rgba(0, 0, 0, 0.35)); }
 
+        .hf-shot { display: block; text-decoration: none; }
+        .hf-shot-media { aspect-ratio: 16 / 10; border-radius: 16px; overflow: hidden; border: 1px solid var(--rule); background: #fafafa; }
+        .hf-shot-media img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .hf-shot:hover .hf-shot-media img { transform: scale(1.025); }
+        .hf-shot-caption { padding: 14px 2px 0; }
+        .hf-shot-caption h3 { margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); }
+        .hf-shot-caption p { margin: 2px 0 0; font-size: 14px; line-height: 20px; color: var(--text); }
         .hf-toc { position: sticky; top: 128px; height: fit-content; width: 180px; }
         .hf-toc ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border-left: 1px solid var(--rule); }
         .hf-toc-item { position: relative; display: block; width: 100%; padding: 7px 0 7px 16px; text-align: left; font-size: 13px; line-height: 1.375; color: var(--faint); transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1); }

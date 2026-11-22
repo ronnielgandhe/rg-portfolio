@@ -25,11 +25,47 @@ export function useSiteTheme() {
   return { dark, toggle };
 }
 
+function seenBefore() {
+  try {
+    const seen = sessionStorage.getItem('rg-nav-seen') === '1';
+    sessionStorage.setItem('rg-nav-seen', '1');
+    return seen;
+  } catch { return false; }
+}
+
 export default function SiteNav({ active, crumb, dark, onToggleTheme }: { active?: string; crumb?: string; dark: boolean; onToggleTheme: () => void }) {
+  const [scrolled, setScrolled] = useState(false);
+  const [settled] = useState(seenBefore);
+
+  useEffect(() => {
+    const root = document.querySelector('.site');
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const a = (e.target as HTMLElement).closest('a');
+      if (!a || a.target === '_blank' || a.hasAttribute('download')) return;
+      const url = new URL(a.href, location.href);
+      if (url.origin !== location.origin || url.pathname === location.pathname || url.pathname.endsWith('.pdf')) return;
+      e.preventDefault();
+      root?.classList.add('site-leaving');
+      window.setTimeout(() => { location.href = url.href; }, 170);
+    };
+    const onShow = () => root?.classList.remove('site-leaving');
+    document.addEventListener('click', onClick);
+    window.addEventListener('pageshow', onShow);
+    return () => { document.removeEventListener('click', onClick); window.removeEventListener('pageshow', onShow); };
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
     <>
       <nav className="sn-nav">
-        <div className="sn-crumb">
+        <div className={`sn-crumb${scrolled ? ' sn-scrolled' : ''}${settled ? ' sn-settled' : ''}`}>
           <span className="sn-dot" />
           <a href="/" className="sn-name">Ronniel Gandhe</a>
           {crumb && (
@@ -88,23 +124,40 @@ export default function SiteNav({ active, crumb, dark, onToggleTheme }: { active
         .sn-nav {
           position: fixed; top: 0; left: 0; right: 0; z-index: 20;
           display: flex; align-items: center; justify-content: center;
-          padding: 20px 0; margin-top: 40px; pointer-events: none;
+          padding: 12px 0; margin-top: 40px; pointer-events: none;
         }
-        .sn-crumb { display: flex; align-items: center; gap: 12px; padding: 0 16px; pointer-events: auto; animation: snCrumb 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+        .sn-crumb {
+          display: flex; align-items: center; gap: 12px; padding: 8px 16px; pointer-events: auto;
+          border: 1px solid transparent; border-radius: 999px;
+          animation: snCrumb 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+          transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease;
+        }
+        .sn-crumb.sn-scrolled {
+          background: color-mix(in srgb, var(--bg) 72%, transparent);
+          -webkit-backdrop-filter: saturate(160%) blur(16px); backdrop-filter: saturate(160%) blur(16px);
+          border-color: var(--rule);
+          box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+        }
+        .sn-settled, .sn-settled .sn-dot { animation: none; }
         .sn-dot { width: 10px; height: 10px; border-radius: 50%; background: #3a3a3a; animation: snDot 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
         .site-dark .sn-dot { background: #d4d4d4; }
         .sn-name { font-size: 14px; line-height: 20px; color: var(--ink); text-decoration: none; }
         .sn-sep { font-size: 14px; line-height: 20px; color: var(--faint); }
         .sn-here { font-size: 14px; line-height: 20px; color: var(--text); }
         .sn-gap { width: 12px; }
-        .sn-link { font-size: 14px; line-height: 20px; color: var(--text); text-decoration: none; transition: color 0.2s; }
+        .sn-link { position: relative; font-size: 14px; line-height: 20px; color: var(--text); text-decoration: none; transition: color 0.2s; }
+        .sn-link::after { content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 1px; background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .sn-link:hover::after, .sn-link-on::after { transform: scaleX(1); }
+        .sn-link-on::after { animation: snDraw 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
         .sn-link:hover, .sn-link-on { color: var(--ink); }
         .sn-theme { display: inline-flex; align-items: center; color: var(--faint); transition: color 0.2s; }
         .sn-theme:hover { color: var(--ink); }
-        .sn-fade-top { position: fixed; top: 0; left: 0; right: 0; height: 100px; z-index: 10; pointer-events: none; background: linear-gradient(to bottom, var(--bg), transparent); }
+        .sn-fade-top { position: fixed; top: 0; left: 0; right: 0; height: 72px; z-index: 10; pointer-events: none; background: linear-gradient(to bottom, var(--bg), transparent); }
         .sn-fade-bottom { position: fixed; bottom: 0; left: 0; right: 0; height: 120px; z-index: 10; pointer-events: none; background: linear-gradient(to top, var(--bg), transparent); }
 
         .site-col { margin: 0 auto; width: 100%; max-width: 576px; }
+        .site > :not(nav):not(.sn-fade-top):not(.sn-fade-bottom):not(style) { transition: opacity 0.16s ease, transform 0.16s ease; }
+        .site-leaving > :not(nav):not(.sn-fade-top):not(.sn-fade-bottom):not(style) { opacity: 0; transform: translateY(6px); }
         .site-meta { display: flex; align-items: center; gap: 6px; height: 16px; margin-bottom: 16px; font-size: 12px; line-height: 16px; color: var(--half); font-variant-numeric: tabular-nums; }
         .site-h1 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 400; color: var(--ink); }
         .site-p { margin: 0; font-size: 16px; line-height: 26px; color: var(--text); }
@@ -113,13 +166,16 @@ export default function SiteNav({ active, crumb, dark, onToggleTheme }: { active
         .site-link:hover { opacity: 0.6; }
         .site-ico { display: inline-block; width: 14px; height: 14px; object-fit: contain; vertical-align: -2px; margin-right: 5px; border-radius: 3px; }
         .site-socials { display: flex; align-items: center; gap: 8px; line-height: 26px; flex-wrap: wrap; }
-        .site-social { position: relative; color: var(--strong); text-decoration: none; }
-        .site-social::after { content: ''; position: absolute; left: 0; right: 0; bottom: 2px; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: left; transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .site-social { position: relative; display: inline-flex; align-items: center; gap: 6px; color: var(--strong); text-decoration: none; }
+        .site-social svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--text); transition: color 0.2s; }
+        .site-social:hover svg { color: var(--strong); }
+        .site-social::after { content: ''; position: absolute; left: 20px; right: 0; bottom: 2px; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: left; transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
         .site-social:hover::after { transform: scaleX(1); }
         .site-bar { color: var(--text); }
         .site-enter { animation: siteEnter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
         @keyframes siteEnter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes snCrumb { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes snDraw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
         @keyframes snDot { from { transform: scale(0); } to { transform: scale(1); } }
         @media (max-width: 640px) { .site { padding-bottom: 64px; } }
         @media (prefers-reduced-motion: reduce) { .site-enter, .sn-crumb, .sn-dot { animation: none; } }
