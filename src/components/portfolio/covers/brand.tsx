@@ -1,12 +1,12 @@
 export interface Brand { name: string; color: string; colorDark: string; ink: string }
 
 export const PROJECT_BRAND: Record<string, Brand> = {
-  leanfetch: { name: 'LeanFetch', color: '#2F5BFF', colorDark: '#2A4FD6', ink: '#FFFFFF' },
-  harvey: { name: 'Harvey', color: '#FF6B2C', colorDark: '#E25A1F', ink: '#1A1A1A' },
-  'game-solver-suite': { name: 'Game Solver Suite', color: '#F6C417', colorDark: '#D9AC10', ink: '#1A1A1A' },
-  'how-many-clicks': { name: 'How Many Clicks', color: '#7C5CF6', colorDark: '#6A4CDD', ink: '#FFFFFF' },
-  wallstreetbets: { name: 'r/wallstreetbets', color: '#0E8F5C', colorDark: '#0C7A4F', ink: '#FFFFFF' },
-  ronnielos: { name: 'RonnielOS', color: '#FF9EBB', colorDark: '#E5839F', ink: '#1A1A1A' },
+  leanfetch: { name: 'LeanFetch', color: '#2F5BFF', colorDark: '#7B94FF', ink: '#FFFFFF' },
+  harvey: { name: 'Harvey', color: '#E4570F', colorDark: '#FF8A4C', ink: '#FFFFFF' },
+  'game-solver-suite': { name: 'Game Solver Suite', color: '#B07A00', colorDark: '#F0C23A', ink: '#FFFFFF' },
+  'how-many-clicks': { name: 'How Many Clicks', color: '#6A4CE8', colorDark: '#A48FFF', ink: '#FFFFFF' },
+  wallstreetbets: { name: 'r/wallstreetbets', color: '#0E8F5C', colorDark: '#3CC48C', ink: '#FFFFFF' },
+  ronnielos: { name: 'RonnielOS', color: '#D6457A', colorDark: '#FF8DB3', ink: '#FFFFFF' },
 };
 
 const S = { fill: 'none', stroke: 'currentColor', strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
