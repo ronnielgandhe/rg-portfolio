@@ -63,24 +63,24 @@ const speculation = JSON.stringify({
     var lastClick = null;
 
     function pathOf(u) { try { return new URL(u, location.href).pathname.replace(/\/$/, '') || '/'; } catch (e) { return null; } }
-    function isList(p) { return p === '/projects' || p === '/writing'; }
+    function isList(p) { return p === '/projects' || p === '/writing' || p === '/'; }
     function visible(el) {
       var r = el.getBoundingClientRect();
       return r.bottom > 60 && r.top < innerHeight && r.width > 0;
     }
     function clear() { if (sheet) sheet.textContent = ''; }
-    function name(sel, n) {
-      var el = sel && document.querySelector(sel);
-      if (!el) return;
+    function name(sel, n, cls) {
+      var all = sel ? document.querySelectorAll(sel) : [];
+      if (all.length !== 1) return;
       if (!sheet) { sheet = document.createElement('style'); document.head.appendChild(sheet); }
-      sheet.textContent += visible(el)
-        ? sel + '{view-transition-name:' + n + ' !important;view-transition-class:rg-morph}'
+      sheet.textContent += visible(all[0])
+        ? sel + '{view-transition-name:' + n + ' !important;view-transition-class:' + (cls || 'rg-morph') + '}'
         : sel + '{view-transition-name:none !important}';
     }
     function coverId(p) {
       if (p === '/desktop') return 'ronnielos';
       var m = /^\/([a-z0-9-]+)$/.exec(p || '');
-      return m ? m[1] : null;
+      return m && !isList(p) ? m[1] : null;
     }
     function introSel() {
       if (document.querySelector('.site .pi')) return '.site .pi';
@@ -88,16 +88,24 @@ const speculation = JSON.stringify({
     }
     function morph(from, to) {
       clear();
-      if (!from || !to || from === to || (isList(from) && isList(to))) return;
+      if (!from || !to || from === to) return;
       var here = pathOf(location.href);
-      var list = isList(from) ? from : isList(to) ? to : null;
-      var other = list === from ? to : from;
-      if (list === '/projects') {
-        var id = coverId(other);
-        if (id) name(here === list ? '.site [data-cover="' + id + '"]' : introSel(), 'cover-' + id);
-      } else if (list === '/writing' && other.indexOf('/writing/') === 0) {
-        name(here === list ? '.site a.wp-row[href="' + other + '"] .wp-title' : '.site .wp-post-title', TITLE);
+      if (document.querySelector('[style*="view-transition-name:cover-"]')) {
+        if (!sheet) { sheet = document.createElement('style'); document.head.appendChild(sheet); }
+        sheet.textContent += '[style*="view-transition-name:cover-"]{view-transition-name:none !important}';
       }
+      var post = from.indexOf('/writing/') === 0 ? from : to.indexOf('/writing/') === 0 ? to : null;
+      if (post) {
+        var postList = post === to ? from : to;
+        if (postList === '/writing' || postList === '/') {
+          name(here === post ? '.site .wp-post-title' : 'a[href="' + post + '"] :is(.wp-title, .hm-post-t)', TITLE, 'rg-morph-text');
+        }
+        return;
+      }
+      var list = from === '/projects' || from === '/' ? from : to === '/projects' || to === '/' ? to : null;
+      var id = list && coverId(list === from ? to : from);
+      if (!id) return;
+      name(here === list ? '[style*="cover-' + id + '"]' : introSel(), 'cover-' + id);
     }
 
     document.addEventListener('click', function (e) {
@@ -123,7 +131,8 @@ const speculation = JSON.stringify({
       if (!e.viewTransition) return;
       e.viewTransition.ready.catch(function () {});
       if (restored) { restored = false; e.viewTransition.skipTransition(); return; }
-      root.classList.add('rg-vt');
+      root.classList.add('rg-vt', 'rg-vt-run');
+      e.viewTransition.finished.finally(function () { root.classList.remove('rg-vt-run'); });
       if (!document.querySelector('.site')) {
         root.classList.add('rg-vt-wait');
         var done = function () {
@@ -222,8 +231,8 @@ const speculation = JSON.stringify({
   .sn-back:hover svg { transform: translateX(-1.5px); }
   .sn-back:focus-visible { outline-offset: 2px; }
   .sn-name { font-size: 19px; line-height: 24px; font-weight: 300; letter-spacing: -0.02em; color: var(--ink); text-decoration: none; white-space: nowrap; view-transition-name: sn-name; }
-  .sn-sep { margin: 0 10px; font-size: 15px; line-height: 24px; font-weight: 300; color: var(--faint); }
-  .sn-here { font-size: 14px; line-height: 24px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .sn-sep { margin: 0 10px; font-size: 15px; line-height: 24px; font-weight: 300; color: var(--faint); view-transition-name: sn-sep; }
+  .sn-here { font-size: 14px; line-height: 24px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; view-transition-name: sn-here; }
   .sn-gap { flex: 1; min-width: 16px; }
   .sn-right { display: flex; align-items: center; height: 100%; flex-shrink: 0; view-transition-name: sn-right; }
   .sn-theme { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin-left: 20px; color: var(--faint); transition: color 0.2s; }
@@ -255,7 +264,9 @@ const speculation = JSON.stringify({
   .site-social:hover::after { transform: scaleX(1); }
   .site-bar { color: var(--text); }
   .site-enter { animation: siteEnter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-  .rg-vt .site-enter, .rg-vt .hv-rise { animation: none; }
+  .rg-vt .site-enter, .rg-vt .hv-rise, .rg-vt .wk-rise, .rg-vt .wk-row, .rg-vt .wk-rule, .rg-vt .bs-bar { animation: none; }
+  .rg-vt-run .hm-anim [data-reveal] { opacity: 1 !important; transform: none !important; clip-path: none !important; transition: none !important; }
+  .rg-vt-run .hm-anim .hm-post::after { display: none; }
   @keyframes siteEnter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   @media (max-width: 640px) {
     .site { padding-top: 108px; padding-bottom: 64px; }
@@ -270,31 +281,30 @@ const speculation = JSON.stringify({
   @media (prefers-reduced-motion: no-preference) {
     @view-transition { navigation: auto; }
   }
-  ::view-transition-group(*) { animation-duration: 320ms; animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1); }
-  ::view-transition-old(root) { animation: 160ms cubic-bezier(0.4, 0, 1, 1) both rg-fade-out; }
-  ::view-transition-new(root) { animation: 320ms cubic-bezier(0.2, 0.8, 0.2, 1) 40ms both rg-rise-in; }
+  ::view-transition-group(*) { animation-duration: 360ms; animation-timing-function: cubic-bezier(0.2, 0, 0, 1); }
+  ::view-transition-old(*), ::view-transition-new(*) { animation-duration: 240ms; animation-timing-function: cubic-bezier(0.2, 0, 0, 1); }
+  ::view-transition-old(root) { animation: 240ms cubic-bezier(0.2, 0, 0, 1) both rg-fade-out; }
+  ::view-transition-new(root) { animation: 240ms cubic-bezier(0.2, 0, 0, 1) both rg-fade-in; }
   ::view-transition-group(site-nav) { animation: none; }
   ::view-transition-old(site-nav), ::view-transition-new(site-nav) { animation: none; }
   ::view-transition-old(site-nav):not(:only-child) { display: none; }
   .rg-vt-wait::view-transition-old(*) { animation: 4s linear both rg-hold; }
   .rg-vt-wait::view-transition-new(*) { animation: 4s linear both rg-hold-hidden; }
   .rg-vt-wait::view-transition-group(*) { animation-duration: 4s; }
-  ::view-transition-old(*):only-child { animation: 160ms cubic-bezier(0.4, 0, 1, 1) both rg-fade-out; }
-  ::view-transition-new(*):only-child { animation: 320ms cubic-bezier(0.2, 0.8, 0.2, 1) 40ms both rg-rise-in; }
-  ::view-transition-new(sn-back):only-child { animation: 240ms ease 80ms both rg-fade-in; }
-  ::view-transition-group(rg-morph-title) { animation-duration: 380ms; }
-  ::view-transition-group(*.rg-morph) { overflow: clip; animation-duration: 380ms; }
-  ::view-transition-image-pair(*.rg-morph) { isolation: auto; }
-  ::view-transition-old(*.rg-morph) { animation: 220ms ease both rg-fade-out; mix-blend-mode: normal; }
-  ::view-transition-new(*.rg-morph) { animation: 300ms ease 60ms both rg-fade-in; mix-blend-mode: normal; }
+  ::view-transition-old(*):only-child { animation: 240ms cubic-bezier(0.2, 0, 0, 1) both rg-fade-out; }
+  ::view-transition-new(*):only-child { animation: 240ms cubic-bezier(0.2, 0, 0, 1) both rg-fade-in; }
+  ::view-transition-group(*.rg-morph) { overflow: clip; }
   ::view-transition-old(*.rg-morph), ::view-transition-new(*.rg-morph) { width: 100%; height: 100%; object-fit: none; object-position: top left; }
   .rg-vt-detail::view-transition-old(*.rg-morph), .rg-vt-list::view-transition-new(*.rg-morph) { object-fit: cover; object-position: top center; }
-  .rg-vt-ready::view-transition-old(*):only-child { animation: 160ms ease 340ms both rg-fade-out; }
-  .rg-vt-ready::view-transition-old(*.rg-morph) { animation: 200ms ease both rg-fade-out; }
+  ::view-transition-old(*.rg-morph), ::view-transition-old(*.rg-morph-text) { animation: 240ms cubic-bezier(0.2, 0, 0, 1) both rg-fade-out; }
+  ::view-transition-new(*.rg-morph), ::view-transition-new(*.rg-morph-text) { animation: 240ms cubic-bezier(0.2, 0, 0, 1) 60ms both rg-fade-in; }
+  .rg-vt-ready::view-transition-old(*) { animation: 240ms cubic-bezier(0.2, 0, 0, 1) both rg-fade-out; }
+  .rg-vt-ready::view-transition-new(*) { animation: 240ms cubic-bezier(0.2, 0, 0, 1) both rg-fade-in; }
+  .rg-vt-ready::view-transition-old(*):only-child { animation: 160ms cubic-bezier(0.2, 0, 0, 1) 240ms both rg-fade-out; }
+  .rg-vt-ready::view-transition-old(*.rg-morph):only-child { animation: 240ms cubic-bezier(0.2, 0, 0, 1) both rg-fade-out; }
   @keyframes rg-hold { from { opacity: 1; } to { opacity: 1; } }
   @keyframes rg-hold-hidden { from { opacity: 0; } to { opacity: 0; } }
   @keyframes rg-fade-out { to { opacity: 0; } }
   @keyframes rg-fade-in { from { opacity: 0; } }
-  @keyframes rg-rise-in { from { opacity: 0; transform: translateY(10px); } }
 </style>
 <slot />
