@@ -19,7 +19,7 @@ const PROJECTS: FeedItem[] = [
   {
     id: 'game-solver-suite', nav: 'Game Solver Suite',
     label: 'Game Solver Suite', sub: 'one chrome extension that solves the linkedin and nyt daily games',
-    href: 'https://github.com/ronnielgandhe/linkedin-games-solver', external: true,
+    href: '/game-solver-suite',
     image: '/projects/solver.png', colors: NONE,
   },
   {

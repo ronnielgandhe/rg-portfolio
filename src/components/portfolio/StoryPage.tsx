@@ -14,7 +14,7 @@ interface Story {
   outro?: { text: string; href: string; label: string };
 }
 
-const STORIES: Record<string, Story> = {
+export const STORIES: Record<string, Story> = {
   bluejay: {
     crumb: 'bluejay',
     kicker: 'work',
