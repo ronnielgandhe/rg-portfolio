@@ -5,21 +5,19 @@ export const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matc
 export function useReveal(root: RefObject<HTMLElement | null>) {
   useEffect(() => {
     const el = root.current;
-    if (!el || reduced() || !('IntersectionObserver' in window)) return;
-    const target = location.hash.length > 1 ? document.getElementById(location.hash.slice(1)) : null;
-    if (target) target.scrollIntoView({ block: 'start', behavior: 'instant' as ScrollBehavior });
-    const items = Array.from(el.querySelectorAll<HTMLElement>('[data-reveal]'));
+    if (!el || !('IntersectionObserver' in window)) return;
+    const secs = Array.from(el.querySelectorAll<HTMLElement>('.hm-sec'));
     const vh = window.innerHeight;
-    for (const it of items) if (it.getBoundingClientRect().top < vh) it.classList.add('is-in');
-    el.classList.add('hm-anim');
+    for (const s of secs) {
+      const r = s.getBoundingClientRect();
+      if (r.top < vh * 0.5 && r.bottom > vh * 0.5) s.classList.add('is-on');
+    }
+    if (!secs.some((s) => s.classList.contains('is-on'))) secs[0]?.classList.add('is-on');
+    requestAnimationFrame(() => el.classList.add('hm-anim'));
     const io = new IntersectionObserver((entries) => {
-      for (const e of entries) {
-        if (!e.isIntersecting) continue;
-        e.target.classList.add('is-in');
-        io.unobserve(e.target);
-      }
-    }, { rootMargin: '0px 0px -64px 0px' });
-    for (const it of items) if (!it.classList.contains('is-in')) io.observe(it);
+      for (const e of entries) e.target.classList.toggle('is-on', e.intersectionRatio >= 0.5);
+    }, { threshold: [0, 0.5, 1] });
+    for (const s of secs) io.observe(s);
     return () => io.disconnect();
   }, [root]);
 }

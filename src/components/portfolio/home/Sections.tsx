@@ -1,17 +1,15 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import WorkSlot from './WorkSlot';
 import ProjectsSlot from './ProjectsSlot';
-import DesktopFrame from './DesktopFrame';
 import Book from './Book';
-import { CALENDLY, DESKTOP_LINE, EMAIL, POSTS, formatDate } from './data';
+import { CALENDLY, EMAIL, POSTS, formatDate } from './data';
 
-const d = (i: number) => ({ '--i': i }) as CSSProperties;
-
-function Sec({ id, label, wide, children }: { id: string; label: string; wide?: boolean; children: ReactNode }) {
+function Sec({ id, label, wide, extra, children }: { id: string; label: string; wide?: boolean; extra?: ReactNode; children: ReactNode }) {
   return (
     <section id={id} className={wide ? 'hm-sec hm-sec-wide' : 'hm-sec'}>
-      <h2 className="hm-label" data-reveal>{label}</h2>
-      {children}
+      {extra}
+      <h2 className="hm-label">{label}</h2>
+      <div className="hm-body">{children}</div>
     </section>
   );
 }
@@ -22,7 +20,7 @@ export function Work() {
 
 export function Projects() {
   return (
-    <Sec id="projects" label="projects" wide>
+    <Sec id="projects" label="projects" wide extra={<span id="desktop" className="hm-anchor" aria-hidden="true" />}>
       <div className="hm-wide"><ProjectsSlot /></div>
     </Sec>
   );
@@ -32,8 +30,8 @@ export function Writing() {
   return (
     <Sec id="writing" label="writing">
       <div className="hm-posts">
-        {POSTS.map((p, i) => (
-          <a key={p.slug} href={`/writing/${p.slug}`} className="hm-post" data-reveal style={d(i)}>
+        {POSTS.map((p) => (
+          <a key={p.slug} href={`/writing/${p.slug}`} className="hm-post">
             <span className="hm-post-t">{p.title}</span>
             <span className="hm-post-m">{formatDate(p.date)}</span>
           </a>
@@ -43,34 +41,20 @@ export function Writing() {
   );
 }
 
-export function Desktop() {
-  return (
-    <Sec id="desktop" label="desktop">
-      <p className="site-p hm-line" data-reveal>{DESKTOP_LINE}.</p>
-      <DesktopFrame />
-    </Sec>
-  );
-}
-
 export function Contact() {
   return (
     <Sec id="contact" label="contact">
-      <p className="site-p hm-line" data-reveal>if any of it was interesting, i'm easy to reach.</p>
-      <Book />
-      <p className="hm-alt" data-reveal>
+      <p className="site-p hm-line">if any of it was interesting, i'm easy to reach.</p>
+      <div className="hm-slot"><Book /></div>
+      <p className="hm-alt">
         <a href={CALENDLY} target="_blank" rel="noopener noreferrer">or open calendly</a>
         <span aria-hidden="true">·</span>
         <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
       </p>
+      <footer className="hm-foot">
+        <span>ronniel gandhe, san francisco</span>
+        <a href="#top">back to top</a>
+      </footer>
     </Sec>
-  );
-}
-
-export function Footer() {
-  return (
-    <footer className="hm-foot">
-      <span>ronniel gandhe, san francisco</span>
-      <a href="#top">back to top</a>
-    </footer>
   );
 }

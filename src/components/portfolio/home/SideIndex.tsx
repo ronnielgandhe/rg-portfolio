@@ -5,7 +5,6 @@ const ITEMS = [
   { id: 'work', href: '#work' },
   { id: 'projects', href: '#projects' },
   { id: 'writing', href: '#writing' },
-  { id: 'desktop', href: '#desktop' },
   { id: 'contact', href: '#contact' },
 ];
 

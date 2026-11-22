@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import SiteNav, { useSiteTheme } from './SiteNav';
 import Socials from './home/Socials';
-import { Contact, Desktop, Footer, Projects, Work, Writing } from './home/Sections';
+import { Contact, Projects, Work, Writing } from './home/Sections';
+import Peel, { PEEL_CSS } from './home/Peel';
 import SideIndex from './home/SideIndex';
 import { jumpTo, useReveal } from './home/motion';
 import { HOME_CSS } from './home/styles';
@@ -40,60 +41,59 @@ export default function HomeFeed() {
       <SiteNav dark={dark} onToggleTheme={toggle} />
 
       <div ref={root} className="hm" onClick={jumpTo}>
-        <style>{HOME_CSS}</style>
+        <style>{HOME_CSS + PEEL_CSS}</style>
         <SideIndex />
-        <div id="intro" className="site-col">
-          <div className="site-meta"><span>san francisco</span><span>·</span><span suppressHydrationWarning>{time}</span></div>
-          <section>
-            <h1 className="site-h1">hey, i'm ronniel.</h1>
-            <p className="site-p" style={{ lineHeight: '24px' }}>software engineer in san francisco.</p>
-          </section>
-          <section className="site-body">
-            <p className="site-p">
-              currently, i'm a software engineer at{' '}
-              <a className="site-link" href="/bluejay">
-                <Ico src="/bluejay-mark-black.svg" darkSrc="/bluejay-mark-white.svg" />Bluejay (YC X25)
-              </a>
-              , working on voice agent simulation, evals and observability.
-            </p>
-            <p className="site-p">
-              before that, i did growth and software engineering at{' '}
-              <a className="site-link" href="/augmentor-labs">
-                <Ico src="/augmentor-dark.svg" invertOnLight />Augmentor Labs
-              </a>
-              {' '}and data science at{' '}
-              <span style={{ whiteSpace: 'nowrap' }}><Ico src="/cibc-dark.svg" />CIBC</span>
-              . i studied cs at{' '}
-              <a className="site-link" href="/school">
-                <Ico src="/waterloo-logo.png" />Waterloo
-              </a>
-              {' '}and business at{' '}
-              <a className="site-link" href="/school">
-                <Ico src="/laurier-seal.png" />Laurier
-              </a>
-              .
-            </p>
-            <p className="site-p">
-              outside of work, you'll find me{' '}
-              <a className="site-link" href="/projects">building small tools</a>
-              {' '}and{' '}
-              <a className="site-link" href="/writing">writing</a>
-              .
-            </p>
-            <div className="hm-reach">
-              <a className="hm-btn" href="#contact">book a call</a>
-              <Socials />
-            </div>
-          </section>
-        </div>
         <div className="site-col">
+          <section id="intro" className="hm-sec hm-intro">
+            <div className="site-meta"><span>san francisco</span><span>·</span><span suppressHydrationWarning>{time}</span></div>
+            <section>
+              <h1 className="site-h1">hey, i'm ronniel.</h1>
+              <p className="site-p" style={{ lineHeight: '24px' }}>software engineer in san francisco.</p>
+            </section>
+            <section className="site-body">
+              <p className="site-p">
+                currently, i'm a software engineer at{' '}
+                <a className="site-link" href="/bluejay">
+                  <Ico src="/bluejay-mark-black.svg" darkSrc="/bluejay-mark-white.svg" />Bluejay (YC X25)
+                </a>
+                , working on voice agent simulation, evals and observability.
+              </p>
+              <p className="site-p">
+                before that, i did growth and software engineering at{' '}
+                <a className="site-link" href="/augmentor-labs">
+                  <Ico src="/augmentor-dark.svg" invertOnLight />Augmentor Labs
+                </a>
+                {' '}and data science at{' '}
+                <span style={{ whiteSpace: 'nowrap' }}><Ico src="/cibc-dark.svg" />CIBC</span>
+                . i studied cs at{' '}
+                <a className="site-link" href="/school">
+                  <Ico src="/waterloo-logo.png" />Waterloo
+                </a>
+                {' '}and business at{' '}
+                <a className="site-link" href="/school">
+                  <Ico src="/laurier-seal.png" />Laurier
+                </a>
+                .
+              </p>
+              <p className="site-p">
+                outside of work, you'll find me{' '}
+                <a className="site-link" href="/projects">building small tools</a>
+                {' '}and{' '}
+                <a className="site-link" href="/writing">writing</a>
+                .
+              </p>
+              <div className="hm-reach">
+                <a className="hm-btn" href="#contact">book a call</a>
+                <Socials />
+              </div>
+            </section>
+          </section>
           <Work />
           <Projects />
           <Writing />
-          <Desktop />
           <Contact />
-          <Footer />
         </div>
+        <Peel />
       </div>
     </div>
   );
