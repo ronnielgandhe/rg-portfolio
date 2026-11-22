@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDesktop } from './DesktopContext';
 import type { WindowId } from './types';
-import { SYSTEM_FONT, ACCENT, chromeTokens } from './chrome';
+import { SYSTEM_FONT, chromeTokens } from './chrome';
 
 interface Entry {
   id: string;
   title: string;
   subtitle: string;
-  group: 'Applications' | 'Projects' | 'Links' | 'System';
+  group: 'Top Hit' | 'Applications' | 'Folders' | 'Projects' | 'Links' | 'System';
   keywords: string;
   icon?: string;
   glyph?: string;
@@ -35,17 +35,17 @@ export default function Spotlight() {
     return [
       app('terminal', 'Terminal', 'about me', '/usethisTERMIANL.png', 'zsh home about'),
       app('projects', 'Projects', 'what i have been building', '/vscode.png', 'code vscode builds'),
-      app('experience', 'Experience', 'where i have worked', '/icons/folder.png', 'work jobs finder bluejay'),
-      app('education', 'Education', 'school and certifications', '/icons/folder.png', 'waterloo laurier finder'),
+      { ...app('experience', 'Experience', 'where i have worked', '/icons/folder.png', 'work jobs finder bluejay'), group: 'Folders' as const },
+      { ...app('education', 'Education', 'school and certifications', '/icons/folder.png', 'waterloo laurier finder'), group: 'Folders' as const },
       app('blog', 'My Thoughts', 'notes and writing', '/notes.png', 'notes blog writing'),
-      app('stocks', 'Stocks', 'live watchlist', '/usethisonestocks1111.png', 'market trading'),
+      app('stocks', 'Stocks', 'my watchlist, live', '/usethisonestocks1111.png', 'market trading watchlist'),
       app('photos', 'Photos', 'places i have been', '/icons/photos.png', 'pictures gallery'),
       { ...app('calendar', 'Calendar', 'book a meeting', '', 'meeting schedule'), icon: undefined, glyph: String(new Date().getDate()) },
       app('email', 'Mail', 'send me a message', '/usethismailicon.png', 'email contact'),
       link('p-leanfetch', 'LeanFetch', 'finds wasted spend in your llm api calls', 'https://github.com/ronnielgandhe/leanfetch', 'Projects', '◆', 'api cost anthropic'),
       link('p-harvey', 'Harvey', 'voice legal assistant', 'https://github.com/ronnielgandhe/harvey', 'Projects', '◆', 'livekit voice rag'),
-      link('p-linkedin', 'LinkedIn Games Solver', 'chrome extension', 'https://github.com/ronnielgandhe/linkedin-games-solver', 'Projects', '◆', 'queens tango zip'),
-      link('p-nyt', 'NYT Games Solver', 'chrome extension', 'https://github.com/ronnielgandhe/nyt-games-solver', 'Projects', '◆', 'wordle connections strands'),
+      link('p-solver', 'Game Solver Suite', 'chrome extension', 'https://github.com/ronnielgandhe/game-solver-suite', 'Projects', '◆', 'linkedin nyt queens tango zip wordle connections strands'),
+      link('p-clicks', 'How Many Clicks', 'the wikipedia game', '/how-many-clicks', 'Projects', '◆', 'wikipedia game'),
       link('l-github', 'GitHub', 'github.com/ronnielgandhe', 'https://github.com/ronnielgandhe', 'Links', '↗', 'code repos'),
       link('l-linkedin', 'LinkedIn', 'linkedin.com/in/ronniel-gandhe', 'https://www.linkedin.com/in/ronniel-gandhe/', 'Links', '↗'),
       link('l-resume', 'Resume', 'pdf', '/Ronniel_Gandhe_Resume.pdf', 'Links', '↗', 'cv'),
@@ -60,7 +60,7 @@ export default function Spotlight() {
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return entries.filter(e => e.group === 'Applications');
+    if (!q) return [];
     const scored = entries
       .map(e => {
         const t = e.title.toLowerCase();
@@ -72,10 +72,15 @@ export default function Spotlight() {
       .sort((a, b) => b.score - a.score);
     const order: string[] = [];
     for (const x of scored) if (!order.includes(x.e.group)) order.push(x.e.group);
-    return scored
-      .map((x, i) => ({ x, i }))
-      .sort((a, b) => order.indexOf(a.x.e.group) - order.indexOf(b.x.e.group) || a.i - b.i)
-      .map(({ x }) => x.e);
+    if (!scored.length) return [];
+    const [top, ...rest] = scored;
+    return [
+      { ...top.e, group: 'Top Hit' as const },
+      ...rest
+        .map((x, i) => ({ x, i }))
+        .sort((a, b) => order.indexOf(a.x.e.group) - order.indexOf(b.x.e.group) || a.i - b.i)
+        .map(({ x }) => x.e),
+    ];
   }, [entries, query]);
 
   useEffect(() => {
@@ -164,7 +169,7 @@ export default function Spotlight() {
             style={{
               flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
               fontFamily: SYSTEM_FONT, fontSize: '24px', fontWeight: 400, letterSpacing: '-0.01em',
-              color: c.text, caretColor: ACCENT,
+              color: c.text, caretColor: c.accent,
             }}
           />
         </div>
@@ -185,22 +190,22 @@ export default function Spotlight() {
                     onMouseEnter={() => setIndex(i)}
                     onClick={() => run(e)}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: '10px', height: '34px', padding: '0 10px',
-                      borderRadius: '7px', cursor: 'default',
-                      background: active ? ACCENT : 'transparent',
+                      display: 'flex', alignItems: 'center', gap: '10px', height: '28px', padding: '0 10px',
+                      borderRadius: '6px', cursor: 'default',
+                      background: active ? c.accent : 'transparent',
                     }}
                   >
                     {e.icon ? (
-                      <img src={e.icon} alt="" draggable={false} style={{ width: '24px', height: '24px', borderRadius: '6px', objectFit: 'cover', flexShrink: 0 }} />
+                      <img src={e.icon} alt="" draggable={false} style={{ width: '20px', height: '20px', borderRadius: '5px', objectFit: 'cover', flexShrink: 0 }} />
                     ) : (
                       <div style={{
-                        width: '24px', height: '24px', borderRadius: '6px', flexShrink: 0,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px',
+                        width: '20px', height: '20px', borderRadius: '5px', flexShrink: 0,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px',
                         background: active ? 'rgba(255,255,255,0.2)' : c.hover,
                         color: active ? '#fff' : c.textSecondary,
                       }}>{e.glyph}</div>
                     )}
-                    <span style={{ fontSize: '14px', color: active ? '#fff' : c.text, whiteSpace: 'nowrap' }}>{e.title}</span>
+                    <span style={{ fontSize: '13px', color: active ? '#fff' : c.text, whiteSpace: 'nowrap' }}>{e.title}</span>
                     <span style={{
                       fontSize: '13px', color: active ? 'rgba(255,255,255,0.8)' : c.textTertiary,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -211,7 +216,7 @@ export default function Spotlight() {
             })}
           </div>
         )}
-        {results.length === 0 && (
+        {results.length === 0 && query.trim() && (
           <div style={{ borderTop: `1px solid ${c.separator}`, padding: '18px', fontSize: '13px', color: c.textTertiary }}>
             No results
           </div>

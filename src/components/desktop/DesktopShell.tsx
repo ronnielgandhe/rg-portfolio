@@ -7,6 +7,8 @@ import BootScreen from './BootScreen';
 import DesktopDock from './DesktopDock';
 import DesktopMenuBar from './DesktopMenuBar';
 import Spotlight from './Spotlight';
+import StocksWindow from './StocksWindow';
+import { MENU_BAR_HEIGHT, DOCK_RESERVED } from './chrome';
 import GitHubHeatmap from './GitHubHeatmap';
 import type { WindowId } from './types';
 import { BlackbookDashboard, PasswordGate, hashPass, PASS } from '../portfolio/Blackbook';
@@ -53,8 +55,6 @@ function WindowContent({ id }: { id: WindowId }) {
       return <EmailCompose windowMode />;
     case 'photos':
       return <Photos windowMode />;
-    case 'wifi-settings':
-      return <WifiSettings />;
     case 'stocks':
       return <StocksApp />;
     default:
@@ -4270,66 +4270,7 @@ function StocksApp() {
     return <BloombergTerminalView drillDown={drillDown} setDrillDown={setDrillDown} />;
   }
 
-  return (
-    <div className="bloomberg-scroll" style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', fontFamily: "'SF Mono', monospace", padding: '10px' }}>
-      {drillDown ? (
-        <div style={{ background: 'rgba(0,0,0,0.35)', borderRadius: '12px', border: '0.5px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', overflow: 'hidden' }}>
-          {drillDown.type === 'stock' ? (
-            <StockDetailView
-              symbol={drillDown.symbol}
-              name={drillDown.name}
-              onBack={() => setDrillDown(null)}
-              onSectorClick={(name) => setDrillDown({ type: 'sector', name })}
-            />
-          ) : (
-            <SectorDetailView
-              sectorName={drillDown.name}
-              onBack={() => setDrillDown(null)}
-              onStockClick={(symbol, name) => setDrillDown({ type: 'stock', symbol, name })}
-            />
-          )}
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {/* Header card */}
-          <div style={{ background: 'rgba(0,0,0,0.35)', borderRadius: '12px', padding: '12px 14px', border: '0.5px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ fontSize: '18px', fontWeight: 700, color: '#fff', fontFamily: "'SF Pro Display', -apple-system, sans-serif", letterSpacing: '-0.01em' }}>
-                My Watchlist
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#4ade80', animation: 'livePulse 2s ease-in-out infinite' }} />
-                <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '10px', fontWeight: 600, letterSpacing: '0.05em' }}>LIVE</span>
-              </div>
-            </div>
-            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px', fontWeight: 500, fontFamily: "'SF Pro Text', -apple-system, sans-serif", marginTop: '2px' }}>
-              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-            </div>
-          </div>
-
-          {/* Stock Grid card */}
-          <div style={{ background: 'rgba(0,0,0,0.35)', borderRadius: '12px', border: '0.5px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', overflow: 'hidden' }}>
-            <StockGrid onStockClick={(symbol, name) => setDrillDown({ type: 'stock', symbol, name })} />
-          </div>
-
-          {/* Sector Sparklines card */}
-          <div style={{ background: 'rgba(0,0,0,0.35)', borderRadius: '12px', border: '0.5px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', overflow: 'hidden' }}>
-            <SectorSparklines onSectorClick={(name) => setDrillDown({ type: 'sector', name })} />
-          </div>
-
-          {/* News + Calendar card */}
-          <div style={{ background: 'rgba(0,0,0,0.35)', borderRadius: '12px', border: '0.5px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', overflow: 'hidden' }}>
-            <ScrollingNewsTape />
-            <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.1)', margin: '0 10px' }} />
-            <EconomicCalendar />
-          </div>
-        </div>
-      )}
-      <style>{`@keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-.bloomberg-scroll::-webkit-scrollbar { display: none; }
-.bloomberg-scroll { -ms-overflow-style: none; scrollbar-width: none; }`}</style>
-    </div>
-  );
+  return <StocksWindow />;
 }
 
 function MiddlePanel({ runCommand }: { runCommand: (cmd: string) => void }) {
@@ -6070,7 +6011,7 @@ function Desktop() {
     const MIN_WIDTH_FOR_SLIDE = 1024;
     if (window.innerWidth < MIN_WIDTH_FOR_SLIDE) return;
 
-    const sideWindows = ['education', 'experience', 'stocks'] as const;
+    const sideWindows = ['education', 'experience'] as const;
     const openSideWindow = sideWindows.find(id => {
       const w = state.windows[id];
       return w && w.isOpen && !w.isMinimized;
@@ -6080,8 +6021,8 @@ function Desktop() {
 
     const screenW = window.innerWidth;
     const screenH = window.innerHeight;
-    const menuBarH = 28;
-    const dockH = 72;
+    const menuBarH = MENU_BAR_HEIGHT;
+    const dockH = DOCK_RESERVED + 5;
     const gap = 10;
     const usableH = screenH - menuBarH - dockH;
 
@@ -6142,7 +6083,7 @@ function Desktop() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     // Stable dependency: only re-run when the set of open side windows changes
-    ['education', 'experience', 'stocks'].filter(id => state.windows[id]?.isOpen && !state.windows[id]?.isMinimized).join(','),
+    ['education', 'experience'].filter(id => state.windows[id]?.isOpen && !state.windows[id]?.isMinimized).join(','),
     state.windows['terminal']?.isOpen,
   ]);
 
@@ -6159,10 +6100,6 @@ function Desktop() {
       if ((e.metaKey || e.ctrlKey) && e.key === 'm' && state.focusedWindowId) {
         e.preventDefault();
         dispatch({ type: 'MINIMIZE_WINDOW', id: state.focusedWindowId });
-      }
-      // Escape to close focused window (skip terminal)
-      if (e.key === 'Escape' && state.focusedWindowId && state.focusedWindowId !== 'terminal') {
-        dispatch({ type: 'REQUEST_CLOSE', id: state.focusedWindowId });
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -6193,7 +6130,7 @@ function Desktop() {
         cursor: 'default',
       }}
     >
-      <Background overlayOpacity={['stocks', 'education', 'experience', 'terminal'].includes(state.focusedWindowId as string) ? 0.35 : 0.1} />
+      <Background overlayOpacity={0.12} />
       <BootScreen key={state.bootComplete ? 'booted' : 'booting'} />
 
       {state.bootComplete && (
@@ -6207,22 +6144,25 @@ function Desktop() {
             const isTerminalDashboard = isTerminalFullscreen && bbAuthState;
             const titleBarBgMap: Record<string, string> = {
               projects: '#252526',
-              blog: '#f9f9f8',
+              blog: '#f6f6f6',
               calendar: '#ffffff',
               photos: '#1a1a1f',
+              stocks: '#1c1c1e',
+              email: '#ececec',
               ...(isTerminalDashboard ? { terminal: 'rgba(0,0,0,0.4)' } : {}),
             };
             // Apps with dark content need light title bar text
-            const darkTitleBars = ['projects', 'terminal', 'photos'];
+            const darkTitleBars = ['projects', 'terminal', 'photos', 'stocks'];
             const titleBarBg = titleBarBgMap[win.id];
             const titleBarDark = darkTitleBars.includes(win.id);
+            const material = (win.id as string) === 'terminal' ? 'terminal' as const : 'opaque' as const;
             const hoverProps = {
               onMouseEnter: () => setHoveredWindowId(win.id),
               onMouseLeave: () => setHoveredWindowId(null),
             };
             if (win.id === 'detail' && state.activeDetail) {
               return (
-                <AppWindow key={win.id} windowState={win} titleBarBg={titleBarBg} titleBarDark={titleBarDark} {...hoverProps}>
+                <AppWindow key={win.id} windowState={win} material={material} titleBarBg={titleBarBg} titleBarDark={titleBarDark} {...hoverProps}>
                   <DetailPanel
                     detail={state.activeDetail}
                     onClose={() => dispatch({ type: 'CLOSE_DETAIL' })}
@@ -6233,7 +6173,7 @@ function Desktop() {
             }
             if (win.id === 'content' && state.activeContent) {
               return (
-                <AppWindow key={win.id} windowState={win} titleBarBg={titleBarBg} titleBarDark={titleBarDark} {...hoverProps}>
+                <AppWindow key={win.id} windowState={win} material={material} titleBarBg={titleBarBg} titleBarDark={titleBarDark} {...hoverProps}>
                   <ContentViewer
                     content={state.activeContent}
                     onClose={() => dispatch({ type: 'CLOSE_CONTENT' })}
@@ -6243,7 +6183,7 @@ function Desktop() {
               );
             }
             return (
-              <AppWindow key={win.id} windowState={win} titleBarBg={titleBarBg} titleBarDark={titleBarDark} {...hoverProps}>
+              <AppWindow key={win.id} windowState={win} material={material} titleBarBg={titleBarBg} titleBarDark={titleBarDark} {...hoverProps}>
                 <WindowContent id={win.id} />
               </AppWindow>
             );
