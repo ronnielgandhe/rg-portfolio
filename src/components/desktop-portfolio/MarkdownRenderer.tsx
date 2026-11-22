@@ -355,8 +355,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
             textAlign: 'center',
             fontFamily: '"Georgia", serif',
             fontSize: '1rem',
-            color: 'rgba(255, 255, 255, 0.92)',
-            fontStyle: 'italic'
+            color: 'rgba(255, 255, 255, 0.92)'
           }}>
             {mathLines.join('\n')}
           </div>

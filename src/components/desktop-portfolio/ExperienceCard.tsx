@@ -115,7 +115,7 @@ const ExperienceCard = ({ experience, clickable = false, link = null, onDetailCl
             <span style={{
               color: darkMode ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.65)',
               fontSize: '1.5rem',
-              fontFamily: 'NeueMontreal-Light, sans-serif',
+              fontFamily: 'inherit',
               fontWeight: '300'
             }}>
               {experience.company.charAt(0)}
@@ -162,7 +162,7 @@ const ExperienceCard = ({ experience, clickable = false, link = null, onDetailCl
         <h3 style={{
           fontSize: 'clamp(1rem, 2.5vw, 1.3rem)',
           color: darkMode ? 'rgba(255, 255, 255, 0.95)' : '#1d1d1f',
-          fontFamily: '-apple-system, BlinkMacSystemFont, NeueMontreal-Medium, sans-serif',
+          fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
           fontStyle: 'normal',
           margin: 0,
           fontWeight: '600',
@@ -229,7 +229,7 @@ const ExperienceCard = ({ experience, clickable = false, link = null, onDetailCl
                   <p style={{
                     fontSize: 'clamp(0.95rem, 2.3vw, 1.1rem)',
                     color: darkMode ? 'rgba(255, 255, 255, 0.9)' : '#1d1d1f',
-                    fontFamily: '-apple-system, BlinkMacSystemFont, NeueMontreal-Light, sans-serif',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
                     margin: 0,
                     fontWeight: '500',
                     lineHeight: '1.4',
@@ -241,7 +241,7 @@ const ExperienceCard = ({ experience, clickable = false, link = null, onDetailCl
                   <p style={{
                     fontSize: 'clamp(0.8rem, 1.8vw, 0.9rem)',
                     color: darkMode ? 'rgba(255, 255, 255, 0.7)' : '#86868b',
-                    fontFamily: '-apple-system, BlinkMacSystemFont, NeueMontreal-Light, sans-serif',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
                     margin: '0.1rem 0 0',
                     fontWeight: '400',
                     userSelect: 'none',
@@ -253,7 +253,7 @@ const ExperienceCard = ({ experience, clickable = false, link = null, onDetailCl
                     <p style={{
                       fontSize: 'clamp(0.85rem, 2vw, 0.95rem)',
                       color: darkMode ? 'rgba(255, 255, 255, 0.85)' : '#424245',
-                      fontFamily: '-apple-system, BlinkMacSystemFont, NeueMontreal-Light, sans-serif',
+                      fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
                       margin: '0.4rem 0 0',
                       fontWeight: '400',
                       lineHeight: '1.5',
@@ -273,7 +273,7 @@ const ExperienceCard = ({ experience, clickable = false, link = null, onDetailCl
             <p style={{
               fontSize: 'clamp(0.95rem, 2.3vw, 1.15rem)',
               color: darkMode ? 'rgba(255, 255, 255, 0.92)' : '#424245',
-              fontFamily: '-apple-system, BlinkMacSystemFont, NeueMontreal-Light, sans-serif',
+              fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
               margin: 0,
               fontWeight: '500',
               lineHeight: '1.4',
@@ -289,7 +289,7 @@ const ExperienceCard = ({ experience, clickable = false, link = null, onDetailCl
             <p style={{
               fontSize: 'clamp(0.8rem, 1.8vw, 0.9rem)',
               color: darkMode ? 'rgba(255, 255, 255, 0.7)' : '#86868b',
-              fontFamily: '-apple-system, BlinkMacSystemFont, NeueMontreal-Light, sans-serif',
+              fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
               margin: '0.1rem 0 0',
               fontWeight: '400',
               userSelect: 'none',
@@ -302,7 +302,7 @@ const ExperienceCard = ({ experience, clickable = false, link = null, onDetailCl
             <p style={{
               fontSize: 'clamp(0.95rem, 2.3vw, 1.1rem)',
               color: darkMode ? 'rgba(255, 255, 255, 0.88)' : '#424245',
-              fontFamily: '-apple-system, BlinkMacSystemFont, NeueMontreal-Light, sans-serif',
+              fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
               lineHeight: '1.6',
               margin: 0,
               marginTop: '0.75rem',
@@ -310,7 +310,7 @@ const ExperienceCard = ({ experience, clickable = false, link = null, onDetailCl
               wordWrap: 'break-word',
               overflowWrap: 'break-word',
               wordBreak: 'break-word',
-              hyphens: 'auto',
+              hyphens: 'manual',
               letterSpacing: '0.01em',
               userSelect: 'none',
               WebkitUserSelect: 'none'
@@ -323,20 +323,6 @@ const ExperienceCard = ({ experience, clickable = false, link = null, onDetailCl
 
       {/* Responsive CSS */}
       <style>{`
-        @font-face {
-          font-family: 'NeueMontreal-Light';
-          src: url('/NeueMontreal-Light.otf') format('opentype');
-          font-weight: 300;
-          font-style: normal;
-        }
-
-        @font-face {
-          font-family: 'NeueMontreal-Medium';
-          src: url('/NeueMontreal-Medium.otf') format('opentype');
-          font-weight: 500;
-          font-style: normal;
-        }
-
         .glass-experience-card {
           position: relative;
           background: rgba(255, 255, 255, 0.82);

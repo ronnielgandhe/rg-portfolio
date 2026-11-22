@@ -1,4 +1,11 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import { SYS_FONT, LABEL, LABEL_2, RED, Icon, MacStyles } from './mac';
+
+const BOOKING_URL = 'https://calendly.com/ronnielgandhe?embed_type=Inline&embed_domain=ronnielgandhe.com&hide_gdpr_banner=1&hide_landing_page_details=1&background_color=ffffff&primary_color=007aff';
+const HOUR_PX = 60;
+const WEEKEND_BG = '#f7f7f7';
+const isWeekend = (d: number) => d === 0 || d === 6;
 
 type ViewMode = 'Day' | 'Week' | 'Month' | 'Year';
 
@@ -11,7 +18,7 @@ const DAYS_FULL = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
-const Calendar = ({ windowMode }: CalendarProps) => {
+const Calendar = (_props: CalendarProps) => {
   const realToday = new Date();
   const [currentDate, setCurrentDate] = useState(new Date(realToday.getFullYear(), realToday.getMonth(), realToday.getDate()));
   const [viewMode, setViewMode] = useState<ViewMode>('Month');
@@ -69,179 +76,97 @@ const Calendar = ({ windowMode }: CalendarProps) => {
     return `${MONTHS[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
   }, [viewMode, currentDate]);
 
-  // Booking overlay
-  if (showBooking) {
-    return (
-      <div style={{
-        width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
-        background: '#fff', fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif",
-      }}>
-        <div style={{
-          height: '36px', minHeight: '36px', display: 'flex', alignItems: 'center',
-          padding: '0 12px', borderBottom: '1px solid #e5e5e5', background: '#fafafa', gap: '8px',
-        }}>
-          <button onClick={() => setShowBooking(false)} style={{
-            background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px',
-            color: '#007aff', fontFamily: "'SF Pro Text', -apple-system, sans-serif",
-            fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px',
-            padding: '4px 8px', borderRadius: '6px',
-          }}>
-            <span style={{ fontSize: '16px' }}>‹</span> Back to Calendar
-          </button>
-          <span style={{ flex: 1 }} />
-          <span style={{ fontSize: '13px', color: '#666', fontWeight: 500 }}>Book a Meeting with Ronniel</span>
-          <span style={{ flex: 1 }} />
-          <span style={{ width: '120px' }} />
-        </div>
-        <iframe
-          src="https://calendly.com/ronnielgandhe?hide_gdpr_banner=1"
-          style={{ flex: 1, width: '100%', border: 'none', background: '#fff' }}
-          title="Book a meeting"
-        />
-      </div>
-    );
-  }
+  const openBooking = () => setShowBooking(true);
 
   return (
     <div style={{
-      width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
-      background: 'transparent', fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif",
+      width: '100%', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative',
+      background: '#fff', fontFamily: SYS_FONT, fontSize: '13px', lineHeight: 1.35, color: LABEL,
       userSelect: 'none',
     }}>
-      {/* Toolbar — solid white to match calendar content */}
+      <MacStyles />
       <div style={{
-        height: '38px', minHeight: '38px', display: 'flex', alignItems: 'center',
-        padding: '0 14px', borderBottom: '1px solid #e5e5e5', background: '#fff', gap: '8px',
+        height: '52px', minHeight: '52px', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center',
+        padding: '0 80px', boxSizing: 'border-box', borderBottom: '0.5px solid rgba(0,0,0,0.1)', background: '#f6f6f6',
       }}>
-        {/* Left: toolbar icons */}
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <ToolbarIcon>
-            <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-              <rect x="2" y="2" width="5" height="5" rx="1" stroke="#444" strokeWidth="1.2" />
-              <rect x="9" y="2" width="5" height="5" rx="1" stroke="#444" strokeWidth="1.2" />
-              <rect x="2" y="9" width="5" height="5" rx="1" stroke="#444" strokeWidth="1.2" />
-              <rect x="9" y="9" width="5" height="5" rx="1" stroke="#444" strokeWidth="1.2" />
-            </svg>
-          </ToolbarIcon>
-          <ToolbarIcon>
-            <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-              <rect x="2" y="3" width="12" height="10" rx="1.5" stroke="#444" strokeWidth="1.2" />
-              <path d="M5 1.5V4.5" stroke="#444" strokeWidth="1.2" strokeLinecap="round" />
-              <path d="M11 1.5V4.5" stroke="#444" strokeWidth="1.2" strokeLinecap="round" />
-            </svg>
-          </ToolbarIcon>
-          <ToolbarIcon>
-            <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-              <path d="M8 3V13M3 8H13" stroke="#444" strokeWidth="1.4" strokeLinecap="round" />
-            </svg>
-          </ToolbarIcon>
-          <ToolbarIcon>
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-              <path d="M4 12L12 4" stroke="#444" strokeWidth="1.2" strokeLinecap="round" />
-              <path d="M12 4H8M12 4V8" stroke="#444" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </ToolbarIcon>
+        <div style={{ display: 'flex' }}>
+          <ToolBtn onClick={openBooking} tooltip="Book a Meeting"><Icon.Plus size={18} /></ToolBtn>
         </div>
+        <div style={{
+          display: 'inline-flex', background: 'rgba(0, 0, 0, 0.06)', borderRadius: '6px', padding: '2px', height: '24px', boxSizing: 'border-box',
+        }}>
+          {(['Day', 'Week', 'Month', 'Year'] as ViewMode[]).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              style={{
+                padding: '0 14px', borderRadius: '5px', border: 'none', fontSize: '12px', fontWeight: 400,
+                fontFamily: SYS_FONT, cursor: 'default',
+                background: mode === viewMode ? '#ffffff' : 'transparent',
+                color: LABEL,
+                boxShadow: mode === viewMode ? '0 0.5px 1.5px rgba(0,0,0,0.2)' : 'none',
+              }}
+            >
+              {mode}
+            </button>
+          ))}
+        </div>
+        <div />
+      </div>
 
-        {/* Center: view mode segmented control */}
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-          <div style={{
-            display: 'inline-flex', background: 'rgba(0, 0, 0, 0.06)', borderRadius: '7px',
-            padding: '2px', border: '0.5px solid rgba(0, 0, 0, 0.1)',
-          }}>
-            {(['Day', 'Week', 'Month', 'Year'] as ViewMode[]).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                style={{
-                  padding: '3px 16px', borderRadius: '5px', border: 'none', fontSize: '12.5px',
-                  fontWeight: mode === viewMode ? 500 : 400,
-                  fontFamily: "'SF Pro Text', -apple-system, sans-serif",
-                  cursor: 'pointer',
-                  background: mode === viewMode ? 'rgba(255, 255, 255, 0.85)' : 'transparent',
-                  color: mode === viewMode ? '#1a1a1a' : 'rgba(0, 0, 0, 0.5)',
-                  boxShadow: mode === viewMode ? '0 0.5px 2px rgba(0,0,0,0.15), 0 0.5px 0.5px rgba(0,0,0,0.1)' : 'none',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                {mode}
-              </button>
-            ))}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#fff', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '10px 16px 8px' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 700, color: LABEL, margin: 0, fontFamily: SYS_FONT, letterSpacing: '-0.3px' }}>
+            {headerText.split(' ')[0]}
+            {headerText.includes(' ') && (
+              <span style={{ fontWeight: 400 }}>{' '}{headerText.split(' ').slice(1).join(' ')}</span>
+            )}
+          </h1>
+          <div style={{ flex: 1 }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <NavButton onClick={goToPrev} label="Previous"><Icon.ChevronLeft size={14} /></NavButton>
+            <button onClick={goToToday} style={{
+              height: '22px', padding: '0 10px', borderRadius: '6px', border: '0.5px solid rgba(0,0,0,0.15)',
+              background: '#fff', fontSize: '13px', color: LABEL, cursor: 'default', fontFamily: SYS_FONT,
+              boxShadow: '0 0.5px 1px rgba(0,0,0,0.08)',
+            }}>
+              Today
+            </button>
+            <NavButton onClick={goToNext} label="Next"><Icon.ChevronRight size={14} /></NavButton>
           </div>
         </div>
 
-        {/* Right: search */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '5px', padding: '4px 10px',
-          borderRadius: '7px', background: 'rgba(255, 255, 255, 0.5)', border: '0.5px solid rgba(0, 0, 0, 0.1)',
-        }}>
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-            <circle cx="7" cy="7" r="5" stroke="#999" strokeWidth="1.5" />
-            <line x1="11" y1="11" x2="14" y2="14" stroke="#999" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-          <span style={{ fontSize: '12.5px', color: '#aaa', fontWeight: 300 }}>Search</span>
+        <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          {viewMode === 'Month' && <MonthView currentDate={currentDate} today={today} isToday={isToday} setCurrentDate={setCurrentDate} setViewMode={setViewMode} onBook={openBooking} />}
+          {viewMode === 'Year' && <YearView currentDate={currentDate} today={today} isToday={isToday} setCurrentDate={setCurrentDate} setViewMode={setViewMode} />}
+          {viewMode === 'Week' && <WeekView currentDate={currentDate} today={today} isToday={isToday} onBook={openBooking} />}
+          {viewMode === 'Day' && <DayView currentDate={currentDate} today={today} isToday={isToday} onBook={openBooking} />}
         </div>
       </div>
 
-      {/* White content area below translucent toolbar */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#fff', overflow: 'hidden' }}>
-
-      {/* Header + navigation */}
-      <div style={{
-        display: 'flex', alignItems: 'center', padding: '12px 16px 8px',
-      }}>
-        <h1 style={{
-          fontSize: '26px', fontWeight: 700, color: '#1a1a1a', margin: 0,
-          fontFamily: "'SF Pro Display', -apple-system, sans-serif", letterSpacing: '-0.3px',
-        }}>
-          <span style={{ fontWeight: 700 }}>{headerText.split(' ')[0]}</span>
-          {headerText.includes(' ') && (
-            <span style={{ fontWeight: 300 }}>{' '}{headerText.split(' ').slice(1).join(' ')}</span>
-          )}
-        </h1>
-        <div style={{ flex: 1 }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <NavButton onClick={goToPrev}>‹</NavButton>
-          <button onClick={goToToday} style={{
-            padding: '4px 12px', borderRadius: '6px', border: '1px solid #d0d0d0',
-            background: '#fff', fontSize: '12px', fontWeight: 500, color: '#333', cursor: 'pointer',
-            fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+      {showBooking && (
+        <div style={{ position: 'absolute', inset: '52px 0 0 0', background: 'rgba(0,0,0,0.08)', display: 'flex', justifyContent: 'center', zIndex: 10 }}>
+          <div style={{
+            width: '520px', maxWidth: 'calc(100% - 24px)', height: 'calc(100% - 16px)', background: '#fff',
+            borderRadius: '0 0 10px 10px', boxShadow: '0 10px 30px rgba(0,0,0,0.25), 0 0 0 0.5px rgba(0,0,0,0.15)',
+            display: 'flex', flexDirection: 'column', overflow: 'hidden', animation: 'calSheetIn 0.22s ease-out',
           }}>
-            Today
-          </button>
-          <NavButton onClick={goToNext}>›</NavButton>
+            <iframe
+              src={BOOKING_URL}
+              style={{ flex: 1, width: '100%', border: 'none', background: '#fff' }}
+              title="Book a Meeting"
+            />
+            <div style={{ height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 12px', borderTop: '0.5px solid rgba(0,0,0,0.1)' }}>
+              <button onClick={() => setShowBooking(false)} style={{
+                height: '22px', padding: '0 14px', borderRadius: '6px', border: '0.5px solid rgba(0,0,0,0.15)',
+                background: '#fff', fontSize: '13px', color: LABEL, fontFamily: SYS_FONT, cursor: 'default',
+                boxShadow: '0 0.5px 1px rgba(0,0,0,0.08)',
+              }}>Done</button>
+            </div>
+          </div>
         </div>
-      </div>
-
-      {/* View content */}
-      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        {viewMode === 'Month' && <MonthView currentDate={currentDate} today={today} isToday={isToday} setCurrentDate={setCurrentDate} setViewMode={setViewMode} />}
-        {viewMode === 'Year' && <YearView currentDate={currentDate} today={today} isToday={isToday} setCurrentDate={setCurrentDate} setViewMode={setViewMode} />}
-        {viewMode === 'Week' && <WeekView currentDate={currentDate} today={today} isToday={isToday} />}
-        {viewMode === 'Day' && <DayView currentDate={currentDate} today={today} isToday={isToday} />}
-      </div>
-
-      {/* Bottom bar */}
-      <div style={{
-        height: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        borderTop: '1px solid #e5e5e5', background: '#fafafa', padding: '0 16px', gap: '12px',
-      }}>
-        <span style={{ fontSize: '12px', color: '#888', fontWeight: 400 }}>Want to connect?</span>
-        <button
-          onClick={() => setShowBooking(true)}
-          style={{
-            padding: '6px 20px', borderRadius: '8px', border: 'none', background: '#007aff',
-            color: '#fff', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-            fontFamily: "'SF Pro Text', -apple-system, sans-serif",
-            transition: 'all 0.15s ease', boxShadow: '0 1px 3px rgba(0, 122, 255, 0.3)',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = '#0066dd'; e.currentTarget.style.transform = 'scale(1.02)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = '#007aff'; e.currentTarget.style.transform = 'scale(1)'; }}
-        >
-          Book a Meeting
-        </button>
-      </div>
-      </div>{/* close white content area */}
+      )}
+      <style>{`@keyframes calSheetIn { from { transform: translateY(-24px); opacity: 0; } to { transform: none; opacity: 1; } }`}</style>
     </div>
   );
 };
@@ -249,71 +174,52 @@ const Calendar = ({ windowMode }: CalendarProps) => {
 // ────────────────────────────────────────────────────────────
 // MONTH VIEW
 // ────────────────────────────────────────────────────────────
-function MonthView({ currentDate, today, isToday, setCurrentDate, setViewMode }: {
+function MonthView({ currentDate, isToday, setCurrentDate, onBook }: {
   currentDate: Date; today: { year: number; month: number; day: number }; isToday: (y: number, m: number, d: number) => boolean;
-  setCurrentDate: (d: Date) => void; setViewMode: (v: ViewMode) => void;
+  setCurrentDate: (d: Date) => void; setViewMode: (v: ViewMode) => void; onBook: () => void;
 }) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-
   const grid = useMemo(() => buildMonthGrid(year, month), [year, month]);
 
   return (
     <>
-      {/* Day headers */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)',
-        borderBottom: '1px solid #e5e5e5', padding: '0 4px',
-      }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '0.5px solid rgba(0,0,0,0.12)' }}>
         {DAYS_FULL.map((day) => (
-          <div key={day} style={{
-            textAlign: 'center', fontSize: '11px', fontWeight: 600, color: '#999',
-            padding: '4px 0', textTransform: 'uppercase', letterSpacing: '0.3px',
-          }}>
-            {day}
-          </div>
+          <div key={day} style={{ textAlign: 'right', fontSize: '12px', color: LABEL_2, padding: '4px 8px' }}>{day}</div>
         ))}
       </div>
-
-      {/* Grid */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0 4px' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {grid.map((row, ri) => (
           <div key={ri} style={{
             display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', flex: 1,
-            borderBottom: ri < grid.length - 1 ? '1px solid #f0f0f0' : 'none',
+            borderBottom: ri < grid.length - 1 ? '0.5px solid rgba(0,0,0,0.1)' : 'none',
           }}>
             {row.map((cell, ci) => {
               const todayCell = isToday(cell.year, cell.month, cell.day);
+              const dim = !cell.isCurrentMonth;
               return (
-                <div key={ci} onClick={() => {
-                  if (!cell.isCurrentMonth) setCurrentDate(new Date(cell.year, cell.month, 1));
-                }} style={{
-                  padding: '4px 6px', cursor: 'pointer',
-                  borderRight: ci < 6 ? '1px solid #f5f5f5' : 'none',
-                  transition: 'background 0.15s ease', position: 'relative', minHeight: '50px',
-                }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#fafafa'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                <div
+                  key={ci}
+                  onClick={() => { if (dim) setCurrentDate(new Date(cell.year, cell.month, 1)); }}
+                  onDoubleClick={onBook}
+                  style={{
+                    padding: '4px 6px', cursor: 'default', minHeight: '50px',
+                    borderRight: ci < 6 ? '0.5px solid rgba(0,0,0,0.08)' : 'none',
+                    background: isWeekend(ci) ? WEEKEND_BG : 'transparent',
+                  }}
                 >
-                  <div style={{ display: 'flex', justifyContent: cell.day === 1 && !todayCell ? 'flex-start' : 'flex-end', padding: '2px' }}>
-                    {cell.day === 1 && !todayCell ? (
-                      <span style={{ fontSize: '12px', fontWeight: 500, color: cell.isCurrentMonth ? '#666' : '#c0c0c0' }}>
-                        {MONTHS[cell.month].slice(0, 3)} {cell.day}
-                      </span>
-                    ) : todayCell ? (
-                      <div style={{
-                        width: '24px', height: '24px', borderRadius: '50%', background: '#ff3b30',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}>
-                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#fff', lineHeight: 1 }}>{cell.day}</span>
-                      </div>
-                    ) : (
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '4px', height: '24px' }}>
+                    {cell.day === 1 && (
+                      <span style={{ fontSize: '13px', color: dim ? LABEL_2 : LABEL }}>{MONTHS[cell.month].slice(0, 3)}</span>
+                    )}
+                    {todayCell ? (
                       <span style={{
-                        fontSize: '13px', fontWeight: 500,
-                        color: cell.isCurrentMonth ? '#333' : '#c0c0c0', padding: '2px 4px',
-                      }}>
-                        {cell.day}
-                      </span>
+                        minWidth: '24px', height: '24px', borderRadius: '12px', background: RED, color: '#fff',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 600,
+                      }}>{cell.day}</span>
+                    ) : (
+                      <span style={{ fontSize: '13px', color: dim ? 'rgba(0,0,0,0.3)' : LABEL, padding: '0 4px' }}>{cell.day}</span>
                     )}
                   </div>
                 </div>
@@ -369,8 +275,8 @@ function MiniMonth({ year, month, today, isToday, onClick }: {
     <div style={{ cursor: 'pointer' }} onClick={onClick}>
       {/* Month name */}
       <div style={{
-        fontSize: '13px', fontWeight: 600, color: '#ff3b30', marginBottom: '6px',
-        fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+        fontSize: '13px', fontWeight: 600, color: RED, marginBottom: '6px',
+        fontFamily: SYS_FONT,
       }}>
         {MONTHS[month]}
       </div>
@@ -379,7 +285,7 @@ function MiniMonth({ year, month, today, isToday, onClick }: {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0' }}>
         {DAYS_SHORT.map((d, i) => (
           <div key={i} style={{
-            textAlign: 'center', fontSize: '9px', fontWeight: 600, color: '#999',
+            textAlign: 'center', fontSize: '9px', fontWeight: 600, color: LABEL_2,
             padding: '1px 0',
           }}>
             {d}
@@ -399,7 +305,7 @@ function MiniMonth({ year, month, today, isToday, onClick }: {
               }}>
                 {isTodayCell ? (
                   <div style={{
-                    width: '18px', height: '18px', borderRadius: '50%', background: '#ff3b30',
+                    width: '18px', height: '18px', borderRadius: '50%', background: RED,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
                     <span style={{ fontSize: '10px', fontWeight: 600, color: '#fff', lineHeight: 1 }}>{cell.day}</span>
@@ -407,7 +313,7 @@ function MiniMonth({ year, month, today, isToday, onClick }: {
                 ) : (
                   <span style={{
                     fontSize: '10px', fontWeight: 400,
-                    color: cell.isCurrentMonth ? '#333' : '#ccc',
+                    color: cell.isCurrentMonth ? LABEL : 'rgba(0,0,0,0.25)',
                     lineHeight: '18px',
                   }}>
                     {cell.day}
@@ -422,247 +328,91 @@ function MiniMonth({ year, month, today, isToday, onClick }: {
   );
 }
 
-// ────────────────────────────────────────────────────────────
-// WEEK VIEW
-// ────────────────────────────────────────────────────────────
-function WeekView({ currentDate, today, isToday }: {
-  currentDate: Date; today: { year: number; month: number; day: number }; isToday: (y: number, m: number, d: number) => boolean;
+function TimeGrid({ days, isToday, onBook }: {
+  days: Date[];
+  isToday: (y: number, m: number, d: number) => boolean;
+  onBook: () => void;
 }) {
-  const weekStart = getWeekStart(currentDate);
-  const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + i);
-    return { date: d, dayName: DAYS_FULL[d.getDay()], dayNum: d.getDate(), isToday: isToday(d.getFullYear(), d.getMonth(), d.getDate()) };
-  });
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = 7 * HOUR_PX - 12; }, []);
+  const now = new Date();
+  const nowTop = (now.getHours() * 60 + now.getMinutes()) * HOUR_PX / 60;
+  const todayVisible = days.some(d => isToday(d.getFullYear(), d.getMonth(), d.getDate()));
+  const timeLabel = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }).replace(/\s?[AP]M$/, '');
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      {/* Day column headers */}
-      <div style={{ display: 'flex', borderBottom: '1px solid #e0e0e0', minHeight: '36px' }}>
-        {/* Time gutter spacer */}
-        <div style={{ width: '56px', minWidth: '56px', borderRight: '1px solid #e8e8e8' }} />
-        {weekDays.map((d, i) => (
-          <div key={i} style={{
-            flex: 1, textAlign: 'center', padding: '6px 0 4px',
-            borderRight: i < 6 ? '1px solid #f0f0f0' : 'none',
-          }}>
-            <span style={{
-              fontSize: '11px', fontWeight: 600, color: d.isToday ? '#ff3b30' : '#999',
-              letterSpacing: '0.3px',
-            }}>
-              {d.dayName}
-            </span>
-            {' '}
-            <span style={{
-              fontSize: '11px',
-              fontWeight: d.isToday ? 700 : 400,
-              color: d.isToday ? '#ff3b30' : '#666',
-            }}>
-              {d.dayNum}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* All-day row */}
-      <div style={{ display: 'flex', borderBottom: '1px solid #e0e0e0', minHeight: '24px' }}>
-        <div style={{
-          width: '56px', minWidth: '56px', borderRight: '1px solid #e8e8e8',
-          fontSize: '10px', color: '#999', display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-          paddingRight: '6px',
-        }}>
-          all-day
-        </div>
-        {weekDays.map((d, i) => (
-          <div key={i} style={{
-            flex: 1, borderRight: i < 6 ? '1px solid #f0f0f0' : 'none',
-            background: (d.date.getDay() === 0 || d.date.getDay() === 6) ? '#fafafa' : 'transparent',
-          }} />
-        ))}
-      </div>
-
-      {/* Time grid */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
-        <div style={{ display: 'flex', position: 'relative' }}>
-          {/* Time gutter */}
-          <div style={{ width: '56px', minWidth: '56px', borderRight: '1px solid #e8e8e8' }}>
-            {HOURS.map((h) => (
-              <div key={h} style={{
-                height: '60px', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end',
-                paddingRight: '6px', paddingTop: '0px',
-              }}>
-                {h > 0 && (
-                  <span style={{
-                    fontSize: '10px', color: '#999', fontWeight: 400,
-                    fontFamily: "'SF Pro Text', -apple-system, sans-serif",
-                    lineHeight: 1, transform: 'translateY(-5px)',
-                  }}>
-                    {formatHour(h)}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Day columns */}
-          {weekDays.map((d, i) => (
+      <div style={{ display: 'flex', borderBottom: '0.5px solid rgba(0,0,0,0.12)', minHeight: '30px' }}>
+        <div style={{ width: '56px', minWidth: '56px' }} />
+        {days.map((d, i) => {
+          const t = isToday(d.getFullYear(), d.getMonth(), d.getDate());
+          return (
             <div key={i} style={{
-              flex: 1, borderRight: i < 6 ? '1px solid #f0f0f0' : 'none',
-              background: (d.date.getDay() === 0 || d.date.getDay() === 6) ? '#fafafa' : 'transparent',
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '12px',
+              color: t ? RED : LABEL_2, borderLeft: '0.5px solid rgba(0,0,0,0.08)',
             }}>
-              {HOURS.map((h) => (
-                <div key={h} style={{
-                  height: '60px', borderBottom: '1px solid #f0f0f0',
-                  position: 'relative',
-                }}>
-                  {/* Half-hour line */}
-                  <div style={{
-                    position: 'absolute', top: '30px', left: 0, right: 0,
-                    height: '1px', background: '#f6f6f6',
-                  }} />
-                </div>
-              ))}
+              <span>{DAYS_FULL[d.getDay()]}</span>
+              {t ? (
+                <span style={{ minWidth: '20px', height: '20px', borderRadius: '10px', background: RED, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600 }}>{d.getDate()}</span>
+              ) : <span style={{ color: LABEL }}>{d.getDate()}</span>}
             </div>
-          ))}
-
-          {/* Current time indicator */}
-          {weekDays.some(d => d.isToday) && (() => {
-            const todayIdx = weekDays.findIndex(d => d.isToday);
-            const now = new Date();
-            const minutesSinceMidnight = now.getHours() * 60 + now.getMinutes();
-            const topPx = minutesSinceMidnight; // 1px per minute
+          );
+        })}
+      </div>
+      <div style={{ display: 'flex', borderBottom: '0.5px solid rgba(0,0,0,0.12)', minHeight: '22px' }}>
+        <div style={{ width: '56px', minWidth: '56px', fontSize: '11px', color: LABEL_2, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '8px', boxSizing: 'border-box' }}>all-day</div>
+        {days.map((d, i) => (
+          <div key={i} style={{ flex: 1, borderLeft: '0.5px solid rgba(0,0,0,0.08)', background: isWeekend(d.getDay()) ? WEEKEND_BG : 'transparent' }} />
+        ))}
+      </div>
+      <div ref={scrollRef} className="mac-scroll" style={{ flex: 1 }}>
+        <div style={{ display: 'flex', position: 'relative', height: 24 * HOUR_PX }}>
+          <div style={{ width: '56px', minWidth: '56px', position: 'relative' }}>
+            {HOURS.map((h) => h > 0 && (
+              <span key={h} style={{ position: 'absolute', top: h * HOUR_PX - 6, right: '8px', fontSize: '11px', color: LABEL_2, lineHeight: 1 }}>
+                {formatHour(h)}
+              </span>
+            ))}
+            {todayVisible && (
+              <span style={{
+                position: 'absolute', top: nowTop - 8, right: '4px', height: '16px', padding: '0 5px', borderRadius: '8px',
+                background: RED, color: '#fff', fontSize: '11px', fontWeight: 600, lineHeight: '16px', zIndex: 3,
+                fontVariantNumeric: 'tabular-nums',
+              }}>{timeLabel}</span>
+            )}
+          </div>
+          {days.map((d, i) => {
+            const t = isToday(d.getFullYear(), d.getMonth(), d.getDate());
             return (
-              <div style={{
-                position: 'absolute',
-                top: `${topPx}px`,
-                left: `${56 + (todayIdx * ((100 - 56 * 100 / window.innerWidth) / 7))}%`,
-                right: 0, height: '2px', zIndex: 2,
-                pointerEvents: 'none',
+              <div key={i} onDoubleClick={onBook} style={{
+                flex: 1, position: 'relative', borderLeft: '0.5px solid rgba(0,0,0,0.08)',
+                background: isWeekend(d.getDay()) ? WEEKEND_BG : 'transparent',
               }}>
-                {/* Red dot */}
-                <div style={{
-                  position: 'absolute', left: `${(todayIdx / 7) * 100}%`,
-                  top: '-4px', width: '10px', height: '10px',
-                  borderRadius: '50%', background: '#ff3b30',
-                  transform: 'translateX(-5px)',
-                }} />
+                {HOURS.map((h) => (
+                  <div key={h} style={{ position: 'absolute', top: h * HOUR_PX, left: 0, right: 0, height: '0.5px', background: 'rgba(0,0,0,0.08)' }} />
+                ))}
+                {t && <div style={{ position: 'absolute', top: nowTop, left: 0, right: 0, height: '1px', background: RED, zIndex: 2 }} />}
               </div>
             );
-          })()}
+          })}
         </div>
       </div>
     </div>
   );
 }
 
-// ────────────────────────────────────────────────────────────
-// DAY VIEW
-// ────────────────────────────────────────────────────────────
-function DayView({ currentDate, today, isToday }: {
-  currentDate: Date; today: { year: number; month: number; day: number }; isToday: (y: number, m: number, d: number) => boolean;
+function WeekView({ currentDate, isToday, onBook }: {
+  currentDate: Date; today: { year: number; month: number; day: number }; isToday: (y: number, m: number, d: number) => boolean; onBook: () => void;
 }) {
-  const dayIsToday = isToday(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-  const dayName = DAYS_FULL[currentDate.getDay()];
-  const dayNum = currentDate.getDate();
+  const start = getWeekStart(currentDate);
+  const days = Array.from({ length: 7 }, (_, i) => new Date(start.getFullYear(), start.getMonth(), start.getDate() + i));
+  return <TimeGrid days={days} isToday={isToday} onBook={onBook} />;
+}
 
-  return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      {/* Day header */}
-      <div style={{
-        display: 'flex', borderBottom: '1px solid #e0e0e0', minHeight: '36px',
-      }}>
-        <div style={{ width: '56px', minWidth: '56px', borderRight: '1px solid #e8e8e8' }} />
-        <div style={{
-          flex: 1, textAlign: 'center', padding: '6px 0 4px',
-        }}>
-          <span style={{
-            fontSize: '12px', fontWeight: 600, color: dayIsToday ? '#ff3b30' : '#999',
-            letterSpacing: '0.3px',
-          }}>
-            {dayName}
-          </span>
-          {' '}
-          <span style={{
-            fontSize: '12px', fontWeight: dayIsToday ? 700 : 400,
-            color: dayIsToday ? '#ff3b30' : '#666',
-          }}>
-            {dayNum}
-          </span>
-        </div>
-      </div>
-
-      {/* All-day */}
-      <div style={{
-        display: 'flex', borderBottom: '1px solid #e0e0e0', minHeight: '24px',
-      }}>
-        <div style={{
-          width: '56px', minWidth: '56px', borderRight: '1px solid #e8e8e8',
-          fontSize: '10px', color: '#999', display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-          paddingRight: '6px',
-        }}>
-          all-day
-        </div>
-        <div style={{ flex: 1 }} />
-      </div>
-
-      {/* Time grid */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
-        <div style={{ display: 'flex', position: 'relative' }}>
-          {/* Time gutter */}
-          <div style={{ width: '56px', minWidth: '56px', borderRight: '1px solid #e8e8e8' }}>
-            {HOURS.map((h) => (
-              <div key={h} style={{
-                height: '60px', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end',
-                paddingRight: '6px',
-              }}>
-                {h > 0 && (
-                  <span style={{
-                    fontSize: '10px', color: '#999', fontWeight: 400,
-                    fontFamily: "'SF Pro Text', -apple-system, sans-serif",
-                    lineHeight: 1, transform: 'translateY(-5px)',
-                  }}>
-                    {formatHour(h)}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Day column */}
-          <div style={{ flex: 1 }}>
-            {HOURS.map((h) => (
-              <div key={h} style={{
-                height: '60px', borderBottom: '1px solid #f0f0f0', position: 'relative',
-              }}>
-                <div style={{
-                  position: 'absolute', top: '30px', left: 0, right: 0,
-                  height: '1px', background: '#f6f6f6',
-                }} />
-              </div>
-            ))}
-          </div>
-
-          {/* Current time line */}
-          {dayIsToday && (() => {
-            const now = new Date();
-            const topPx = now.getHours() * 60 + now.getMinutes();
-            return (
-              <div style={{
-                position: 'absolute', top: `${topPx}px`,
-                left: '50px', right: 0, height: '2px',
-                background: '#ff3b30', zIndex: 2, pointerEvents: 'none',
-              }}>
-                <div style={{
-                  position: 'absolute', left: '0', top: '-4px',
-                  width: '10px', height: '10px', borderRadius: '50%',
-                  background: '#ff3b30', transform: 'translateX(-5px)',
-                }} />
-              </div>
-            );
-          })()}
-        </div>
-      </div>
-    </div>
-  );
+function DayView({ currentDate, isToday, onBook }: {
+  currentDate: Date; today: { year: number; month: number; day: number }; isToday: (y: number, m: number, d: number) => boolean; onBook: () => void;
+}) {
+  return <TimeGrid days={[currentDate]} isToday={isToday} onBook={onBook} />;
 }
 
 // ────────────────────────────────────────────────────────────
@@ -740,28 +490,25 @@ function buildMonthGrid(year: number, month: number): GridCell[][] {
 }
 
 // ── UI Components ──
-function ToolbarIcon({ children }: { children: React.ReactNode }) {
+function ToolBtn({ children, onClick, tooltip }: { children: ReactNode; onClick: () => void; tooltip: string }) {
+  const [hover, setHover] = useState(false);
   return (
-    <div style={{
-      width: '24px', height: '24px', display: 'flex', alignItems: 'center',
-      justifyContent: 'center', borderRadius: '4px', cursor: 'default',
+    <div title={tooltip} onClick={onClick} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={{
+      width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px',
+      color: 'rgba(0,0,0,0.6)', background: hover ? 'rgba(0,0,0,0.06)' : 'transparent', cursor: 'default',
     }}>
       {children}
     </div>
   );
 }
 
-function NavButton({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
+function NavButton({ children, onClick, label }: { children: ReactNode; onClick: () => void; label: string }) {
   return (
-    <button onClick={onClick} style={{
-      width: '28px', height: '28px', borderRadius: '6px', border: '1px solid #d0d0d0',
-      background: '#fff', fontSize: '18px', fontWeight: 300, color: '#333', cursor: 'pointer',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
-      fontFamily: "'SF Pro Text', -apple-system, sans-serif", transition: 'background 0.15s ease',
-    }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = '#f0f0f0'; }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}
-    >
+    <button onClick={onClick} title={label} aria-label={label} style={{
+      width: '24px', height: '22px', borderRadius: '6px', border: '0.5px solid rgba(0,0,0,0.15)',
+      background: '#fff', color: LABEL, cursor: 'default', padding: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0.5px 1px rgba(0,0,0,0.08)',
+    }}>
       {children}
     </button>
   );

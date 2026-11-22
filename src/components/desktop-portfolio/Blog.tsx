@@ -100,10 +100,11 @@ const Blog = (_props: BlogProps) => {
         alignItems: 'center',
         height: '52px',
         flexShrink: 0,
+        boxSizing: 'border-box',
         borderBottom: '0.5px solid rgba(0,0,0,0.1)',
         background: '#f6f6f6',
       }}>
-        <div style={{ width: showSidebar ? SIDEBAR_W : 'auto', display: 'flex', justifyContent: 'flex-end', padding: '0 8px', boxSizing: 'border-box' }}>
+        <div style={{ width: showSidebar ? SIDEBAR_W : 124, flexShrink: 0, display: 'flex', justifyContent: 'flex-end', padding: '0 8px', boxSizing: 'border-box' }}>
           <ToolBtn onClick={() => setShowSidebar(s => !s)} tooltip={showSidebar ? 'Hide Sidebar' : 'Show Sidebar'}>
             <Icon.Sidebar size={18} />
           </ToolBtn>
