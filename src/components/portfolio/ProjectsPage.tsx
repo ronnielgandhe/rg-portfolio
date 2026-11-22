@@ -3,26 +3,32 @@ import PageShell, { useTheme, themeColors, SLink } from './PageShell';
 
 const PROJECTS = [
   {
+    title: 'LeanFetch',
+    cover: '/leanfetch-cover.png',
+    repo: 'https://github.com/ronnielgandhe/leanfetch',
+    desc: 'a tool that stops startups from losing cash to unnecessary api calls. paste a repo or drop in code, it finds the wasteful patterns (calls in loops, retry storms, oversized contexts, wrong-model calls, no caching) and returns a cost-waste report with estimated savings.',
+    tech: ['TypeScript', 'Next.js', 'Anthropic SDK'],
+  },
+  {
+    title: 'Harvey',
+    cover: '/harvey-cover.png',
+    repo: 'https://github.com/ronnielgandhe/harvey',
+    desc: 'voice legal assistant. a livekit voice agent with rag over a 2,806 chunk corpus of ontario and federal law. you ask out loud, it answers and cites the statute on screen.',
+    tech: ['Python', 'LiveKit', 'Deepgram', 'ElevenLabs', 'OpenAI'],
+  },
+  {
     title: 'LinkedIn Games Solver',
     cover: '/linkdensolver.png',
     repo: 'https://github.com/ronnielgandhe/linkedin-games-solver',
-    desc: 'Chrome extension that instantly solves all 5 LinkedIn games. Backtracking solvers, React fiber traversal, and Chrome Debugger Protocol for trusted input — no AI, no server.',
+    desc: 'chrome extension to solve linkedin games in real time. backtracking solvers, react fiber traversal and the chrome debugger protocol for trusted input. built with vanilla js, no ai, no server.',
     tech: ['JavaScript', 'Chrome Extension API', 'Chrome Debugger Protocol', 'Manifest V3'],
   },
   {
-    title: 'QuantZoo',
-    cover: '/trading.png',
-    repo: 'https://github.com/ronnielgandhe/quantzoo',
-    desc: 'Production-grade Python framework for systematic strategy research, backtesting, walk-forward validation, real-time streaming, and risk analytics.',
-    tech: ['Python', 'PyTorch', 'FastAPI', 'NumPy', 'Pandas', 'WebSocket'],
-  },
-  {
-    title: 'CreatorScope',
-    cover: '/cover.png',
-    repo: 'https://github.com/ronnielgandhe/creatorscope',
-    demoVideo: '/creatorscope-demo.mov',
-    desc: 'Go-to-market automation tool for sourcing TikTok creators. Multi-source discovery, three-tier classification, Creator Intent Scoring.',
-    tech: ['Python', 'FastAPI', 'SQLAlchemy', 'SQLite', 'RapidAPI'],
+    title: 'NYT Games Solver',
+    cover: '/nytsolver.png',
+    repo: 'https://github.com/ronnielgandhe/nyt-games-solver',
+    desc: 'chrome extension that solves wordle, connections, strands, the mini crossword and spelling bee. reads the answer from the game\'s own data and plays it for you.',
+    tech: ['JavaScript', 'Chrome Extension API', 'Chrome Debugger Protocol', 'Manifest V3'],
   },
   {
     title: 'RonnielOS',
@@ -30,24 +36,32 @@ const PROJECTS = [
     repo: 'https://github.com/ronnielgandhe/rg-portfolio',
     demo: '/desktop',
     demoNewTab: true,
-    desc: 'My portfolio reimagined as a fully interactive macOS desktop. Draggable windows, working terminal, stock tracker, Spotify integration — all in the browser.',
-    tech: ['React', 'TypeScript', 'Astro', 'Three.js'],
+    desc: 'my portfolio as a macos desktop. draggable windows, a dock, spotlight, a working terminal, a stock tracker and spotify, all in the browser.',
+    tech: ['React', 'TypeScript', 'Astro'],
     coverStyle: { objectFit: 'contain' as const, background: '#111', padding: '40px' },
+  },
+  {
+    title: 'CreatorScope',
+    cover: '/cover.png',
+    repo: 'https://github.com/ronnielgandhe/creatorscope',
+    demoVideo: '/creatorscope-demo.mov',
+    desc: 'tiktok ugc creator discovery tool. finds brand-ready creators in minutes instead of scrolling for hours.',
+    tech: ['Python', 'FastAPI', 'SQLAlchemy', 'SQLite', 'RapidAPI'],
   },
   {
     title: 'YourNews',
     cover: '/yournews-cover.png',
     repo: 'https://github.com/ronnielgandhe/yournews',
     demoVideo: '/yournews-demo.mp4',
-    desc: 'AI-powered personalized news aggregator using TF-IDF/BM25 ranking and GPT-4 summaries.',
-    tech: ['Python', 'GPT-4 API', 'TF-IDF', 'BM25', 'FastAPI', 'React'],
+    desc: 'personalized news aggregator. the news you want, minus the noise.',
+    tech: ['Python', 'FastAPI', 'React'],
   },
   {
     title: 'How Many Clicks',
     cover: '/howmanyclicks-cover.png',
     repo: 'https://github.com/ronnielgandhe/how-many-clicks',
     demoVideo: '/howmanyclicks-demo.mp4',
-    desc: 'Wikipedia connection game — AI pathfinding races users. Real-time beam search with semantic scoring.',
+    desc: 'the wikipedia connection game. watch an ai race through links to connect two articles, then try to beat it.',
     tech: ['React', 'Vite', 'JavaScript', 'Wikipedia API'],
   },
 ];
@@ -61,7 +75,7 @@ function ProjectCard({ project, dark }: { project: typeof PROJECTS[number]; dark
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        borderRadius: 12,
+        borderRadius: 16,
         overflow: 'hidden',
         background: dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
         border: `1px solid ${t.border}`,
@@ -98,9 +112,8 @@ function ProjectCard({ project, dark }: { project: typeof PROJECTS[number]; dark
           >
             <h3 style={{
               margin: 0,
-              fontSize: 24,
-              fontWeight: 600,
-              fontFamily: "'NeueMontreal-Medium', -apple-system, sans-serif",
+              fontSize: 18,
+              fontWeight: 500,
             }}>
               {project.title}
             </h3>
@@ -157,7 +170,7 @@ function ProjectsContent() {
   const t = themeColors(dark);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, marginTop: 8 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
       {PROJECTS.map(p => (
         <ProjectCard key={p.title} project={p} dark={dark} />
       ))}

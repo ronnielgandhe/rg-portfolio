@@ -6,6 +6,7 @@ import AppWindow from './AppWindow';
 import BootScreen from './BootScreen';
 import DesktopDock from './DesktopDock';
 import DesktopMenuBar from './DesktopMenuBar';
+import Spotlight from './Spotlight';
 import GitHubHeatmap from './GitHubHeatmap';
 import type { WindowId } from './types';
 import { BlackbookDashboard, PasswordGate, hashPass, PASS } from '../portfolio/Blackbook';
@@ -5586,7 +5587,7 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
             <a href="https://www.linkedin.com/in/ronniel-gandhe/" target="_blank" rel="noopener" style={{ color: 'rgba(0,0,0,0.75)', textDecoration: 'none' }} onClick={e => e.stopPropagation()}>💼 linkedin.com/in/ronniel-gandhe</a>
             <a href="https://github.com/ronnielgandhe" target="_blank" rel="noopener" style={{ color: 'rgba(0,0,0,0.75)', textDecoration: 'none' }} onClick={e => e.stopPropagation()}>🐙 github.com/ronnielgandhe</a>
             <a href="mailto:ronnielgandhe@gmail.com" style={{ color: 'rgba(0,0,0,0.75)', textDecoration: 'none' }} onClick={e => e.stopPropagation()}>✉️ ronnielgandhe@gmail.com</a>
-            <span style={{ color: '#1d1d1f' }}>📍 Waterloo, ON</span>
+            <span style={{ color: '#1d1d1f' }}>📍 San Francisco, CA</span>
           </div>
         </div>
 
@@ -5627,7 +5628,7 @@ function TerminalContent({ onAuthChange }: { onAuthChange?: (v: boolean) => void
             <a href="https://www.linkedin.com/in/ronniel-gandhe/" target="_blank" rel="noopener" style={{ color: 'rgba(0,0,0,0.75)', textDecoration: 'none' }} onClick={e => e.stopPropagation()}>💼 LinkedIn</a>
             <a href="https://github.com/ronnielgandhe" target="_blank" rel="noopener" style={{ color: 'rgba(0,0,0,0.75)', textDecoration: 'none' }} onClick={e => e.stopPropagation()}>🐙 GitHub</a>
             <a href="mailto:ronnielgandhe@gmail.com" style={{ color: 'rgba(0,0,0,0.75)', textDecoration: 'none' }} onClick={e => e.stopPropagation()}>✉️ Email</a>
-            <span style={{ color: '#1d1d1f' }}>📍 Waterloo, ON</span>
+            <span style={{ color: '#1d1d1f' }}>📍 San Francisco, CA</span>
           </div>
 
           {/* Command pills — horizontal */}
@@ -6148,10 +6149,11 @@ function Desktop() {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (state.spotlightOpen) return;
       // Cmd+W to close focused window
       if ((e.metaKey || e.ctrlKey) && e.key === 'w' && state.focusedWindowId) {
         e.preventDefault();
-        dispatch({ type: 'CLOSE_WINDOW', id: state.focusedWindowId });
+        dispatch({ type: 'REQUEST_CLOSE', id: state.focusedWindowId });
       }
       // Cmd+M to minimize focused window
       if ((e.metaKey || e.ctrlKey) && e.key === 'm' && state.focusedWindowId) {
@@ -6160,12 +6162,12 @@ function Desktop() {
       }
       // Escape to close focused window (skip terminal)
       if (e.key === 'Escape' && state.focusedWindowId && state.focusedWindowId !== 'terminal') {
-        dispatch({ type: 'CLOSE_WINDOW', id: state.focusedWindowId });
+        dispatch({ type: 'REQUEST_CLOSE', id: state.focusedWindowId });
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [state.focusedWindowId, dispatch]);
+  }, [state.focusedWindowId, state.spotlightOpen, dispatch]);
 
   // On mobile, fullscreen non-terminal windows (terminal stays windowed to show hero)
   useEffect(() => {
@@ -6248,6 +6250,7 @@ function Desktop() {
           })}
 
           <DesktopDock />
+          {!isMobile && <Spotlight />}
         </>
       )}
 
@@ -6340,12 +6343,36 @@ function MobileProjects({ onCardClick }: { onCardClick: (detail: DetailContent) 
   // Import project data from Projects component — these are the same projects
   const mobileProjects = [
     {
-      title: 'QuantZoo',
-      desc: 'Production-grade Python framework for systematic quantitative trading research with backtesting, walk-forward validation, and live paper trading.',
-      coverImage: '/trading.png',
-      gradient: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-      tech: ['Python', 'PyTorch', 'FastAPI', 'NumPy'],
-      repoUrl: 'https://github.com/ronnielgandhe/quantzoo',
+      title: 'LeanFetch',
+      desc: 'a tool that stops startups from losing cash to unnecessary api calls. paste a repo, get a cost-waste report with estimated savings.',
+      coverImage: '/leanfetch-cover.png',
+      gradient: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #44403c 100%)',
+      tech: ['TypeScript', 'Next.js', 'Anthropic SDK'],
+      repoUrl: 'https://github.com/ronnielgandhe/leanfetch',
+    },
+    {
+      title: 'Harvey',
+      desc: 'voice legal assistant. livekit voice agent with rag over a 2,806 chunk corpus of ontario and federal law.',
+      coverImage: '/harvey-cover.png',
+      gradient: 'linear-gradient(135deg, #0b0b0f 0%, #1a1a24 50%, #2a2a3a 100%)',
+      tech: ['Python', 'LiveKit', 'Deepgram', 'ElevenLabs'],
+      repoUrl: 'https://github.com/ronnielgandhe/harvey',
+    },
+    {
+      title: 'LinkedIn Games Solver',
+      desc: 'chrome extension to solve linkedin games in real time. built with vanilla js.',
+      coverImage: '/linkdensolver.png',
+      gradient: 'linear-gradient(135deg, #0a66c2 0%, #084d92 50%, #052e57 100%)',
+      tech: ['JavaScript', 'Manifest V3', 'CDP'],
+      repoUrl: 'https://github.com/ronnielgandhe/linkedin-games-solver',
+    },
+    {
+      title: 'NYT Games Solver',
+      desc: 'chrome extension that solves wordle, connections, strands, the mini and spelling bee.',
+      coverImage: '/nytsolver.png',
+      gradient: 'linear-gradient(135deg, #121212 0%, #2b2b2b 50%, #4a4a4a 100%)',
+      tech: ['JavaScript', 'Manifest V3', 'CDP'],
+      repoUrl: 'https://github.com/ronnielgandhe/nyt-games-solver',
     },
     {
       title: 'CreatorScope',
@@ -6899,7 +6926,7 @@ function MobileLayout() {
               <a href="https://www.linkedin.com/in/ronniel-gandhe/" target="_blank" rel="noopener" style={{ color: '#fff', textDecoration: 'none' }}>💼 linkedin.com/in/ronniel-gandhe</a>
               <a href="https://github.com/ronnielgandhe" target="_blank" rel="noopener" style={{ color: '#fff', textDecoration: 'none' }}>🐙 github.com/ronnielgandhe</a>
               <a href="mailto:ronnielgandhe@gmail.com" style={{ color: '#fff', textDecoration: 'none' }}>✉️ ronnielgandhe@gmail.com</a>
-              <span style={{ color: '#fff' }}>📍 Waterloo, ON</span>
+              <span style={{ color: '#fff' }}>📍 San Francisco, CA</span>
             </div>
           </div>
         </div>

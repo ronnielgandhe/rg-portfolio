@@ -24,6 +24,24 @@ const Experience = ({ onCardClick, windowMode }: ExperienceProps) => {
     return () => clearTimeout(timer);
   }, [windowMode]);
 
+  const bluejayDetail: ExperienceDetail = {
+    type: 'experience' as const,
+    id: 3,
+    company: "Bluejay (YC X25)",
+    role: "Software Engineer",
+    date: "May 2026 – Present",
+    location: "San Francisco, CA",
+    logo: "/bluejay-mark-white.svg",
+    timeline: [
+      { month: "Month 1", description: "Joined Bluejay, a YC X25 voice-AI simulation, evals, and observability platform. Ramped across the TypeScript/Next.js frontend, Python middleware, real-time voice infrastructure (LiveKit), and LLM evaluation pipelines." },
+      { month: "Month 2", description: "Built an AI-agent development system (supervised agent fleets with automated review and ship-report pipelines) sustaining ~3 merged PRs a day. Owned production incidents end-to-end and shipped multi-repo features like multilingual voice-agent support and cross-agent analytics." },
+      { month: "Month 3", description: "Crossed 180+ merged PRs across 11 production repositories in the first 10 weeks. Shipped ClickHouse/CDC-backed dashboards, real-time failure alerting, and customer-facing platform surfaces." }
+    ],
+    reflection: "",
+    skillsLearned: ["Voice-AI Infrastructure", "LLM Evaluation", "AI-Agent Orchestration", "Incident Response"],
+    techStack: ["TypeScript", "Next.js", "Python", "FastAPI", "LiveKit", "Postgres", "ClickHouse", "AWS"]
+  };
+
   // Shared Augmentor detail (both roles link to same detail page)
   const augmentorDetail: ExperienceDetail = {
     type: 'experience' as const,
@@ -38,7 +56,7 @@ const Experience = ({ onCardClick, windowMode }: ExperienceProps) => {
     roles: [
       {
         role: "Software Engineer, Growth Team",
-        date: "Jan 2026 – Current",
+        date: "Jan – Apr 2026",
         location: "New York / Remote",
         timeline: [
           { month: "Month 1", description: "Joined the growth team. Ramping up on the product, growth metrics, and experimentation framework. Contributing to user acquisition features." },
@@ -84,17 +102,27 @@ const Experience = ({ onCardClick, windowMode }: ExperienceProps) => {
     techStack: ["GitHub Actions", "Python", "SQL", "Grafana", "Docker", "LaunchDarkly"]
   };
 
-  // Split into 3 entries: reverse chronological (newest first), CIBC between the two Augmentor roles
+  // Reverse chronological (newest first): Bluejay current, then past roles
   const experiences = [
+    {
+      id: 3,
+      company: "Bluejay (YC X25)",
+      role: "Software Engineer",
+      date: "May 2026 – Present",
+      location: "San Francisco, CA",
+      description: "Building AI-agent development systems on Bluejay's voice-AI simulation, evals, and observability platform. 180+ merged PRs across 11 production repos in the first 10 weeks.",
+      logo: "/bluejay-mark-white.svg",
+      isCurrent: true,
+      detail: bluejayDetail,
+    },
     {
       id: 0,
       company: "Augmentor Labs",
       role: "Software Engineer, Growth Team",
-      date: "Jan 2026 – Current",
+      date: "Jan – Apr 2026",
       location: "New York / Remote",
-      description: "Building user acquisition and engagement features, running growth experiments, and driving platform adoption and retention metrics.",
+      description: "Built user acquisition and engagement features, ran growth experiments, and drove platform adoption and retention metrics.",
       logo: "/augmentor-dark.svg",
-      isAugmentor: true,
       detail: augmentorDetail,
     },
     {
@@ -116,7 +144,6 @@ const Experience = ({ onCardClick, windowMode }: ExperienceProps) => {
       location: "Palo Alto, CA",
       description: "Built webhook integrations, designed event schemas for the ingestion pipeline, and reduced p95 ingestion latency by 35% through observability and optimization work.",
       logo: "/augmentor-dark.svg",
-      isAugmentor: true,
       detail: augmentorDetail,
     },
   ];
@@ -205,9 +232,9 @@ const Experience = ({ onCardClick, windowMode }: ExperienceProps) => {
                     width: '12px',
                     height: '12px',
                     borderRadius: '50%',
-                    background: (experience as any).isAugmentor ? 'rgba(255, 255, 255, 0.6)' : 'rgba(255, 255, 255, 0.35)',
-                    border: `2px solid ${(experience as any).isAugmentor ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.2)'}`,
-                    boxShadow: (experience as any).isAugmentor ? '0 0 10px rgba(255,255,255,0.2), 0 0 4px rgba(255,255,255,0.1)' : '0 0 4px rgba(255,255,255,0.08)',
+                    background: (experience as any).isCurrent ? 'rgba(255, 255, 255, 0.6)' : 'rgba(255, 255, 255, 0.35)',
+                    border: `2px solid ${(experience as any).isCurrent ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.2)'}`,
+                    boxShadow: (experience as any).isCurrent ? '0 0 10px rgba(255,255,255,0.2), 0 0 4px rgba(255,255,255,0.1)' : '0 0 4px rgba(255,255,255,0.08)',
                     zIndex: 2,
                     transition: 'all 0.3s ease',
                   }} />
@@ -302,8 +329,8 @@ const Experience = ({ onCardClick, windowMode }: ExperienceProps) => {
                   width: '12px',
                   height: '12px',
                   borderRadius: '50%',
-                  background: (experience as any).isAugmentor ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.25)',
-                  border: `2px solid ${(experience as any).isAugmentor ? 'rgba(0, 0, 0, 0.3)' : 'rgba(0, 0, 0, 0.15)'}`,
+                  background: (experience as any).isCurrent ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.25)',
+                  border: `2px solid ${(experience as any).isCurrent ? 'rgba(0, 0, 0, 0.3)' : 'rgba(0, 0, 0, 0.15)'}`,
                   zIndex: 2,
                 }} />
                 <ExperienceCard

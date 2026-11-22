@@ -15,7 +15,7 @@ interface FileTab {
 
 // Extract repo slug from GitHub URL
 function repoSlug(url: string): string {
-  // "https://github.com/ronnielgandhe/quantzoo" → "ronnielgandhe/quantzoo"
+  // "https://github.com/ronnielgandhe/leanfetch" → "ronnielgandhe/leanfetch"
   return url.replace('https://github.com/', '');
 }
 
@@ -86,54 +86,152 @@ function getTechColor(tech: string): { bg: string; text: string; border: string 
 const projects = [
   {
     id: 1,
-    title: "QuantZoo",
-    description: "A production-grade Python framework for systematic quantitative trading research. QuantZoo provides an end-to-end pipeline from strategy ideation through backtesting, walk-forward validation, and live paper trading — all with built-in risk analytics and a real-time streaming dashboard. The framework supports custom strategy plugins, ML-based signal generation with PyTorch, and sentiment analysis via Hugging Face transformers, making it a complete toolkit for exploring and validating systematic trading ideas.",
-    gradient: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
-    coverImage: "/trading.png",
-    repoUrl: "https://github.com/ronnielgandhe/quantzoo",
-    language: "Python",
-    files: ["README.md", "architecture.md", "backend.md", "frontend.md", "impact.md", "takeaways.md"],
+    title: "LeanFetch",
+    description: "a tool that stops startups from losing cash to unnecessary api calls. paste a repo url or drop in your code, it runs static analysis for the patterns that quietly burn money (llm calls in loops, retry storms, oversized contexts, the biggest model doing a tiny job, no caching) and hands back a cost-waste report with estimated savings and the fix for each one.",
+    gradient: "linear-gradient(135deg, #1c1917 0%, #292524 50%, #44403c 100%)",
+    coverImage: "/leanfetch-cover.png",
+    repoUrl: "https://github.com/ronnielgandhe/leanfetch",
+    language: "TypeScript",
+    files: ["README.md", "how it works.md", "detectors.md", "savings math.md", "takeaways.md"],
     detail: {
       type: 'project' as const,
       id: 1,
-      title: "QuantZoo",
-      gradient: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
-      coverImage: "/trading.png",
-      architecture: "QuantZoo is structured as a modular monorepo with clearly separated concerns. At its core sits a plugin-based Strategy Engine that loads strategy modules at runtime, allowing researchers to drop in new algorithms without touching framework code. The backtesting engine operates on vectorized NumPy/Pandas operations rather than row-by-row iteration, achieving 10-50x speedups on large datasets. Walk-forward validation runs configurable rolling windows with strict temporal boundaries to prevent look-ahead bias — each window trains on N months of history and validates on the next M months, then rolls forward. The FastAPI backend exposes REST endpoints for strategy management and WebSocket channels for real-time streaming of portfolio metrics, P&L curves, and risk dashboards. A lightweight React frontend renders live charts and trade logs. Data ingestion supports multiple providers (Yahoo Finance, Alpha Vantage, custom CSV) through a unified DataFeed interface.",
-      technicalChallenges: [
-        "Preventing look-ahead bias in walk-forward validation required building a strict temporal isolation layer — each validation window gets a read-only snapshot of data up to its cutoff date, and the framework raises exceptions if any strategy tries to access future data",
-        "Achieving sub-second latency on the real-time streaming pipeline meant moving from a polling architecture to WebSocket push with delta compression — only changed fields are transmitted, reducing payload size by ~80%",
-        "The plugin architecture needed to support strategies ranging from simple moving-average crossovers to complex multi-asset ML models, which required a flexible interface contract that standardizes signal generation while allowing arbitrary internal state management",
-        "Integrating PyTorch models for signal generation within the backtesting loop without introducing memory leaks required careful tensor lifecycle management and explicit GPU memory clearing between validation windows"
-      ],
-      lessonsLearned: [
-        "Vectorized backtesting is not just faster — it forces you to think about your strategy logic differently, often revealing subtle bugs that loop-based approaches hide behind sequential state mutations",
-        "Financial data is deceptively messy: timezone misalignment, split adjustments, survivorship bias, and missing data points each required dedicated preprocessing pipelines with extensive validation",
-        "Walk-forward validation is the single most important tool for honest strategy evaluation — strategies that looked profitable in simple train/test splits regularly fell apart under rolling validation",
-        "A clean plugin interface pays for itself many times over — QuantZoo went from supporting 3 strategies to 15+ in the same time it took to build the original 3, because the abstraction made new strategies trivial to add"
-      ],
-      techStack: ["Python", "PyTorch", "Hugging Face", "FastAPI", "NumPy", "Pandas", "WebSocket"],
-      repoUrl: "https://github.com/ronnielgandhe/quantzoo",
+      title: "LeanFetch",
+      gradient: "linear-gradient(135deg, #1c1917 0%, #292524 50%, #44403c 100%)",
+      coverImage: "/leanfetch-cover.png",
+      architecture: "one next.js app. the repo comes in as a github tarball (or files you upload), gets filtered down to real source files, and runs through a set of deterministic detectors. each finding carries the file, the lines, why it costs money and the fix. the claude pass is optional and stays on the server.",
+      technicalChallenges: ["keeping false positives down. a call inside a loop is only a problem if it is really an api call, so every finding needs evidence in the code and ships with a confidence level", "making the savings number honest. the report shows the formula and lets you change the assumptions instead of printing one scary figure", "running a public tool that can call claude without letting strangers drain the key. rate limits per ip, a daily cap, and hard caps on input size"],
+      lessonsLearned: ["most api waste is boring. it is the same handful of patterns in every codebase", "a tool that lectures you about llm spend should not need an llm to do its main job. the core scan is free and deterministic", "show the math. people trust an estimate they can poke at"],
+      techStack: ["TypeScript", "Next.js", "Node", "Anthropic SDK", "Tailwind"],
+      repoUrl: "https://github.com/ronnielgandhe/leanfetch",
       sections: [
         {
-          title: "Architecture",
-          content: "QuantZoo follows a layered architecture with four main subsystems:\n\n**Data Layer** — A unified DataFeed interface abstracts away data providers (Yahoo Finance, Alpha Vantage, CSV files). Raw market data flows through a normalization pipeline that handles timezone alignment, stock split adjustments, and missing data interpolation before landing in an in-memory columnar store optimized for vectorized access.\n\n**Strategy Engine** — The plugin-based core where trading logic lives. Each strategy implements a standard interface (generate_signals, calculate_position_sizes, on_fill) but has full freedom in its internal implementation. Strategies can be pure rule-based, ML-driven, or hybrid. The engine manages strategy lifecycle, parameter injection, and inter-strategy communication for portfolio-level strategies.\n\n**Backtesting & Validation** — The backtesting engine processes strategies against historical data using vectorized NumPy operations. Walk-forward validation wraps the backtester in configurable rolling windows with strict temporal isolation. The validation harness outputs per-window metrics, aggregate performance statistics, and overfitting diagnostics.\n\n**Streaming & Dashboard** — FastAPI serves REST endpoints for strategy CRUD and WebSocket channels for real-time data. The React frontend consumes these streams to render live P&L curves, drawdown charts, position heat maps, and trade logs with sub-second update latency."
+          title: "How It Works",
+          content: "**1. fetch.** paste a public github repo or upload files. the repo is pulled as a tarball and unpacked in memory, nothing is written to disk.\n\n**2. filter.** vendor folders, lockfiles, build output and minified files are dropped so only real source gets scanned.\n\n**3. detect.** each file runs through the detectors. a few of them look across files, like a loop that calls a wrapper defined somewhere else.\n\n**4. report.** findings are grouped by pattern with the file, the lines, the reason it costs money, the fix, and an estimated monthly saving."
         },
         {
-          title: "Backend",
-          content: "The Python backend is organized around three core packages:\n\n**quantzoo.core** — Contains the Strategy base class, the Portfolio manager (tracks positions, cash, and P&L), the RiskEngine (calculates Sharpe, Sortino, max drawdown, VaR in real-time), and the EventBus for decoupled component communication.\n\n**quantzoo.data** — Implements the DataFeed protocol and provider adapters. Includes a TimeSeriesStore that maintains aligned, gap-filled OHLCV data with configurable resampling. The store supports efficient slicing for walk-forward windows without copying data.\n\n**quantzoo.backtest** — The vectorized backtesting engine that processes entire signal arrays at once rather than iterating bar-by-bar. Position sizing, slippage modeling, and commission calculations are all vectorized. The WalkForwardRunner orchestrates multi-window validation with parallel execution support via Python's multiprocessing.\n\nFastAPI handles the API layer with Pydantic models for request/response validation, background tasks for long-running backtests, and WebSocket managers for streaming real-time metrics to connected dashboard clients."
+          title: "Detectors",
+          content: "the patterns it looks for:\n\n- api and llm calls inside loops\n- no max_tokens, so output is unbounded\n- retry loops with no cap or backoff\n- the most expensive model used for a simple task\n- a big static system prompt sent every time with no prompt caching\n- the whole chat history resent on every turn\n- entire files or documents pasted into a prompt\n- embeddings computed one at a time instead of batched\n- identical calls with no cache\n- offline jobs that could use a batch api"
         },
         {
-          title: "Frontend",
-          content: "The dashboard is a lightweight React application focused on real-time data visualization:\n\n**Live Charts** — P&L equity curves, drawdown charts, and volatility cones update in real-time via WebSocket subscriptions. Charts use lightweight canvas rendering to handle thousands of data points without frame drops.\n\n**Trade Log** — A scrolling feed of executed trades with entry/exit prices, P&L per trade, and holding duration. Each trade links back to the signal that generated it for debugging strategy logic.\n\n**Risk Dashboard** — Real-time risk metrics including rolling Sharpe ratio, current drawdown, Value at Risk (95% and 99%), and position concentration heat maps. Visual alerts trigger when risk thresholds are breached.\n\n**Strategy Manager** — Interface for loading strategies, configuring parameters, launching backtests, and comparing results across multiple strategy variants side-by-side."
-        },
-        {
-          title: "Impact",
-          content: "QuantZoo served as both a learning vehicle and a practical research tool:\n\n**Research Velocity** — The plugin architecture and walk-forward validation framework reduced the time from strategy idea to validated backtest from days to hours. Over 15 strategy variants were tested and compared using the framework.\n\n**Honest Evaluation** — Walk-forward validation exposed overfitting in strategies that appeared profitable under naive backtesting. Several strategies that showed 40%+ annual returns in simple backtests degraded to breakeven or negative returns under rolling validation — a critical finding that would have been missed without the framework.\n\n**Technical Depth** — Building QuantZoo required working across financial modeling, systems programming, real-time streaming, and machine learning — providing deep exposure to each domain and how they interact in production quantitative systems."
+          title: "Savings Math",
+          content: "every estimate comes from a formula you can see: calls per day, tokens per call, and the price of the model in use. you can change the assumptions and the numbers update live.\n\nit is an estimate, not an invoice. the point is to rank what to fix first."
         },
         {
           title: "Takeaways",
-          content: "Key lessons from building QuantZoo:\n\n**Abstractions matter more than algorithms.** The plugin-based strategy engine was the highest-leverage decision in the project. A clean interface contract meant new strategies could be written and tested in hours, while framework improvements automatically benefited all existing strategies.\n\n**Financial data demands paranoia.** Every assumption about data quality is wrong until proven otherwise. Timezone misalignment caused phantom trades, missing split adjustments inflated returns by 10-20%, and survivorship bias in index constituents made historical comparisons unreliable. Each issue required a dedicated preprocessing step with validation checks.\n\n**Vectorization is a design philosophy, not just an optimization.** Rewriting the backtester from loop-based to vectorized operations was not a simple refactor — it required fundamentally rethinking how strategy state is managed. The payoff was a 30x performance improvement and, unexpectedly, cleaner and more testable code.\n\n**Real-time systems need backpressure.** The initial WebSocket implementation would overwhelm slow clients during high-volatility periods. Adding delta compression and client-side throttling reduced bandwidth by 80% and eliminated dropped connections."
+          content: "**boring patterns, real money.** nobody decides to waste money on api calls. it happens one convenient loop at a time.\n\n**deterministic first.** the scan is plain static analysis. claude only shows up as an optional second read, on the server, behind rate limits.\n\n**practice what you preach.** the tool caps its own tokens and caches its own prompts."
+        }
+      ]
+    } satisfies ProjectDetail
+  },
+  {
+    id: 5,
+    title: "Harvey",
+    description: "a voice legal assistant. you call, ask a legal question out loud, and harvey answers by voice and cites the actual statute on screen. it is a livekit voice agent with rag over a 2,806 chunk corpus of ontario and federal law, plus tools for live news and stock quotes.",
+    gradient: "linear-gradient(135deg, #0b0b0f 0%, #1a1a24 50%, #2a2a3a 100%)",
+    coverImage: "/harvey-cover.png",
+    repoUrl: "https://github.com/ronnielgandhe/harvey",
+    language: "Python",
+    files: ["README.md", "architecture.md", "rag.md", "voice pipeline.md", "takeaways.md"],
+    detail: {
+      type: 'project' as const,
+      id: 5,
+      title: "Harvey",
+      gradient: "linear-gradient(135deg, #0b0b0f 0%, #1a1a24 50%, #2a2a3a 100%)",
+      coverImage: "/harvey-cover.png",
+      architecture: "next.js frontend joins a livekit room over webrtc. a python agent worker handles the call: deepgram for speech to text, gpt-4o-mini for the llm and tool calling, elevenlabs for the voice, silero for voice activity. tools publish json events over the livekit data channel and the frontend opens a pane for each one.",
+      technicalChallenges: ["getting first audio out fast. the greeting is spoken the moment the stream connects, before the llm is warm", "keeping the screen in sync with the voice. every tool call pushes an event over the data channel so the ui shows what he is citing while he talks", "grounding answers in real statute text. retrieval over 2,806 chunks across 7 statutes, so answers point at a section and not a vibe"],
+      lessonsLearned: ["in voice, latency is the product. every design choice came back to time to first audio", "tools that draw on screen make a voice agent feel much smarter than one that only talks", "a small, well scoped corpus beats a huge messy one"],
+      techStack: ["Python", "LiveKit", "Deepgram", "ElevenLabs", "OpenAI", "Chroma", "Next.js"],
+      repoUrl: "https://github.com/ronnielgandhe/harvey",
+      sections: [
+        {
+          title: "Architecture",
+          content: "**browser.** next.js app gets a token, joins the livekit room, sends mic audio up and listens on the data channel.\n\n**agent.** a python worker joins the room. deepgram nova-3 streams the transcript, gpt-4o-mini decides whether to answer or call a tool, elevenlabs speaks the reply.\n\n**tools.** six function tools: cite a statute (rag), current events, stock quote, congressional trades, screen control, end call. each one renders its own pane."
+        },
+        {
+          title: "RAG",
+          content: "7 statutes, 2,806 chunks, stored in chroma.\n\n- ontario highway traffic act\n- canada criminal code\n- ontario residential tenancies act\n- ontario employment standards act\n- controlled drugs and substances act\n- plus cannabis and consumer protection\n\nwhen you ask a legal question the agent retrieves the closest sections and cites them on screen while answering."
+        },
+        {
+          title: "Voice Pipeline",
+          content: "**1.** you hit call and join the room.\n\n**2.** the agent says hello right away with a canned line.\n\n**3.** you talk, deepgram transcribes, vad and turn detection decide when you are done.\n\n**4.** the llm answers or fires a tool.\n\n**5.** the tool publishes an event, the pane appears, harvey keeps talking."
+        },
+        {
+          title: "Takeaways",
+          content: "**latency first.** people forgive a wrong answer faster than a slow one.\n\n**show the receipts.** putting the statute on screen while he talks is what makes it trustworthy.\n\n**scope the corpus.** seven statutes that students actually run into covered almost every question."
+        }
+      ]
+    } satisfies ProjectDetail
+  },
+  {
+    id: 6,
+    title: "LinkedIn Games Solver",
+    description: "chrome extension to solve linkedin games in real time. sudoku, tango, queens, zip and patches. built with vanilla js. no frameworks, no ai, no server. it reads the board, solves it, and plays the answer for you.",
+    gradient: "linear-gradient(135deg, #0a66c2 0%, #084d92 50%, #052e57 100%)",
+    coverImage: "/linkdensolver.png",
+    repoUrl: "https://github.com/ronnielgandhe/linkedin-games-solver",
+    language: "JavaScript",
+    files: ["README.md", "solvers.md", "trusted input.md", "takeaways.md"],
+    detail: {
+      type: 'project' as const,
+      id: 6,
+      title: "LinkedIn Games Solver",
+      gradient: "linear-gradient(135deg, #0a66c2 0%, #084d92 50%, #052e57 100%)",
+      coverImage: "/linkdensolver.png",
+      architecture: "a manifest v3 extension with one solver per game. each solver reads the board from the dom (or from react fiber internals when the dom is not enough), computes the answer, and enters it. zip and patches need real drag gestures, so the background service worker sends them through the chrome debugger protocol.",
+      technicalChallenges: ["zip and patches ignore synthetic events. the fix was attaching chrome.debugger and dispatching trusted mouse events from the service worker", "the games run inside iframes, so solvers are injected into every frame and the popup takes the result from whichever one finds the board", "wall detection in zip has three fallbacks: react fiber, connector elements, then border widths"],
+      lessonsLearned: ["the dom is an api if you are stubborn enough", "when a page blocks fake input, the debugger protocol is the honest way in", "no build step means it still works a year later"],
+      techStack: ["JavaScript", "Chrome Extension API", "Chrome Debugger Protocol", "Manifest V3"],
+      repoUrl: "https://github.com/ronnielgandhe/linkedin-games-solver",
+      sections: [
+        {
+          title: "Solvers",
+          content: "| game | how |\n|---|---|\n| sudoku | backtracking on a 6x6 grid with box constraints |\n| tango | constraint propagation, then backtracking |\n| queens | backtracking with region and adjacency pruning |\n| zip | hamiltonian path search with wall detection |\n| patches | reads the solution from react fiber game state |"
+        },
+        {
+          title: "Trusted Input",
+          content: "most games accept clicks sent from a content script. zip and patches do not. they want real drag gestures.\n\nso the background service worker attaches with chrome.debugger and sends Input.dispatchMouseEvent commands. to the page it looks like a real mouse."
+        },
+        {
+          title: "Takeaways",
+          content: "**read state, do not guess it.** walking the react fiber tree is more reliable than reverse engineering class names.\n\n**keep it small.** vanilla js, no dependencies, nothing to break."
+        }
+      ]
+    } satisfies ProjectDetail
+  },
+  {
+    id: 7,
+    title: "NYT Games Solver",
+    description: "chrome extension that solves the nyt daily games. wordle, connections, strands, the mini crossword and spelling bee. same idea as the linkedin one: vanilla js, no ai, no server. it finds the answer in the game's own data and types it in.",
+    gradient: "linear-gradient(135deg, #121212 0%, #2b2b2b 50%, #4a4a4a 100%)",
+    coverImage: "/nytsolver.png",
+    repoUrl: "https://github.com/ronnielgandhe/nyt-games-solver",
+    language: "JavaScript",
+    files: ["README.md", "solvers.md", "strands.md", "takeaways.md"],
+    detail: {
+      type: 'project' as const,
+      id: 7,
+      title: "NYT Games Solver",
+      gradient: "linear-gradient(135deg, #121212 0%, #2b2b2b 50%, #4a4a4a 100%)",
+      coverImage: "/nytsolver.png",
+      architecture: "a manifest v3 extension with one solver per game. each one pulls the answer from react fiber state or the puzzle api the page already calls, then enters it with keyboard events, clicks, or (for strands) trusted drags through the chrome debugger protocol.",
+      technicalChallenges: ["strands needs real drag gestures, so the service worker sends them over the chrome debugger protocol", "finding the strands api endpoint without hardcoding it. the solver reads performance.getEntriesByType('resource') and re-fetches the puzzle", "games live in iframes on other subdomains, so solvers get injected into every frame"],
+      lessonsLearned: ["the answer is almost always already on the page", "one shared pattern across two extensions made the second one a weekend", "dfs with a visited set is enough to trace words through a letter grid"],
+      techStack: ["JavaScript", "Chrome Extension API", "Chrome Debugger Protocol", "Manifest V3"],
+      repoUrl: "https://github.com/ronnielgandhe/nyt-games-solver",
+      sections: [
+        {
+          title: "Solvers",
+          content: "| game | answer source | input |\n|---|---|---|\n| wordle | react fiber or the wordle api | letter keys and enter |\n| connections | react fiber or the connections api | click the cards, submit |\n| strands | re-fetched puzzle data | trusted mouse drags |\n| mini crossword | react fiber or the crossword api | click a cell, type |\n| spelling bee | react fiber or embedded page data | type and enter |"
+        },
+        {
+          title: "Strands",
+          content: "strands is the hard one. the solver gets the word list, then uses depth first search with 8 direction adjacency to trace each word through the grid, tracking used cells so paths never overlap. then the service worker drags the path with real mouse events."
+        },
+        {
+          title: "Takeaways",
+          content: "**let the page do the work.** it already fetched the answers.\n\n**trusted events matter.** some inputs cannot be faked from a content script."
         }
       ]
     } satisfies ProjectDetail

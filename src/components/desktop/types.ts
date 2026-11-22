@@ -25,6 +25,7 @@ export interface WindowState {
   position: { x: number; y: number };
   size: { width: number; height: number };
   prevBounds?: { position: { x: number; y: number }; size: { width: number; height: number } };
+  isClosing?: boolean;
 }
 
 export interface DesktopState {
@@ -35,6 +36,8 @@ export interface DesktopState {
   // Sub-window content
   activeDetail: DetailContent | null;
   activeContent: ContentViewData | null;
+  dark: boolean;
+  spotlightOpen: boolean;
 }
 
 export type DesktopAction =
@@ -53,6 +56,9 @@ export type DesktopAction =
   | { type: 'CLOSE_CONTENT' }
   | { type: 'DESELECT_ALL' }
   | { type: 'LOCK_SCREEN' }
+  | { type: 'REQUEST_CLOSE'; id: WindowId }
+  | { type: 'TOGGLE_APPEARANCE' }
+  | { type: 'SET_SPOTLIGHT'; open: boolean }
 ;
 
 // Default window configs

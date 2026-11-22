@@ -22,11 +22,10 @@ function renderMarkdown(markdown: string, t: ReturnType<typeof themeColors>) {
       const text = trimmed.slice(3);
       return (
         <h2 key={i} style={{
-          fontSize: 20,
-          fontWeight: 600,
+          fontSize: 18,
+          fontWeight: 500,
           color: t.textStrong,
           margin: '32px 0 16px',
-          fontFamily: "'NeueMontreal-Medium', sans-serif",
           lineHeight: 1.4,
         }}>
           {text}
@@ -62,7 +61,6 @@ function renderMarkdown(markdown: string, t: ReturnType<typeof themeColors>) {
           color: t.text,
           marginBottom: 20,
           paddingLeft: 24,
-          fontFamily: "'NeueMontreal-Regular', sans-serif",
         }}>
           {items.map((item, j) => (
             <li key={j} style={{ marginBottom: 8 }}>{processInline(item.trim().slice(2), t)}</li>
@@ -71,14 +69,13 @@ function renderMarkdown(markdown: string, t: ReturnType<typeof themeColors>) {
       );
     }
 
-    // Regular paragraph — process inline bold
+    // Regular paragraph, process inline bold
     return (
       <p key={i} style={{
         fontSize: 16,
         lineHeight: 1.8,
         color: t.text,
         marginBottom: 20,
-        fontFamily: "'NeueMontreal-Regular', sans-serif",
       }}>
         {processInline(trimmed, t)}
       </p>
@@ -105,12 +102,12 @@ function PostContent({ slug }: { slug: string }) {
   }
 
   return (
-    <div style={{ maxWidth: 640, margin: '0 auto', padding: '20px 0 60px' }}>
+    <div style={{ padding: '0 0 60px' }}>
       <h1 style={{
         fontSize: 28,
-        fontWeight: 600,
+        fontWeight: 500,
+        letterSpacing: '-0.02em',
         color: t.textStrong,
-        fontFamily: "'NeueMontreal-Medium', sans-serif",
         lineHeight: 1.3,
         marginBottom: 12,
       }}>
@@ -120,7 +117,6 @@ function PostContent({ slug }: { slug: string }) {
         fontSize: 14,
         color: t.textMuted,
         marginBottom: 40,
-        fontFamily: "'NeueMontreal-Regular', sans-serif",
       }}>
         {formatDate(post.publishedAt)}
       </div>

@@ -128,6 +128,25 @@ function desktopReducer(state: DesktopState, action: DesktopAction): DesktopStat
       };
     }
 
+    case 'REQUEST_CLOSE': {
+      const win = state.windows[action.id];
+      if (!win || win.isClosing) return state;
+      return {
+        ...state,
+        focusedWindowId: state.focusedWindowId === action.id ? null : state.focusedWindowId,
+        windows: { ...state.windows, [action.id]: { ...win, isClosing: true } },
+      };
+    }
+
+    case 'TOGGLE_APPEARANCE': {
+      const dark = !state.dark;
+      try { localStorage.setItem('rg-theme', dark ? 'dark' : 'light'); } catch {}
+      return { ...state, dark };
+    }
+
+    case 'SET_SPOTLIGHT':
+      return { ...state, spotlightOpen: action.open };
+
     case 'MINIMIZE_WINDOW': {
       const win = state.windows[action.id];
       if (!win) return state;
@@ -273,7 +292,7 @@ function desktopReducer(state: DesktopState, action: DesktopAction): DesktopStat
       return { ...state, focusedWindowId: null };
 
     case 'LOCK_SCREEN':
-      return { ...initialState };
+      return { ...initialState, dark: state.dark };
 
     default:
       return state;
@@ -287,7 +306,13 @@ const initialState: DesktopState = {
   bootComplete: false,
   activeDetail: null,
   activeContent: null,
+  dark: false,
+  spotlightOpen: false,
 };
+
+function readSavedAppearance(): boolean {
+  try { return localStorage.getItem('rg-theme') === 'dark'; } catch { return false; }
+}
 
 const DesktopContext = createContext<{
   state: DesktopState;
@@ -295,7 +320,7 @@ const DesktopContext = createContext<{
 } | null>(null);
 
 export function DesktopProvider({ children, skipBoot }: { children: ReactNode; skipBoot?: boolean }) {
-  const [state, dispatch] = useReducer(desktopReducer, { ...initialState, bootComplete: !!skipBoot });
+  const [state, dispatch] = useReducer(desktopReducer, { ...initialState, bootComplete: !!skipBoot, dark: readSavedAppearance() });
   return (
     <DesktopContext.Provider value={{ state, dispatch }}>
       {children}

@@ -46,9 +46,8 @@ function WritingContent() {
         >
           <span style={{
             color: t.textStrong,
-            fontFamily: "'NeueMontreal-Medium', sans-serif",
-            fontWeight: 500,
-            fontSize: 15,
+            fontWeight: 400,
+            fontSize: 16,
             position: 'relative',
           }}>
             {post.title}
