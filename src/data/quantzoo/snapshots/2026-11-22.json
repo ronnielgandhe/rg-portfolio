@@ -1,0 +1,67 @@
+{
+  "date": "2026-11-22",
+  "gauge": -56,
+  "breadth": 0.273,
+  "mood": -0.271,
+  "themes": {
+    "tech": -0.495,
+    "stocks": -0.472,
+    "rates": -0.444,
+    "inflation": -0.233,
+    "energy": -0.278,
+    "trade": -0.444,
+    "economy": -0.833,
+    "gold": -0.5,
+    "banks": -0.5
+  },
+  "odds": [
+    {
+      "question": "fed decision in december?",
+      "outcome": "no change",
+      "p": 0.067,
+      "source": "polymarket"
+    },
+    {
+      "question": "will the federal reserve hike rates by 0bps at their december 2026 meeting?",
+      "outcome": null,
+      "p": 0.08,
+      "source": "kalshi"
+    },
+    {
+      "question": "presidential election winner 2028?",
+      "outcome": "gavin newsom",
+      "p": 0.064,
+      "source": "polymarket"
+    },
+    {
+      "question": "anthropic closes below ipo price ($83) by...?",
+      "outcome": "november 25",
+      "p": 0.3,
+      "source": "polymarket"
+    },
+    {
+      "question": "ai bubble burst by...?",
+      "outcome": "june 30, 2027",
+      "p": 0.67,
+      "source": "polymarket"
+    },
+    {
+      "question": "next senate majority leader?",
+      "outcome": "chuck schumer",
+      "p": 0.925,
+      "source": "polymarket"
+    },
+    {
+      "question": "fed decision in january?",
+      "outcome": "25 bps increase",
+      "p": 0.485,
+      "source": "polymarket"
+    },
+    {
+      "question": "another fed rate hike in 2026?",
+      "outcome": null,
+      "p": 0.928,
+      "source": "polymarket"
+    }
+  ]
+}

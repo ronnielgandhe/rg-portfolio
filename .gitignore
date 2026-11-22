@@ -38,7 +38,7 @@ env/
 ENV/
 
 # Data output
-data/
+/data/
 *.csv
 
 # Next.js leftovers

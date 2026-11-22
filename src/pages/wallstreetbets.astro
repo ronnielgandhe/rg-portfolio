@@ -1,0 +1,16 @@
+---
+import SiteHead from '../components/portfolio/SiteHead.astro';
+import { WsbPage } from '../tools/quantzoo/ui/Wsb';
+import { allIdeas } from '../tools/quantzoo/ideas';
+
+const ideas = allIdeas();
+---
+
+<html lang="en">
+  <head>
+    <SiteHead title="r/wallstreetbets, my macro letter | Ronniel Gandhe" description="what's going on in the market, and my ideas for making money from it, scored from the day i wrote them. ronniel gandhe, software engineer in san francisco." path="/wallstreetbets" />
+  </head>
+  <body>
+    <WsbPage client:only="react" ideas={ideas} />
+  </body>
+</html>

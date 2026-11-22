@@ -1,0 +1,1693 @@
+{
+ "preliminary": true,
+ "date": "2026-11-22",
+ "dataset": {
+  "name": "Wikispeedia navigation paths and link graph (Stanford SNAP), 4,604 articles",
+  "url": "https://snap.stanford.edu/data/wikispeedia.html",
+  "license": "SNAP research dataset; cite West & Leskovec (WWW 2012) and West, Pineau & Precup (IJCAI 2009). Article content is Wikipedia, CC BY-SA."
+ },
+ "protocol": {
+  "pairs": 5,
+  "perDifficulty": {
+   "easy": 2,
+   "medium": 2,
+   "hard": 1
+  },
+  "plannedPairs": 60,
+  "plannedPerDifficulty": 20,
+  "pairSource": "seeded stratified sample (seed 20261122) of the lab test pairs (data/pairs.json \"test\", 150 per difficulty)",
+  "difficulty": "shortest path length: easy <= 2, medium 3, hard 4+ (same as the lab benchmark)",
+  "maxSteps": 15,
+  "sees": "link titles only",
+  "temperature": 0,
+  "temperatureNote": "temperature 0 sent where the API accepts it; models whose settings show temperature null do not accept it (Claude 5.5 via current SDK, OpenAI reasoning models)",
+  "promptVersion": "v1",
+  "invalidMove": "re-ask once, then the game fails",
+  "backtracking": "none; revisits allowed and counted",
+  "state": "stateless per step: target, current page, path so far, full outgoing link list (no 50-link cap, no distance-based filtering)"
+ },
+ "priorWork": [
+  {
+   "name": "LLM-WikiRace (Ziomek et al., arXiv 2602.16902, 2026)",
+   "url": "https://arxiv.org/abs/2602.16902",
+   "note": "549k-page Wikipedia graph, models see link titles only, 30-step cap, up to 50 links per page pre-filtered by distance to target; best model wins about 29% of hard games (paths of 7-8); looping is the main failure. Code: github.com/JuliuszZiomek/LLM-WikiRace-Benchmark"
+  },
+  {
+   "name": "WikiRacing Language Models (Hugging Face Space, HuggingFaceTB/wikiracing-llms)",
+   "url": "https://huggingface.co/spaces/HuggingFaceTB/wikiracing-llms",
+   "note": "play against open models on Wikipedia links, plus a parallel evaluation harness for running many model agents"
+  },
+  {
+   "name": "Margiotta, Croce and Basili, Evaluating Large Language Models on Wikipedia Graph Navigation: Insights from the WikiGame (CLiC-it 2025, CEUR-WS Vol-4112)",
+   "url": "https://ceur-ws.org/Vol-4112/62_main_long.pdf",
+   "note": "about 4,000 human WikiGame start-goal sessions used to test whether LLMs navigate the link graph beyond memorized facts"
+  }
+ ],
+ "models": [
+  {
+   "id": "claude-haiku-5-5",
+   "apiModel": "claude-haiku-5-5",
+   "name": "Claude Haiku 5.5",
+   "provider": "anthropic",
+   "priceInPerM": 0.1,
+   "priceOutPerM": 0.5,
+   "pricedOn": "2026-11-22",
+   "priceSource": "https://platform.claude.com/docs/en/about-claude/pricing",
+   "settings": {
+    "temperature": null,
+    "reasoning_effort": null,
+    "thinking": false
+   },
+   "pairsPlayed": 5,
+   "overall": {
+    "n": 5,
+    "success": 0.8,
+    "successCI": [
+     0.4,
+     1.0
+    ],
+    "clicksMean": 3.75,
+    "clicksOverOptimal": 1.25,
+    "clicksOverOptimalCI": [
+     0.0,
+     2.5
+    ],
+    "stepsMean": 6.0,
+    "invalidMoveRate": 0.0,
+    "tokensInMean": 5184.8,
+    "tokensOutMean": 1289.6,
+    "costPerGameUsd": 0.00116,
+    "costPerSolvedUsd": 0.00145,
+    "latencyMsPerStep": 1393.0,
+    "loopRate": 0.2,
+    "failReasons": {
+     "step_limit": 1
+    },
+    "totalCostUsd": 0.0058
+   },
+   "byDifficulty": {
+    "easy": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 2.0,
+     "clicksOverOptimal": 0.0,
+     "clicksOverOptimalCI": [
+      0.0,
+      0.0
+     ],
+     "stepsMean": 2.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 1823.0,
+     "tokensOutMean": 194.0,
+     "costPerGameUsd": 0.00028,
+     "costPerSolvedUsd": 0.00028,
+     "latencyMsPerStep": 752.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0006
+    },
+    "medium": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 5.5,
+     "clicksOverOptimal": 2.5,
+     "clicksOverOptimalCI": [
+      2.0,
+      3.0
+     ],
+     "stepsMean": 5.5,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 5452.5,
+     "tokensOutMean": 1139.5,
+     "costPerGameUsd": 0.00112,
+     "costPerSolvedUsd": 0.00112,
+     "latencyMsPerStep": 1332,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0022
+    },
+    "hard": {
+     "n": 1,
+     "success": 0.0,
+     "successCI": [
+      0.0,
+      0.0
+     ],
+     "clicksMean": null,
+     "clicksOverOptimal": null,
+     "clicksOverOptimalCI": [
+      null,
+      null
+     ],
+     "stepsMean": 15.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 11373.0,
+     "tokensOutMean": 3781.0,
+     "costPerGameUsd": 0.00303,
+     "costPerSolvedUsd": null,
+     "latencyMsPerStep": 1462,
+     "loopRate": 1.0,
+     "failReasons": {
+      "step_limit": 1
+     },
+     "totalCostUsd": 0.003
+    }
+   }
+  },
+  {
+   "id": "claude-sonnet-5-5",
+   "apiModel": "claude-sonnet-5-5",
+   "name": "Claude Sonnet 5.5",
+   "provider": "anthropic",
+   "priceInPerM": 2.0,
+   "priceOutPerM": 10.0,
+   "pricedOn": "2026-11-22",
+   "priceSource": "https://platform.claude.com/docs/en/about-claude/pricing",
+   "settings": {
+    "temperature": null,
+    "reasoning_effort": null,
+    "thinking": false
+   },
+   "pairsPlayed": 5,
+   "overall": {
+    "n": 5,
+    "success": 1.0,
+    "successCI": [
+     1.0,
+     1.0
+    ],
+    "clicksMean": 4.8,
+    "clicksOverOptimal": 2.0,
+    "clicksOverOptimalCI": [
+     0.2,
+     4.2
+    ],
+    "stepsMean": 4.8,
+    "invalidMoveRate": 0.0,
+    "tokensInMean": 4488.2,
+    "tokensOutMean": 650.6,
+    "costPerGameUsd": 0.01548,
+    "costPerSolvedUsd": 0.01548,
+    "latencyMsPerStep": 1940.0,
+    "loopRate": 0.0,
+    "failReasons": {},
+    "totalCostUsd": 0.0774
+   },
+   "byDifficulty": {
+    "easy": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 2.0,
+     "clicksOverOptimal": 0.0,
+     "clicksOverOptimalCI": [
+      0.0,
+      0.0
+     ],
+     "stepsMean": 2.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 1898.0,
+     "tokensOutMean": 154.0,
+     "costPerGameUsd": 0.00534,
+     "costPerSolvedUsd": 0.00534,
+     "latencyMsPerStep": 1464.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0107
+    },
+    "medium": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 5.0,
+     "clicksOverOptimal": 2.0,
+     "clicksOverOptimalCI": [
+      1.0,
+      3.0
+     ],
+     "stepsMean": 5.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 4333.5,
+     "tokensOutMean": 823.5,
+     "costPerGameUsd": 0.0169,
+     "costPerSolvedUsd": 0.0169,
+     "latencyMsPerStep": 2062.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0338
+    },
+    "hard": {
+     "n": 1,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 10.0,
+     "clicksOverOptimal": 6.0,
+     "clicksOverOptimalCI": [
+      6.0,
+      6.0
+     ],
+     "stepsMean": 10.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 9978.0,
+     "tokensOutMean": 1298.0,
+     "costPerGameUsd": 0.03294,
+     "costPerSolvedUsd": 0.03294,
+     "latencyMsPerStep": 1815.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0329
+    }
+   }
+  },
+  {
+   "id": "claude-opus-5-5",
+   "apiModel": "claude-opus-5-5",
+   "name": "Claude Opus 5.5",
+   "provider": "anthropic",
+   "priceInPerM": 4.0,
+   "priceOutPerM": 20.0,
+   "pricedOn": "2026-11-22",
+   "priceSource": "https://platform.claude.com/docs/en/about-claude/pricing",
+   "settings": {
+    "temperature": null,
+    "reasoning_effort": null,
+    "thinking": false
+   },
+   "pairsPlayed": 5,
+   "overall": {
+    "n": 5,
+    "success": 1.0,
+    "successCI": [
+     1.0,
+     1.0
+    ],
+    "clicksMean": 5.4,
+    "clicksOverOptimal": 2.6,
+    "clicksOverOptimalCI": [
+     0.2,
+     6.0
+    ],
+    "stepsMean": 5.4,
+    "invalidMoveRate": 0.0,
+    "tokensInMean": 4675.0,
+    "tokensOutMean": 574.6,
+    "costPerGameUsd": 0.03019,
+    "costPerSolvedUsd": 0.03019,
+    "latencyMsPerStep": 1755,
+    "loopRate": 0.2,
+    "failReasons": {},
+    "totalCostUsd": 0.151
+   },
+   "byDifficulty": {
+    "easy": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 2.0,
+     "clicksOverOptimal": 0.0,
+     "clicksOverOptimalCI": [
+      0.0,
+      0.0
+     ],
+     "stepsMean": 2.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 1898.0,
+     "tokensOutMean": 122.5,
+     "costPerGameUsd": 0.01004,
+     "costPerSolvedUsd": 0.01004,
+     "latencyMsPerStep": 1334.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0201
+    },
+    "medium": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 5.0,
+     "clicksOverOptimal": 2.0,
+     "clicksOverOptimalCI": [
+      1.0,
+      3.0
+     ],
+     "stepsMean": 5.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 4568.5,
+     "tokensOutMean": 504.0,
+     "costPerGameUsd": 0.02835,
+     "costPerSolvedUsd": 0.02835,
+     "latencyMsPerStep": 1606.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0567
+    },
+    "hard": {
+     "n": 1,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 13.0,
+     "clicksOverOptimal": 9.0,
+     "clicksOverOptimalCI": [
+      9.0,
+      9.0
+     ],
+     "stepsMean": 13.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 10442.0,
+     "tokensOutMean": 1620.0,
+     "costPerGameUsd": 0.07417,
+     "costPerSolvedUsd": 0.07417,
+     "latencyMsPerStep": 1938,
+     "loopRate": 1.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0742
+    }
+   }
+  },
+  {
+   "id": "claude-sonnet-5-5-thinking",
+   "apiModel": "claude-sonnet-5-5",
+   "name": "Claude Sonnet 5.5 (thinking, xhigh)",
+   "provider": "anthropic",
+   "priceInPerM": 2.0,
+   "priceOutPerM": 10.0,
+   "pricedOn": "2026-11-22",
+   "priceSource": "https://platform.claude.com/docs/en/about-claude/pricing",
+   "settings": {
+    "temperature": null,
+    "reasoning_effort": null,
+    "thinking": "xhigh"
+   },
+   "pairsPlayed": 5,
+   "overall": {
+    "n": 5,
+    "success": 1.0,
+    "successCI": [
+     1.0,
+     1.0
+    ],
+    "clicksMean": 4.4,
+    "clicksOverOptimal": 1.6,
+    "clicksOverOptimalCI": [
+     0.2,
+     3.0
+    ],
+    "stepsMean": 4.4,
+    "invalidMoveRate": 0.0,
+    "tokensInMean": 4128.6,
+    "tokensOutMean": 758.4,
+    "costPerGameUsd": 0.01584,
+    "costPerSolvedUsd": 0.01584,
+    "latencyMsPerStep": 1900.0,
+    "loopRate": 0.0,
+    "failReasons": {},
+    "totalCostUsd": 0.0792
+   },
+   "byDifficulty": {
+    "easy": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 2.0,
+     "clicksOverOptimal": 0.0,
+     "clicksOverOptimalCI": [
+      0.0,
+      0.0
+     ],
+     "stepsMean": 2.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 1823.0,
+     "tokensOutMean": 265.5,
+     "costPerGameUsd": 0.0063,
+     "costPerSolvedUsd": 0.0063,
+     "latencyMsPerStep": 2829.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0126
+    },
+    "medium": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 5.0,
+     "clicksOverOptimal": 2.0,
+     "clicksOverOptimalCI": [
+      1.0,
+      3.0
+     ],
+     "stepsMean": 5.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 4538.0,
+     "tokensOutMean": 969.5,
+     "costPerGameUsd": 0.01877,
+     "costPerSolvedUsd": 0.01877,
+     "latencyMsPerStep": 1839.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0375
+    },
+    "hard": {
+     "n": 1,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 8.0,
+     "clicksOverOptimal": 4.0,
+     "clicksOverOptimalCI": [
+      4.0,
+      4.0
+     ],
+     "stepsMean": 8.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 7921.0,
+     "tokensOutMean": 1322.0,
+     "costPerGameUsd": 0.02906,
+     "costPerSolvedUsd": 0.02906,
+     "latencyMsPerStep": 1900.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0291
+    }
+   }
+  },
+  {
+   "id": "gpt-6-luna",
+   "apiModel": "gpt-6-luna",
+   "name": "GPT-6 Luna",
+   "provider": "openai",
+   "priceInPerM": 0.1,
+   "priceOutPerM": 0.5,
+   "pricedOn": "2026-11-22",
+   "priceSource": "https://developers.openai.com/api/docs/pricing",
+   "settings": {
+    "temperature": 0,
+    "reasoning_effort": "none",
+    "thinking": false
+   },
+   "pairsPlayed": 5,
+   "overall": {
+    "n": 5,
+    "success": 0.8,
+    "successCI": [
+     0.4,
+     1.0
+    ],
+    "clicksMean": 4.0,
+    "clicksOverOptimal": 1.5,
+    "clicksOverOptimalCI": [
+     0.0,
+     3.75
+    ],
+    "stepsMean": 6.2,
+    "invalidMoveRate": 0.0312,
+    "tokensInMean": 2174.4,
+    "tokensOutMean": 120.0,
+    "costPerGameUsd": 0.00028,
+    "costPerSolvedUsd": 0.00035,
+    "latencyMsPerStep": 1041.0,
+    "loopRate": 0.2,
+    "failReasons": {
+     "step_limit": 1
+    },
+    "totalCostUsd": 0.0014
+   },
+   "byDifficulty": {
+    "easy": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 4.5,
+     "clicksOverOptimal": 2.5,
+     "clicksOverOptimalCI": [
+      0.0,
+      5.0
+     ],
+     "stepsMean": 4.5,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 1693.5,
+     "tokensOutMean": 86.0,
+     "costPerGameUsd": 0.00021,
+     "costPerSolvedUsd": 0.00021,
+     "latencyMsPerStep": 1039,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0004
+    },
+    "medium": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 3.5,
+     "clicksOverOptimal": 0.5,
+     "clicksOverOptimalCI": [
+      0.0,
+      1.0
+     ],
+     "stepsMean": 3.5,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 1405.0,
+     "tokensOutMean": 65.5,
+     "costPerGameUsd": 0.00017,
+     "costPerSolvedUsd": 0.00017,
+     "latencyMsPerStep": 1318,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0003
+    },
+    "hard": {
+     "n": 1,
+     "success": 0.0,
+     "successCI": [
+      0.0,
+      0.0
+     ],
+     "clicksMean": null,
+     "clicksOverOptimal": null,
+     "clicksOverOptimalCI": [
+      null,
+      null
+     ],
+     "stepsMean": 15.0,
+     "invalidMoveRate": 0.0625,
+     "tokensInMean": 4675.0,
+     "tokensOutMean": 297.0,
+     "costPerGameUsd": 0.00062,
+     "costPerSolvedUsd": null,
+     "latencyMsPerStep": 1036.0,
+     "loopRate": 1.0,
+     "failReasons": {
+      "step_limit": 1
+     },
+     "totalCostUsd": 0.0006
+    }
+   }
+  },
+  {
+   "id": "gpt-6.2-sol",
+   "apiModel": "gpt-6.2-sol",
+   "name": "GPT-6.2 Sol",
+   "provider": "openai",
+   "priceInPerM": 2.0,
+   "priceOutPerM": 10.0,
+   "pricedOn": "2026-11-22",
+   "priceSource": "https://developers.openai.com/api/docs/pricing",
+   "settings": {
+    "temperature": null,
+    "reasoning_effort": "low",
+    "thinking": false
+   },
+   "pairsPlayed": 5,
+   "overall": {
+    "n": 5,
+    "success": 1.0,
+    "successCI": [
+     1.0,
+     1.0
+    ],
+    "clicksMean": 4.6,
+    "clicksOverOptimal": 1.8,
+    "clicksOverOptimalCI": [
+     0.2,
+     4.0
+    ],
+    "stepsMean": 4.6,
+    "invalidMoveRate": 0.0,
+    "tokensInMean": 1874.0,
+    "tokensOutMean": 89.4,
+    "costPerGameUsd": 0.00464,
+    "costPerSolvedUsd": 0.00464,
+    "latencyMsPerStep": 1123,
+    "loopRate": 0.2,
+    "failReasons": {},
+    "totalCostUsd": 0.0232
+   },
+   "byDifficulty": {
+    "easy": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 2.0,
+     "clicksOverOptimal": 0.0,
+     "clicksOverOptimalCI": [
+      0.0,
+      0.0
+     ],
+     "stepsMean": 2.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 775.5,
+     "tokensOutMean": 40.0,
+     "costPerGameUsd": 0.00195,
+     "costPerSolvedUsd": 0.00195,
+     "latencyMsPerStep": 1307.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0039
+    },
+    "medium": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 4.5,
+     "clicksOverOptimal": 1.5,
+     "clicksOverOptimalCI": [
+      1.0,
+      2.0
+     ],
+     "stepsMean": 4.5,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 1946.0,
+     "tokensOutMean": 87.5,
+     "costPerGameUsd": 0.00477,
+     "costPerSolvedUsd": 0.00477,
+     "latencyMsPerStep": 1168,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0095
+    },
+    "hard": {
+     "n": 1,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 10.0,
+     "clicksOverOptimal": 6.0,
+     "clicksOverOptimalCI": [
+      6.0,
+      6.0
+     ],
+     "stepsMean": 10.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 3927.0,
+     "tokensOutMean": 192.0,
+     "costPerGameUsd": 0.00977,
+     "costPerSolvedUsd": 0.00977,
+     "latencyMsPerStep": 1064.0,
+     "loopRate": 1.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0098
+    }
+   }
+  },
+  {
+   "id": "gpt-6.2-astra",
+   "apiModel": "gpt-6.2-astra",
+   "name": "GPT-6.2 Astra",
+   "provider": "openai",
+   "priceInPerM": 8.0,
+   "priceOutPerM": 40.0,
+   "pricedOn": "2026-11-22",
+   "priceSource": "https://developers.openai.com/api/docs/pricing",
+   "settings": {
+    "temperature": null,
+    "reasoning_effort": "low",
+    "thinking": false
+   },
+   "pairsPlayed": 5,
+   "overall": {
+    "n": 5,
+    "success": 1.0,
+    "successCI": [
+     1.0,
+     1.0
+    ],
+    "clicksMean": 4.6,
+    "clicksOverOptimal": 1.8,
+    "clicksOverOptimalCI": [
+     0.2,
+     4.0
+    ],
+    "stepsMean": 4.6,
+    "invalidMoveRate": 0.0,
+    "tokensInMean": 1991.2,
+    "tokensOutMean": 90.6,
+    "costPerGameUsd": 0.01955,
+    "costPerSolvedUsd": 0.01955,
+    "latencyMsPerStep": 1388,
+    "loopRate": 0.0,
+    "failReasons": {},
+    "totalCostUsd": 0.0978
+   },
+   "byDifficulty": {
+    "easy": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 2.0,
+     "clicksOverOptimal": 0.0,
+     "clicksOverOptimalCI": [
+      0.0,
+      0.0
+     ],
+     "stepsMean": 2.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 775.5,
+     "tokensOutMean": 40.0,
+     "costPerGameUsd": 0.0078,
+     "costPerSolvedUsd": 0.0078,
+     "latencyMsPerStep": 1312.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0156
+    },
+    "medium": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 4.5,
+     "clicksOverOptimal": 1.5,
+     "clicksOverOptimalCI": [
+      1.0,
+      2.0
+     ],
+     "stepsMean": 4.5,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 2076.5,
+     "tokensOutMean": 89.5,
+     "costPerGameUsd": 0.02019,
+     "costPerSolvedUsd": 0.02019,
+     "latencyMsPerStep": 1390,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0404
+    },
+    "hard": {
+     "n": 1,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 10.0,
+     "clicksOverOptimal": 6.0,
+     "clicksOverOptimalCI": [
+      6.0,
+      6.0
+     ],
+     "stepsMean": 10.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 4252.0,
+     "tokensOutMean": 194.0,
+     "costPerGameUsd": 0.04178,
+     "costPerSolvedUsd": 0.04178,
+     "latencyMsPerStep": 1392.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0418
+    }
+   }
+  },
+  {
+   "id": "gpt-6.2-sol-high",
+   "apiModel": "gpt-6.2-sol",
+   "name": "GPT-6.2 Sol (high reasoning)",
+   "provider": "openai",
+   "priceInPerM": 2.0,
+   "priceOutPerM": 10.0,
+   "pricedOn": "2026-11-22",
+   "priceSource": "https://developers.openai.com/api/docs/pricing",
+   "settings": {
+    "temperature": null,
+    "reasoning_effort": "high",
+    "thinking": false
+   },
+   "pairsPlayed": 5,
+   "overall": {
+    "n": 5,
+    "success": 1.0,
+    "successCI": [
+     1.0,
+     1.0
+    ],
+    "clicksMean": 4.4,
+    "clicksOverOptimal": 1.6,
+    "clicksOverOptimalCI": [
+     0.2,
+     3.0
+    ],
+    "stepsMean": 4.4,
+    "invalidMoveRate": 0.0,
+    "tokensInMean": 1805.8,
+    "tokensOutMean": 205.4,
+    "costPerGameUsd": 0.00567,
+    "costPerSolvedUsd": 0.00567,
+    "latencyMsPerStep": 1233.0,
+    "loopRate": 0.0,
+    "failReasons": {},
+    "totalCostUsd": 0.0283
+   },
+   "byDifficulty": {
+    "easy": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 2.0,
+     "clicksOverOptimal": 0.0,
+     "clicksOverOptimalCI": [
+      0.0,
+      0.0
+     ],
+     "stepsMean": 2.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 775.5,
+     "tokensOutMean": 49.5,
+     "costPerGameUsd": 0.00205,
+     "costPerSolvedUsd": 0.00205,
+     "latencyMsPerStep": 1129.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0041
+    },
+    "medium": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 5.0,
+     "clicksOverOptimal": 2.0,
+     "clicksOverOptimalCI": [
+      1.0,
+      3.0
+     ],
+     "stepsMean": 5.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 1980.0,
+     "tokensOutMean": 269.0,
+     "costPerGameUsd": 0.00665,
+     "costPerSolvedUsd": 0.00665,
+     "latencyMsPerStep": 1458.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0133
+    },
+    "hard": {
+     "n": 1,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 8.0,
+     "clicksOverOptimal": 4.0,
+     "clicksOverOptimalCI": [
+      4.0,
+      4.0
+     ],
+     "stepsMean": 8.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 3518.0,
+     "tokensOutMean": 390.0,
+     "costPerGameUsd": 0.01094,
+     "costPerSolvedUsd": 0.01094,
+     "latencyMsPerStep": 1238.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0109
+    }
+   }
+  },
+  {
+   "id": "gemini-3.5-flash-lite",
+   "apiModel": "gemini-3.5-flash-lite",
+   "name": "Gemini 3.5 Flash-Lite",
+   "provider": "google",
+   "priceInPerM": 0.3,
+   "priceOutPerM": 2.5,
+   "pricedOn": "2026-11-22",
+   "priceSource": "https://aistudio.google.com/docs/pricing",
+   "settings": {
+    "temperature": 0,
+    "reasoning_effort": "minimal",
+    "thinking": false
+   },
+   "pairsPlayed": 5,
+   "overall": {
+    "n": 5,
+    "success": 0.8,
+    "successCI": [
+     0.4,
+     1.0
+    ],
+    "clicksMean": 3.0,
+    "clicksOverOptimal": 0.5,
+    "clicksOverOptimalCI": [
+     0.0,
+     1.0
+    ],
+    "stepsMean": 5.4,
+    "invalidMoveRate": 0.0,
+    "tokensInMean": 1886.8,
+    "tokensOutMean": 90.6,
+    "costPerGameUsd": 0.00079,
+    "costPerSolvedUsd": 0.00099,
+    "latencyMsPerStep": 738,
+    "loopRate": 0.2,
+    "failReasons": {
+     "step_limit": 1
+    },
+    "totalCostUsd": 0.004
+   },
+   "byDifficulty": {
+    "easy": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 2.0,
+     "clicksOverOptimal": 0.0,
+     "clicksOverOptimalCI": [
+      0.0,
+      0.0
+     ],
+     "stepsMean": 2.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 778.5,
+     "tokensOutMean": 34.5,
+     "costPerGameUsd": 0.00032,
+     "costPerSolvedUsd": 0.00032,
+     "latencyMsPerStep": 644.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0006
+    },
+    "medium": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 4.0,
+     "clicksOverOptimal": 1.0,
+     "clicksOverOptimalCI": [
+      1.0,
+      1.0
+     ],
+     "stepsMean": 4.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 1416.0,
+     "tokensOutMean": 68.0,
+     "costPerGameUsd": 0.00059,
+     "costPerSolvedUsd": 0.00059,
+     "latencyMsPerStep": 700.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0012
+    },
+    "hard": {
+     "n": 1,
+     "success": 0.0,
+     "successCI": [
+      0.0,
+      0.0
+     ],
+     "clicksMean": null,
+     "clicksOverOptimal": null,
+     "clicksOverOptimalCI": [
+      null,
+      null
+     ],
+     "stepsMean": 15.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 5045.0,
+     "tokensOutMean": 248.0,
+     "costPerGameUsd": 0.00213,
+     "costPerSolvedUsd": null,
+     "latencyMsPerStep": 764,
+     "loopRate": 1.0,
+     "failReasons": {
+      "step_limit": 1
+     },
+     "totalCostUsd": 0.0021
+    }
+   }
+  },
+  {
+   "id": "gemini-3.8-flash",
+   "apiModel": "gemini-3.8-flash",
+   "name": "Gemini 3.8 Flash",
+   "provider": "google",
+   "priceInPerM": 0.75,
+   "priceOutPerM": 3.75,
+   "pricedOn": "2026-11-22",
+   "priceSource": "https://aistudio.google.com/docs/pricing",
+   "settings": {
+    "temperature": 0,
+    "reasoning_effort": "low",
+    "thinking": false
+   },
+   "pairsPlayed": 5,
+   "overall": {
+    "n": 5,
+    "success": 1.0,
+    "successCI": [
+     1.0,
+     1.0
+    ],
+    "clicksMean": 4.0,
+    "clicksOverOptimal": 1.2,
+    "clicksOverOptimalCI": [
+     0.2,
+     2.2
+    ],
+    "stepsMean": 4.0,
+    "invalidMoveRate": 0.0,
+    "tokensInMean": 1676.2,
+    "tokensOutMean": 330.6,
+    "costPerGameUsd": 0.0025,
+    "costPerSolvedUsd": 0.0025,
+    "latencyMsPerStep": 2564.0,
+    "loopRate": 0.0,
+    "failReasons": {},
+    "totalCostUsd": 0.0125
+   },
+   "byDifficulty": {
+    "easy": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 2.0,
+     "clicksOverOptimal": 0.0,
+     "clicksOverOptimalCI": [
+      0.0,
+      0.0
+     ],
+     "stepsMean": 2.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 778.5,
+     "tokensOutMean": 91.0,
+     "costPerGameUsd": 0.00093,
+     "costPerSolvedUsd": 0.00093,
+     "latencyMsPerStep": 2040.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0019
+    },
+    "medium": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 4.5,
+     "clicksOverOptimal": 1.5,
+     "clicksOverOptimalCI": [
+      1.0,
+      2.0
+     ],
+     "stepsMean": 4.5,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 2006.0,
+     "tokensOutMean": 449.5,
+     "costPerGameUsd": 0.00319,
+     "costPerSolvedUsd": 0.00319,
+     "latencyMsPerStep": 2641,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0064
+    },
+    "hard": {
+     "n": 1,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 7.0,
+     "clicksOverOptimal": 3.0,
+     "clicksOverOptimalCI": [
+      3.0,
+      3.0
+     ],
+     "stepsMean": 7.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 2812.0,
+     "tokensOutMean": 572.0,
+     "costPerGameUsd": 0.00425,
+     "costPerSolvedUsd": 0.00425,
+     "latencyMsPerStep": 2505,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0043
+    }
+   }
+  },
+  {
+   "id": "gemini-4-carbon",
+   "apiModel": "gemini-4-carbon",
+   "name": "Gemini 4 Carbon",
+   "provider": "google",
+   "priceInPerM": 2.0,
+   "priceOutPerM": 10.0,
+   "pricedOn": "2026-11-22",
+   "priceSource": "https://aistudio.google.com/docs/pricing",
+   "settings": {
+    "temperature": 0,
+    "reasoning_effort": "low",
+    "thinking": false
+   },
+   "pairsPlayed": 5,
+   "overall": {
+    "n": 5,
+    "success": 1.0,
+    "successCI": [
+     1.0,
+     1.0
+    ],
+    "clicksMean": 4.6,
+    "clicksOverOptimal": 1.8,
+    "clicksOverOptimalCI": [
+     0.6,
+     3.0
+    ],
+    "stepsMean": 4.6,
+    "invalidMoveRate": 0.0,
+    "tokensInMean": 1909.8,
+    "tokensOutMean": 255.4,
+    "costPerGameUsd": 0.00637,
+    "costPerSolvedUsd": 0.00637,
+    "latencyMsPerStep": 4476,
+    "loopRate": 0.0,
+    "failReasons": {},
+    "totalCostUsd": 0.0319
+   },
+   "byDifficulty": {
+    "easy": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 2.0,
+     "clicksOverOptimal": 0.0,
+     "clicksOverOptimalCI": [
+      0.0,
+      0.0
+     ],
+     "stepsMean": 2.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 854.5,
+     "tokensOutMean": 115.0,
+     "costPerGameUsd": 0.00286,
+     "costPerSolvedUsd": 0.00286,
+     "latencyMsPerStep": 4779.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0057
+    },
+    "medium": {
+     "n": 2,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 6.0,
+     "clicksOverOptimal": 3.0,
+     "clicksOverOptimalCI": [
+      3.0,
+      3.0
+     ],
+     "stepsMean": 6.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 2602.0,
+     "tokensOutMean": 391.5,
+     "costPerGameUsd": 0.00912,
+     "costPerSolvedUsd": 0.00912,
+     "latencyMsPerStep": 4872.0,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0182
+    },
+    "hard": {
+     "n": 1,
+     "success": 1.0,
+     "successCI": [
+      1.0,
+      1.0
+     ],
+     "clicksMean": 7.0,
+     "clicksOverOptimal": 3.0,
+     "clicksOverOptimalCI": [
+      3.0,
+      3.0
+     ],
+     "stepsMean": 7.0,
+     "invalidMoveRate": 0.0,
+     "tokensInMean": 2636.0,
+     "tokensOutMean": 264.0,
+     "costPerGameUsd": 0.00791,
+     "costPerSolvedUsd": 0.00791,
+     "latencyMsPerStep": 3660,
+     "loopRate": 0.0,
+     "failReasons": {},
+     "totalCostUsd": 0.0079
+    }
+   }
+  }
+ ],
+ "humansOnSubset": {
+  "easy": {
+   "pairsPlayed": 7,
+   "games": 10,
+   "success": 0.9,
+   "medianClicksMean": 2.857,
+   "clicksOverOptimal": 0.857
+  },
+  "medium": {
+   "pairsPlayed": 9,
+   "games": 14,
+   "success": 0.929,
+   "medianClicksMean": 4.389,
+   "clicksOverOptimal": 1.389
+  },
+  "hard": {
+   "pairsPlayed": 7,
+   "games": 11,
+   "success": 1.0,
+   "medianClicksMean": 6.143,
+   "clicksOverOptimal": 2.0
+  },
+  "all": {
+   "pairsPlayed": 23,
+   "games": 35,
+   "success": 0.943,
+   "medianClicksMean": 4.457,
+   "clicksOverOptimal": 1.413
+  }
+ },
+ "references": {
+  "scope": "reference on full set: 450 test pairs (easy 150, medium 150, hard 150); our 60 LLM pairs are a seeded stratified subset of those same pairs. Per-pair reference results are not saved, so these numbers are NOT recomputed on the subset.",
+  "benchmarkPreliminary": true,
+  "benchmarkGenerated": "2026-11-22",
+  "note": "classical strategies and the trained model are search procedures with a page budget (pages opened, with backtracking); LLMs here walk one click at a time with no backtracking and 15 clicks max. costPerGameUsd for these is 0 API dollars: they run locally in the browser.",
+  "strategies": [
+   {
+    "id": "random",
+    "name": "random walk",
+    "pageBudget": 200,
+    "msMean": 1.928,
+    "overall": {
+     "n": 450,
+     "success": 0.618,
+     "clicksMean": 49.457,
+     "clicksOverOptimal": 46.874,
+     "pagesOpenedMean": 107.633
+    },
+    "byDifficulty": {
+     "easy": {
+      "n": 150,
+      "success": 0.96,
+      "clicksMean": 31.125,
+      "clicksOverOptimal": 29.146,
+      "pagesOpenedMean": 38.853
+     },
+     "medium": {
+      "n": 150,
+      "success": 0.687,
+      "clicksMean": 64.515,
+      "clicksOverOptimal": 61.515,
+      "pagesOpenedMean": 107.68
+     },
+     "hard": {
+      "n": 150,
+      "success": 0.207,
+      "clicksMean": 84.581,
+      "clicksOverOptimal": 80.581,
+      "pagesOpenedMean": 176.367
+     }
+    }
+   },
+   {
+    "id": "keyword",
+    "name": "keyword",
+    "pageBudget": 100,
+    "msMean": 5.866,
+    "overall": {
+     "n": 450,
+     "success": 0.638,
+     "clicksMean": 3.756,
+     "clicksOverOptimal": 1.073,
+     "pagesOpenedMean": 49.102
+    },
+    "byDifficulty": {
+     "easy": {
+      "n": 150,
+      "success": 0.913,
+      "clicksMean": 2.912,
+      "clicksOverOptimal": 0.934,
+      "pagesOpenedMean": 21.653
+     },
+     "medium": {
+      "n": 150,
+      "success": 0.707,
+      "clicksMean": 4.123,
+      "clicksOverOptimal": 1.123,
+      "pagesOpenedMean": 46.233
+     },
+     "hard": {
+      "n": 150,
+      "success": 0.293,
+      "clicksMean": 5.5,
+      "clicksOverOptimal": 1.386,
+      "pagesOpenedMean": 79.42
+     }
+    }
+   },
+   {
+    "id": "god",
+    "name": "god mode",
+    "pageBudget": 200,
+    "msMean": 5.628,
+    "overall": {
+     "n": 450,
+     "success": 0.664,
+     "clicksMean": 3.866,
+     "clicksOverOptimal": 1.151,
+     "pagesOpenedMean": 85.582
+    },
+    "byDifficulty": {
+     "easy": {
+      "n": 150,
+      "success": 0.933,
+      "clicksMean": 2.95,
+      "clicksOverOptimal": 0.971,
+      "pagesOpenedMean": 28.693
+     },
+     "medium": {
+      "n": 150,
+      "success": 0.707,
+      "clicksMean": 4.075,
+      "clicksOverOptimal": 1.075,
+      "pagesOpenedMean": 80.74
+     },
+     "hard": {
+      "n": 150,
+      "success": 0.353,
+      "clicksMean": 5.868,
+      "clicksOverOptimal": 1.774,
+      "pagesOpenedMean": 147.313
+     }
+    }
+   },
+   {
+    "id": "hub",
+    "name": "hub-first",
+    "pageBudget": 100,
+    "msMean": 7.062,
+    "overall": {
+     "n": 450,
+     "success": 0.653,
+     "clicksMean": 3.456,
+     "clicksOverOptimal": 0.752,
+     "pagesOpenedMean": 48.407
+    },
+    "byDifficulty": {
+     "easy": {
+      "n": 150,
+      "success": 0.913,
+      "clicksMean": 2.547,
+      "clicksOverOptimal": 0.569,
+      "pagesOpenedMean": 20.287
+     },
+     "medium": {
+      "n": 150,
+      "success": 0.727,
+      "clicksMean": 3.78,
+      "clicksOverOptimal": 0.78,
+      "pagesOpenedMean": 46.4
+     },
+     "hard": {
+      "n": 150,
+      "success": 0.32,
+      "clicksMean": 5.313,
+      "clicksOverOptimal": 1.208,
+      "pagesOpenedMean": 78.533
+     }
+    }
+   },
+   {
+    "id": "semantic",
+    "name": "semantic",
+    "pageBudget": 200,
+    "msMean": 1.726,
+    "overall": {
+     "n": 450,
+     "success": 0.773,
+     "clicksMean": 5.537,
+     "clicksOverOptimal": 2.667,
+     "pagesOpenedMean": 76.389
+    },
+    "byDifficulty": {
+     "easy": {
+      "n": 150,
+      "success": 0.933,
+      "clicksMean": 4.75,
+      "clicksOverOptimal": 2.771,
+      "pagesOpenedMean": 37.367
+     },
+     "medium": {
+      "n": 150,
+      "success": 0.78,
+      "clicksMean": 5.427,
+      "clicksOverOptimal": 2.427,
+      "pagesOpenedMean": 87.307
+     },
+     "hard": {
+      "n": 150,
+      "success": 0.607,
+      "clicksMean": 6.89,
+      "clicksOverOptimal": 2.813,
+      "pagesOpenedMean": 104.493
+     }
+    }
+   },
+   {
+    "id": "model",
+    "name": "the model",
+    "pageBudget": 200,
+    "msMean": 38.943,
+    "overall": {
+     "n": 450,
+     "success": 0.72,
+     "clicksMean": 3.198,
+     "clicksOverOptimal": 0.472,
+     "pagesOpenedMean": 81.467
+    },
+    "byDifficulty": {
+     "easy": {
+      "n": 150,
+      "success": 0.96,
+      "clicksMean": 2.292,
+      "clicksOverOptimal": 0.313,
+      "pagesOpenedMean": 19.087
+     },
+     "medium": {
+      "n": 150,
+      "success": 0.813,
+      "clicksMean": 3.467,
+      "clicksOverOptimal": 0.467,
+      "pagesOpenedMean": 69.393
+     },
+     "hard": {
+      "n": 150,
+      "success": 0.387,
+      "clicksMean": 4.879,
+      "clicksOverOptimal": 0.879,
+      "pagesOpenedMean": 155.92
+     }
+    }
+   },
+   {
+    "id": "bidi",
+    "name": "bidirectional",
+    "pageBudget": 200,
+    "msMean": 0.48,
+    "overall": {
+     "n": 450,
+     "success": 1,
+     "clicksMean": 3.102,
+     "clicksOverOptimal": 0.062,
+     "pagesOpenedMean": 5.353
+    },
+    "byDifficulty": {
+     "easy": {
+      "n": 150,
+      "success": 1,
+      "clicksMean": 1.98,
+      "clicksOverOptimal": 0,
+      "pagesOpenedMean": 2.98
+     },
+     "medium": {
+      "n": 150,
+      "success": 1,
+      "clicksMean": 3.1,
+      "clicksOverOptimal": 0.1,
+      "pagesOpenedMean": 4.853
+     },
+     "hard": {
+      "n": 150,
+      "success": 1,
+      "clicksMean": 4.227,
+      "clicksOverOptimal": 0.087,
+      "pagesOpenedMean": 8.227
+     }
+    }
+   },
+   {
+    "id": "guided",
+    "name": "god model",
+    "pageBudget": 200,
+    "msMean": 1.547,
+    "overall": {
+     "n": 450,
+     "success": 1,
+     "clicksMean": 3.111,
+     "clicksOverOptimal": 0.071,
+     "pagesOpenedMean": 4.409
+    },
+    "byDifficulty": {
+     "easy": {
+      "n": 150,
+      "success": 1,
+      "clicksMean": 1.98,
+      "clicksOverOptimal": 0,
+      "pagesOpenedMean": 2.98
+     },
+     "medium": {
+      "n": 150,
+      "success": 1,
+      "clicksMean": 3.1,
+      "clicksOverOptimal": 0.1,
+      "pagesOpenedMean": 4.293
+     },
+     "hard": {
+      "n": 150,
+      "success": 1,
+      "clicksMean": 4.253,
+      "clicksOverOptimal": 0.113,
+      "pagesOpenedMean": 5.953
+     }
+    }
+   }
+  ],
+  "humans": {
+   "easy": {
+    "medianClicks": 3,
+    "clicksMean": 3.217,
+    "optimalMean": 1.961,
+    "clicksOverOptimal": 1.257,
+    "pagesMedian": 4,
+    "success": 0.971,
+    "n": 76,
+    "games": 105
+   },
+   "medium": {
+    "medianClicks": 4,
+    "clicksMean": 4.86,
+    "optimalMean": 3,
+    "clicksOverOptimal": 1.86,
+    "pagesMedian": 5.5,
+    "success": 0.952,
+    "n": 75,
+    "games": 125
+   },
+   "hard": {
+    "medianClicks": 6,
+    "clicksMean": 6.373,
+    "optimalMean": 4.067,
+    "clicksOverOptimal": 2.307,
+    "pagesMedian": 7,
+    "success": 0.717,
+    "n": 75,
+    "games": 237
+   },
+   "all": {
+    "medianClicks": 4,
+    "clicksMean": 4.81,
+    "optimalMean": 3.004,
+    "clicksOverOptimal": 1.805,
+    "pagesMedian": 5.75,
+    "success": 0.837,
+    "n": 226,
+    "games": 467
+   }
+  },
+  "trainedModel": {
+   "params": 533057,
+   "sizeBytes": 854276,
+   "trainSeconds": 127,
+   "testMetric": {
+    "name": "next-click accuracy on unseen targets (top-scored link is on a shortest path)",
+    "value": 0.5933
+   }
+  }
+ },
+ "replays": [],
+ "spendUsd": 0.6236
+}

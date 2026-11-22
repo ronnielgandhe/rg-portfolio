@@ -241,9 +241,6 @@ function desktopReducer(state: DesktopState, action: DesktopAction): DesktopStat
       };
     }
 
-    case 'SET_BOOT_COMPLETE':
-      return { ...state, bootComplete: true };
-
     case 'OPEN_DETAIL': {
       const detailWin = createWindow('detail', state.nextZIndex, action.detail.type === 'project' ? (action.detail as any).title : (action.detail as any).company || (action.detail as any).institution || 'Detail');
       return {
@@ -303,7 +300,6 @@ const initialState: DesktopState = {
   windows: {},
   focusedWindowId: null,
   nextZIndex: 100,
-  bootComplete: false,
   activeDetail: null,
   activeContent: null,
   dark: false,
@@ -319,8 +315,8 @@ const DesktopContext = createContext<{
   dispatch: Dispatch<DesktopAction>;
 } | null>(null);
 
-export function DesktopProvider({ children, skipBoot }: { children: ReactNode; skipBoot?: boolean }) {
-  const [state, dispatch] = useReducer(desktopReducer, { ...initialState, bootComplete: !!skipBoot, dark: readSavedAppearance() });
+export function DesktopProvider({ children }: { children: ReactNode }) {
+  const [state, dispatch] = useReducer(desktopReducer, { ...initialState, dark: readSavedAppearance() });
   return (
     <DesktopContext.Provider value={{ state, dispatch }}>
       {children}

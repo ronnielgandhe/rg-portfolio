@@ -117,6 +117,22 @@ export default function DesktopMenuBar() {
     }}>
       {/* ── Left: Logo + Menus ── */}
       <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+        <a
+          href="/#desktop"
+          className="rg-back"
+          aria-label="Back to ronnielgandhe.com"
+          onMouseEnter={() => hover('_back')}
+          style={{
+            ...barItem, gap: '5px', height: '22px', padding: isMobile ? '0 7px' : '0 9px 0 6px', marginRight: '2px',
+            borderRadius: '5px', color: '#FFFFFF', textDecoration: 'none', cursor: 'pointer',
+          }}
+        >
+          <svg width="8" height="13" viewBox="0 0 8 13" fill="none" aria-hidden="true">
+            <path d="M6.5 1.5L1.5 6.5L6.5 11.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {!isMobile && <span style={{ fontWeight: 500 }}>ronnielgandhe.com</span>}
+        </a>
+        <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.28)', margin: '0 4px 0 2px' }} />
         {/* Apple-menu-style RG logo dropdown */}
         <div style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center' }}>
           <div
@@ -620,7 +636,6 @@ function CtrlBtn({ children, size = 26 }: { children: React.ReactNode; size?: nu
   );
 }
 
-/* ── Control Center ────────────────────────────── */
 
 function ControlCenterPanel({ dark, onToggleDark, location, spotify }: {
   dark: boolean; onToggleDark: () => void; location: LocationData | null; spotify: SpotifyData | null;

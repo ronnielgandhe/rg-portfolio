@@ -67,10 +67,11 @@ export default function PageShell({ activePage, crumb, back, wide, children }: {
 
 function PageShellInner({ activePage, crumb, back, wide, children }: { activePage: string; crumb?: string; back?: { href: string; label: string }; wide?: boolean; children: React.ReactNode }) {
   const { dark, toggle } = useTheme();
+  const app = !!wide && !!crumb;
   return (
     <div className={`site ${dark ? 'site-dark' : ''}`}>
-      <SiteNav active={activePage} crumb={crumb} back={back ?? (activePage === 'about' || !activePage ? undefined : { href: '/', label: 'home' })} dark={dark} onToggleTheme={toggle} />
-      {wide ? <div style={{ margin: '0 auto', width: '100%', maxWidth: 1152 }}>{children}</div> : <div className="site-col site-enter">{children}</div>}
+      <SiteNav active={activePage} crumb={crumb} wide={!!wide} back={back ? (back.href === '/projects' ? { href: '/#projects', label: 'home' } : back) : (crumb ? (activePage === 'projects' ? { href: '/#projects', label: 'home' } : { href: '/', label: 'home' }) : undefined)} dark={dark} onToggleTheme={toggle} />
+      {wide ? <div className={app ? 'site-app' : undefined} style={{ margin: '0 auto', width: '100%', maxWidth: 1152 }}>{children}</div> : <div className="site-col site-enter">{children}</div>}
       <style>{`
         .rg-slink { text-decoration: none; font-weight: 500; position: relative; transition: color 0.2s; }
         .rg-slink::after {

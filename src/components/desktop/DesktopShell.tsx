@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { DesktopProvider, useDesktop } from './DesktopContext';
 import Background from './MacBackground';
 import AppWindow from './AppWindow';
-import BootScreen from './BootScreen';
 import DesktopDock from './DesktopDock';
 import DesktopMenuBar from './DesktopMenuBar';
 import Spotlight from './Spotlight';
@@ -6045,12 +6044,11 @@ function Desktop() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Open terminal on boot complete
   useEffect(() => {
-    if (state.bootComplete && Object.keys(state.windows).length === 0) {
+    if (state.nextZIndex === 100 && Object.keys(state.windows).length === 0) {
       dispatch({ type: 'OPEN_WINDOW', id: 'terminal' });
     }
-  }, [state.bootComplete]);
+  }, [state.nextZIndex]);
 
   // Desktop click — deselect all windows
   const handleDesktopClick = useCallback((e: React.MouseEvent) => {
@@ -6184,6 +6182,7 @@ function Desktop() {
 
   return (
     <div
+      className="rg-desk"
       onClick={handleDesktopClick}
       style={{
         position: 'fixed',
@@ -6194,65 +6193,56 @@ function Desktop() {
       }}
     >
       <Background overlayOpacity={['stocks', 'education', 'experience', 'terminal'].includes(state.focusedWindowId as string) ? 0.35 : 0.1} />
-      <BootScreen key={state.bootComplete ? 'booted' : 'booting'} />
+      <DesktopMenuBar />
 
-      {state.bootComplete && (
-        <>
-          <DesktopMenuBar />
+      {openWindows.map(win => {
+        const isTerminalFullscreen = win.id === 'terminal' && win.isFullscreen;
+        const isTerminalDashboard = isTerminalFullscreen && bbAuthState;
+        const titleBarBgMap: Record<string, string> = {
+          projects: '#252526',
+          blog: '#f9f9f8',
+          calendar: '#ffffff',
+          photos: '#1a1a1f',
+          ...(isTerminalDashboard ? { terminal: 'rgba(0,0,0,0.4)' } : {}),
+        };
+        const darkTitleBars = ['projects', 'terminal', 'photos'];
+        const titleBarBg = titleBarBgMap[win.id];
+        const titleBarDark = darkTitleBars.includes(win.id);
+        const hoverProps = {
+          onMouseEnter: () => setHoveredWindowId(win.id),
+          onMouseLeave: () => setHoveredWindowId(null),
+        };
+        if (win.id === 'detail' && state.activeDetail) {
+          return (
+            <AppWindow key={win.id} windowState={win} titleBarBg={titleBarBg} titleBarDark={titleBarDark} {...hoverProps}>
+              <DetailPanel
+                detail={state.activeDetail}
+                onClose={() => dispatch({ type: 'CLOSE_DETAIL' })}
+                windowMode
+              />
+            </AppWindow>
+          );
+        }
+        if (win.id === 'content' && state.activeContent) {
+          return (
+            <AppWindow key={win.id} windowState={win} titleBarBg={titleBarBg} titleBarDark={titleBarDark} {...hoverProps}>
+              <ContentViewer
+                content={state.activeContent}
+                onClose={() => dispatch({ type: 'CLOSE_CONTENT' })}
+                windowMode
+              />
+            </AppWindow>
+          );
+        }
+        return (
+          <AppWindow key={win.id} windowState={win} titleBarBg={titleBarBg} titleBarDark={titleBarDark} {...hoverProps}>
+            <WindowContent id={win.id} />
+          </AppWindow>
+        );
+      })}
 
-          {/* Windows */}
-          {openWindows.map(win => {
-            // Title bar bg matches each app's content color
-            const isTerminalFullscreen = win.id === 'terminal' && win.isFullscreen;
-            const isTerminalDashboard = isTerminalFullscreen && bbAuthState;
-            const titleBarBgMap: Record<string, string> = {
-              projects: '#252526',
-              blog: '#f9f9f8',
-              calendar: '#ffffff',
-              photos: '#1a1a1f',
-              ...(isTerminalDashboard ? { terminal: 'rgba(0,0,0,0.4)' } : {}),
-            };
-            // Apps with dark content need light title bar text
-            const darkTitleBars = ['projects', 'terminal', 'photos'];
-            const titleBarBg = titleBarBgMap[win.id];
-            const titleBarDark = darkTitleBars.includes(win.id);
-            const hoverProps = {
-              onMouseEnter: () => setHoveredWindowId(win.id),
-              onMouseLeave: () => setHoveredWindowId(null),
-            };
-            if (win.id === 'detail' && state.activeDetail) {
-              return (
-                <AppWindow key={win.id} windowState={win} titleBarBg={titleBarBg} titleBarDark={titleBarDark} {...hoverProps}>
-                  <DetailPanel
-                    detail={state.activeDetail}
-                    onClose={() => dispatch({ type: 'CLOSE_DETAIL' })}
-                    windowMode
-                  />
-                </AppWindow>
-              );
-            }
-            if (win.id === 'content' && state.activeContent) {
-              return (
-                <AppWindow key={win.id} windowState={win} titleBarBg={titleBarBg} titleBarDark={titleBarDark} {...hoverProps}>
-                  <ContentViewer
-                    content={state.activeContent}
-                    onClose={() => dispatch({ type: 'CLOSE_CONTENT' })}
-                    windowMode
-                  />
-                </AppWindow>
-              );
-            }
-            return (
-              <AppWindow key={win.id} windowState={win} titleBarBg={titleBarBg} titleBarDark={titleBarDark} {...hoverProps}>
-                <WindowContent id={win.id} />
-              </AppWindow>
-            );
-          })}
-
-          <DesktopDock />
-          {!isMobile && <Spotlight />}
-        </>
-      )}
+      <DesktopDock />
+      {!isMobile && <Spotlight />}
 
       <style>{`
         :root {
@@ -7022,9 +7012,9 @@ function MobileLayout() {
   );
 }
 
-export default function DesktopShell({ skipBoot }: { skipBoot?: boolean } = {}) {
+export default function DesktopShell() {
   return (
-    <DesktopProvider skipBoot={skipBoot}>
+    <DesktopProvider>
       <Desktop />
     </DesktopProvider>
   );

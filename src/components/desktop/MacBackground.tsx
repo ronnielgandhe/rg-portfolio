@@ -1,4 +1,19 @@
+import { useEffect, useState } from 'react';
+
+const WALLPAPER = '/backgroundappleuse.png';
+
 export default function MacBackground({ overlayOpacity = 0.1 }: { overlayOpacity?: number } = {}) {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const img = new Image();
+    const done = () => setReady(true);
+    img.onload = done;
+    img.onerror = done;
+    img.src = WALLPAPER;
+    if (img.complete) done();
+  }, []);
+
   return (
     <>
       <div
@@ -10,10 +25,12 @@ export default function MacBackground({ overlayOpacity = 0.1 }: { overlayOpacity
           height: '100%',
           zIndex: 0,
           pointerEvents: 'none',
-          backgroundImage: `url(/backgroundappleuse.png)`,
+          backgroundImage: `url(${WALLPAPER})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
+          opacity: ready ? 1 : 0,
+          transition: 'opacity 0.3s ease',
         }}
       />
       {/* Dark overlay to reduce distraction from terminal */}
@@ -27,7 +44,8 @@ export default function MacBackground({ overlayOpacity = 0.1 }: { overlayOpacity
           zIndex: 0,
           pointerEvents: 'none',
           background: `rgba(0, 0, 0, ${overlayOpacity})`,
-          transition: 'background 0.4s ease',
+          opacity: ready ? 1 : 0,
+          transition: 'background 0.4s ease, opacity 0.3s ease',
         }}
       />
     </>

@@ -1,21 +1,13 @@
 ---
+import SiteHead from '../components/portfolio/SiteHead.astro';
+import ClicksPage from '../tools/clicks/ClicksPage';
 ---
-<!doctype html>
+
 <html lang="en">
   <head>
-    <title>How Many Clicks? | Ronniel Gandhe</title>
-    <meta name="description" content="the wikipedia game. a bot goes first, then you try to beat it." />
-    <link rel="icon" type="image/png" href="/icons/baseheadlogo.png" />
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet" />
-    <script is:inline type="module" crossorigin src="/how-many-clicks/assets/index-D6YdCafv.js"></script>
-    <link rel="stylesheet" crossorigin href="/how-many-clicks/assets/index-DIxE_U2s.css">
+    <SiteHead title="how many clicks | Ronniel Gandhe" description="the wikipedia game. pick two articles, watch a bot click its way between them live, then try to beat it." path="/how-many-clicks" />
   </head>
   <body>
-    <div id="root"></div>
+    <ClicksPage client:only="react" />
   </body>
 </html>

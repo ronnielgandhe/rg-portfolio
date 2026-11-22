@@ -106,7 +106,7 @@ export default function DesktopDock() {
   let iconIndex = 0;
 
   return (
-    <div style={{
+    <div className="desktop-dock" style={{
       position: 'fixed',
       bottom: '5px',
       left: '50%',

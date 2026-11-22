@@ -187,7 +187,9 @@ export default function StoryPage({ slug }: { slug: string }) {
         .st-btn { display: inline-flex; align-items: center; height: 38px; padding: 0 20px; border-radius: 0; border: 1px solid rgba(0, 0, 0, 0.1); font-size: 13px; font-weight: 500; color: var(--ink); text-decoration: none; transition: background 0.2s, border-color 0.2s, color 0.2s; }
         .st-btn:hover { background: var(--hover); }
         .st-btn-primary { background: var(--ink); border-color: var(--ink); color: var(--bg); }
-        .st-btn-primary:hover { background: #333333; border-color: #333333; }
+        .site-dark .st-btn { border-color: rgba(255, 255, 255, 0.16); }
+        .site-dark .st-btn-primary { border-color: var(--ink); }
+        .st-btn-primary:hover { background: var(--ink); opacity: 0.86; }
         .st-image { margin-top: 40px; border-radius: 0; overflow: hidden; border: 1px solid var(--rule); aspect-ratio: 16 / 10; background: var(--hover); }
         .st-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .st-section { margin-top: 48px; display: flex; flex-direction: column; gap: 16px; }
