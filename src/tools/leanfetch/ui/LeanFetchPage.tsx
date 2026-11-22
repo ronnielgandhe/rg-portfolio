@@ -26,12 +26,13 @@ const CSS = `
 .lfp-wrap { position: relative; transition: height ${FADE}ms cubic-bezier(0.2, 0.8, 0.2, 1); }
 .lfp-wrap[data-moving] { overflow: clip; }
 .lfp-panel { transition: opacity ${FADE}ms ease; }
-.lfp-panel[data-state='in'] { animation: lfpIn ${FADE}ms ease both; }
+.lfp-wrap[data-moving] .lfp-panel[data-state='in'] { animation: lfpIn ${FADE}ms ease both; }
 .lfp-panel[data-state='out'] { position: absolute; top: 0; left: 0; right: 0; opacity: 0; pointer-events: none; }
 .lfp-panel[data-state='off'] { display: none; }
 @keyframes lfpIn { from { opacity: 0; } to { opacity: 1; } }
 .lfp-panel.lfp-edge { padding-top: 48px; }
 .lfp-wait { height: 1px; margin-top: 48px; background: var(--rule); }
+.lfp-settle .audit-title, .lfp-settle .lf-root .translate-y-6 { opacity: 1 !important; transform: none !important; transition: none !important; }
 @media (prefers-reduced-motion: reduce) { .lfp-wrap, .lfp-panel { transition: none; animation: none; } }
 `;
 
@@ -48,13 +49,19 @@ function writeUrl(to: View) {
   } catch { /* noop */ }
 }
 
-export default function LeanFetchPage() {
-  const [view, setView] = useState<View | null>(null);
+export default function LeanFetchPage({ initial = 'scan' }: { initial?: View }) {
+  const [view, setView] = useState<View | null>(initial);
   const [prev, setPrev] = useState<View | null>(null);
-  const [seen, setSeen] = useState<Record<View, boolean>>({ scan: false, benchmarks: false });
+  const [seen, setSeen] = useState<Record<View, boolean>>({ scan: initial === 'scan', benchmarks: initial === 'benchmarks' });
   const wrap = useRef<HTMLDivElement>(null);
   const panels = useRef<Record<View, HTMLDivElement | null>>({ scan: null, benchmarks: null });
   const timer = useRef(0);
+  const [settle, setSettle] = useState(true);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setSettle(false), 1000);
+    return () => window.clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     const v = readUrl();
@@ -93,7 +100,7 @@ export default function LeanFetchPage() {
   return (
     <PageShell activePage="projects" crumb="leanfetch" wide>
       <style>{CSS}</style>
-      <div className="lfp">
+      <div className={settle ? 'lfp lfp-settle' : 'lfp'}>
         <div className="lfp-edge">
           <LeanFetchHero
             actions={[
@@ -102,7 +109,7 @@ export default function LeanFetchPage() {
               { label: 'read the code', href: 'https://github.com/ronnielgandhe/leanfetch', external: true },
             ]}
           />
-          <div id="lfp-tabs" className="lfp-tabs site-enter" role="tablist" style={{ scrollMarginTop: 96 }}>
+          <div id="lfp-tabs" className="lfp-tabs" role="tablist" style={{ scrollMarginTop: 96 }}>
             {TABS.map((t) => (
               <button key={t.id} type="button" role="tab" aria-selected={view === t.id} className={view === t.id ? 'lfp-tab lfp-tab-on' : 'lfp-tab'} onClick={() => go(t.id)}>
                 {t.label}

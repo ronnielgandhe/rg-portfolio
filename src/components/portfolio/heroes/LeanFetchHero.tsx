@@ -1,5 +1,4 @@
-import { useEffect, useRef } from 'react';
-import { Actions, ACTIONS_CSS, BootScript, SPRING, on, rng, since, useOpening, type HeroAction } from './kit';
+import { Actions, ACTIONS_CSS, BootScript, SPRING, on, rng, type HeroAction } from './kit';
 import { accentCss } from './brand';
 
 const ID = 'leanfetch';
@@ -8,8 +7,6 @@ const ROW = 14;
 const VIEW_ROWS = 9;
 const BEAM = 63;
 const TRAVEL = 210;
-const T0 = 300;
-const SCAN = 1000;
 const WASTE = 111.87;
 const WARN = new Set([6, 9, 13, 19, 21]);
 const CRIT = 17;
@@ -23,7 +20,6 @@ const ROWS = (() => {
     return { i, depth, segs, flag: i === CRIT ? 'c' : WARN.has(i) ? 'w' : '' };
   });
 })();
-const crossAt = (i: number) => Math.min(T0 + SCAN, Math.round(T0 + (SCAN * (i * ROW - BEAM)) / TRAVEL));
 
 const F = on(ID, 'full');
 const Q = on(ID, 'quick');
@@ -47,7 +43,7 @@ ${ACTIONS_CSS('lfh')}
 .lfh-state>span{grid-area:1/1}
 .lfh-s0{opacity:0}
 .lfh-repo{margin-left:auto;letter-spacing:.02em;text-transform:none;font-size:12px;color:var(--ink);overflow:hidden;text-overflow:ellipsis}
-.lfh-caret{display:inline-block;width:6px;height:12px;margin-left:3px;vertical-align:-2px;background:var(--acc);animation:lfhBlink 1.1s steps(1) 1.6s infinite}
+.lfh-caret{display:inline-block;width:6px;height:12px;margin-left:3px;vertical-align:-2px;background:var(--acc);animation:lfhBlink 1.1s steps(1) 1.2s infinite}
 .lfh-win{position:relative;height:${VIEW_ROWS * ROW}px;margin:12px 0;overflow:hidden;-webkit-mask:linear-gradient(transparent,#000 10%,#000 90%,transparent);mask:linear-gradient(transparent,#000 10%,#000 90%,transparent)}
 .lfh-col{transform:translateY(-${TRAVEL}px)}
 .lfh-row{position:relative;display:flex;align-items:center;height:${ROW}px;padding:0 14px;gap:12px}
@@ -71,26 +67,10 @@ ${ACTIONS_CSS('lfh')}
 .lfh-meta b{font-weight:500;color:var(--ink)}
 @keyframes lfhBlink{0%{opacity:1}50%{opacity:0}}
 @keyframes lfhFade{from{opacity:0}to{opacity:1}}
-@keyframes lfhOut{from{opacity:1}to{opacity:0}}
 @keyframes lfhDraw{from{stroke-dashoffset:1;opacity:0;transform:scale(.7)}12%{opacity:1}to{stroke-dashoffset:0;opacity:1;transform:none}}
-@keyframes lfhFetch{0%{opacity:0;transform:translateX(.9em)}35%{opacity:1}100%{opacity:1;transform:none}}
-@keyframes lfhScroll{from{transform:translateY(0)}to{transform:translateY(-${TRAVEL}px)}}
-@keyframes lfhBeam{0%{opacity:0}6%{opacity:1}94%{opacity:1}100%{opacity:0}}
-@keyframes lfhPop{0%{opacity:0;transform:scale(.3)}60%{opacity:1;transform:scale(1.35)}100%{opacity:1;transform:none}}
-@keyframes lfhInk{from{background:color-mix(in srgb,var(--ink) 16%,transparent)}to{background:var(--ink)}}
-${F} .lfh-lean{animation:lfhFade 450ms ease-out both}
-${F} .lfh-mark *{stroke-dasharray:1;animation:lfhDraw 520ms ${SPRING} 330ms both;transform-origin:center;transform-box:fill-box}
-${F} .lfh-fetch{animation:lfhFetch 720ms ${SPRING} 360ms both}
-${F} .lfh-col{animation:lfhScroll ${SCAN}ms linear ${T0}ms both}
-${F} .lfh-beam{animation:lfhBeam ${SCAN + 60}ms linear ${T0 - 30}ms both}
-${ROWS.filter((r) => r.flag).map((r) => `${F} .lfh-row[data-i="${r.i}"] .lfh-flag{animation:lfhPop 300ms ${SPRING} ${crossAt(r.i)}ms both}${F} .lfh-row[data-i="${r.i}"] .lfh-tag{animation:lfhFade 200ms ease ${crossAt(r.i)}ms both}${F} .lfh-row[data-i="${r.i}"] .lfh-bar{animation:lfhInk 160ms ease ${crossAt(r.i)}ms both}`).join('')}
-${F} .lfh-s0{animation:lfhOut 1ms linear ${T0 + SCAN + 20}ms both}
-${F} .lfh-s1{animation:lfhFade 200ms ease ${T0 + SCAN + 20}ms both}
-${F} .lfh-to,${F} .lfh-meta{animation:lfhFade 260ms ease ${T0 + SCAN}ms both}
+${F} .lfh-mark *{stroke-dasharray:1;animation:lfhDraw 560ms ${SPRING} 120ms both;transform-origin:center;transform-box:fill-box}
+${F} .lfh-panel{animation:lfhFade 420ms ease 240ms both}
 ${Q} .lfh-mark *{stroke-dasharray:1;animation:lfhDraw 300ms ${SPRING} both;transform-origin:center;transform-box:fill-box}
-${Q} .lfh-fetch{animation:lfhFetch 300ms ${SPRING} both}
-${Q} .lfh-flag{animation:lfhPop 300ms ${SPRING} both}
-${Q} .lfh-tag{animation:lfhFade 300ms ease both}
 @media (max-width:860px){.lfh{grid-template-columns:minmax(0,1fr)}.lfh-panel{max-width:520px}}
 @media (max-width:560px){.lfh-t{font-size:46px}.lfh-lede{font-size:17px;line-height:26px}.lfh-v{font-size:34px}}
 @media (prefers-reduced-motion:reduce){.lfh *{animation:none!important}}
@@ -122,23 +102,6 @@ export default function LeanFetchHero({
   repo?: string;
   className?: string;
 }) {
-  const o = useOpening(ID);
-  const num = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    const el = num.current;
-    if (!o || o.m !== 'full' || !el) return;
-    let raf = 0;
-    const paint = () => {
-      const p = Math.min(1, Math.max(0, (since(o) - T0) / SCAN));
-      const v = WASTE * (1 - Math.pow(1 - p, 3));
-      el.textContent = `$${v.toFixed(2)}`;
-      if (p < 1) raf = requestAnimationFrame(paint);
-    };
-    paint();
-    return () => { cancelAnimationFrame(raf); el.textContent = `$${WASTE.toFixed(2)}`; };
-  }, [o]);
-
   return (
     <div className={`site-col pi lfh${className ? ` ${className}` : ''}`}>
       <BootScript id={ID} />
@@ -175,7 +138,7 @@ export default function LeanFetchHero({
         </div>
         <div className="lfh-ft" aria-hidden="true">
           <div className="lfh-k">est. monthly waste</div>
-          <div className="lfh-num"><span className="lfh-v" ref={num}>${WASTE.toFixed(2)}</span><span className="lfh-to">to $133.11</span></div>
+          <div className="lfh-num"><span className="lfh-v">${WASTE.toFixed(2)}</span><span className="lfh-to">to $133.11</span></div>
           <div className="lfh-meta"><span>25 files</span><span><b>1 critical</b></span><span>5 warnings</span></div>
         </div>
       </div>

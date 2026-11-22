@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { startScan } from './api';
 import { toOldReport } from './mapping/adapter';
 import { progressSteps, runDeepRead } from './scanFlow';
@@ -20,7 +20,8 @@ export default function App() {
   const [sourceType, setSourceType] = useState('github');
   const [error, setError] = useState(null);
   const [errorCode, setErrorCode] = useState(null);
-  const [savedScans, setSavedScans] = useState(() => getSavedScans());
+  const [savedScans, setSavedScans] = useState([]);
+  useEffect(() => setSavedScans(getSavedScans()), []);
   const [inputKey, setInputKey] = useState(0);
 
   const refreshSaved = () => setSavedScans(getSavedScans());

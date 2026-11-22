@@ -2,6 +2,8 @@
 import SiteHead from '../components/portfolio/SiteHead.astro';
 import LeanFetchPage from '../tools/leanfetch/ui/LeanFetchPage';
 import '../tools/leanfetch/leanfetch.css';
+
+const initial = Astro.url.searchParams.get('view') === 'benchmarks' ? 'benchmarks' : 'scan';
 ---
 
 
@@ -14,6 +16,6 @@ import '../tools/leanfetch/leanfetch.css';
     </SiteHead>
   </head>
   <body>
-    <LeanFetchPage client:only="react" />
+    <LeanFetchPage client:load initial={initial} />
   </body>
 </html>
