@@ -55,7 +55,6 @@ export default function AppWindow({ windowState, children, darkMode, titleBarBg,
     setMinTransform(`translate(${Math.round(cx - wx)}px, ${Math.round(cy - wy)}px) scale(0.06)`);
     const t = setTimeout(() => setParked(true), 420);
     return () => clearTimeout(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [windowState.isMinimized]);
 
   // Drag handler

@@ -102,7 +102,6 @@ const Experience = ({ onCardClick, windowMode }: ExperienceProps) => {
     techStack: ["GitHub Actions", "Python", "SQL", "Grafana", "Docker", "LaunchDarkly"]
   };
 
-  // Reverse chronological (newest first): Bluejay current, then past roles
   const experiences = [
     {
       id: 3,

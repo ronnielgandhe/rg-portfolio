@@ -15,7 +15,6 @@ interface FileTab {
 
 // Extract repo slug from GitHub URL
 function repoSlug(url: string): string {
-  // "https://github.com/ronnielgandhe/leanfetch" → "ronnielgandhe/leanfetch"
   return url.replace('https://github.com/', '');
 }
 
