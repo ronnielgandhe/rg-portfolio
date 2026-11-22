@@ -21,7 +21,7 @@ const chartTitle: React.CSSProperties = {
 };
 
 const sourceText: React.CSSProperties = {
-  fontFamily: 'NeueMontreal-Light, sans-serif',
+  fontFamily: 'inherit',
   fontSize: '0.7rem',
   color: 'rgba(255, 255, 255, 0.3)',
   marginTop: '1rem',
@@ -64,7 +64,7 @@ export const ReturnGapChart = () => {
               marginBottom: '0.4rem',
             }}>
               <span style={{
-                fontFamily: 'NeueMontreal-Medium, sans-serif',
+                fontFamily: 'inherit',
                 fontSize: '0.85rem',
                 color: hovered === d.label ? 'white' : 'rgba(255,255,255,0.7)',
                 transition: 'color 0.2s',
@@ -353,7 +353,7 @@ export const SpeculativeCycleChart = () => {
               {phases[activePhase].name}
             </span>
             <p style={{
-              fontFamily: 'NeueMontreal-Light, sans-serif',
+              fontFamily: 'inherit',
               fontSize: '0.8rem',
               color: 'rgba(255,255,255,0.6)',
               margin: '0.3rem 0 0',
@@ -536,14 +536,14 @@ export const BehavioralBiasesChart = () => {
           >
             <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{b.icon}</div>
             <p style={{
-              fontFamily: 'NeueMontreal-Medium, sans-serif',
+              fontFamily: 'inherit',
               fontSize: '0.85rem',
               color: activeBias === i ? b.color : 'rgba(255,255,255,0.8)',
               margin: '0 0 0.3rem',
               transition: 'color 0.2s',
             }}>{b.name}</p>
             <p style={{
-              fontFamily: 'NeueMontreal-Light, sans-serif',
+              fontFamily: 'inherit',
               fontSize: '0.75rem',
               color: 'rgba(255,255,255,0.5)',
               margin: '0 0 0.2rem',
@@ -897,7 +897,7 @@ export const DopamineCycleChart = () => {
             <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.8rem', color: phases[activePhase].color, fontWeight: 600 }}>
               {phases[activePhase].name}
             </span>
-            <p style={{ fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', margin: '0.3rem 0 0', lineHeight: 1.5 }}>
+            <p style={{ fontFamily: 'inherit', fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', margin: '0.3rem 0 0', lineHeight: 1.5 }}>
               {phases[activePhase].desc}
             </p>
           </>
@@ -1064,7 +1064,7 @@ export const DelayedGratificationChart = () => {
               { metric: 'BMI (Health)', value: '5 pts lower' },
             ].map((m, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <span style={{ fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>{m.metric}</span>
+                <span style={{ fontFamily: 'inherit', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>{m.metric}</span>
                 <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: '#4ADE80', fontWeight: 600 }}>{m.value}</span>
               </div>
             ))}
@@ -1100,7 +1100,7 @@ export const DelayedGratificationChart = () => {
               { metric: 'BMI (Health)', value: 'Baseline' },
             ].map((m, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <span style={{ fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>{m.metric}</span>
+                <span style={{ fontFamily: 'inherit', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>{m.metric}</span>
                 <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: '#F87171' }}>{m.value}</span>
               </div>
             ))}
@@ -1204,7 +1204,7 @@ export const EnterpriseCostBreakdownChart = () => {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                 <span style={{
-                  fontFamily: 'NeueMontreal-Medium, sans-serif', fontSize: '0.8rem',
+                  fontFamily: 'inherit', fontSize: '0.8rem',
                   color: hovered === i ? 'white' : 'rgba(255,255,255,0.7)',
                   transition: 'color 0.2s',
                 }}>{d.label}</span>
@@ -1215,7 +1215,7 @@ export const EnterpriseCostBreakdownChart = () => {
               </div>
               {hovered === i && (
                 <p style={{
-                  fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.7rem',
+                  fontFamily: 'inherit', fontSize: '0.7rem',
                   color: 'rgba(255,255,255,0.5)', margin: '0.2rem 0 0',
                 }}>{d.desc}</p>
               )}
@@ -1464,7 +1464,7 @@ export const ProcessComplexityChart = () => {
             <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.8rem', color: layers[activeLayer].color, fontWeight: 600 }}>
               {layers[activeLayer].name}
             </span>
-            <p style={{ fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', margin: '0.3rem 0 0', lineHeight: 1.5 }}>
+            <p style={{ fontFamily: 'inherit', fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', margin: '0.3rem 0 0', lineHeight: 1.5 }}>
               {layers[activeLayer].desc}
             </p>
           </>
@@ -1562,7 +1562,7 @@ export const EnterpriseMarketSizeChart = () => {
             <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: segments[hovered].color }}>
               {segments[hovered].name}: {segments[hovered].share}
             </span>
-            <span style={{ fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>
+            <span style={{ fontFamily: 'inherit', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>
               Top vendors: {segments[hovered].companies}
             </span>
           </div>
@@ -1692,7 +1692,7 @@ export const AttentionSpanChart = () => {
         <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: '#E8554A' }}>
           {data[nearIdx].year}: {data[nearIdx].seconds}s avg. attention
         </span>
-        <span style={{ fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)' }}>
+        <span style={{ fontFamily: 'inherit', fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)' }}>
           {data[nearIdx].event}
         </span>
       </div>
@@ -1798,7 +1798,7 @@ export const DopamineFeedbackChart = () => {
             <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.8rem', color: steps[activeStep].color, fontWeight: 600 }}>
               {steps[activeStep].icon} {steps[activeStep].name}
             </span>
-            <p style={{ fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', margin: '0.3rem 0 0', lineHeight: 1.5 }}>
+            <p style={{ fontFamily: 'inherit', fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', margin: '0.3rem 0 0', lineHeight: 1.5 }}>
               {steps[activeStep].desc}
             </p>
           </>
@@ -1865,7 +1865,7 @@ export const DeepVsShallowChart = () => {
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F59E0B', flexShrink: 0 }} />
-                <span style={{ fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
+                <span style={{ fontFamily: 'inherit', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
                   {item}
                 </span>
               </div>
@@ -1909,7 +1909,7 @@ export const DeepVsShallowChart = () => {
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#E8554A', flexShrink: 0 }} />
-                <span style={{ fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
+                <span style={{ fontFamily: 'inherit', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
                   {item}
                 </span>
               </div>

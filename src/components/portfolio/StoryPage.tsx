@@ -181,21 +181,21 @@ export default function StoryPage({ slug }: { slug: string }) {
 
       <style>{`
         .st-kicker { font-size: 14px; line-height: 20px; color: var(--half); margin-bottom: 12px; }
-        .st-title { margin: 0; font-size: 36px; line-height: 1.15; font-weight: 400; letter-spacing: -0.025em; color: var(--ink); }
+        .st-title { margin: 0; font-size: 36px; line-height: 1.15; font-weight: 300; letter-spacing: -0.03em; color: var(--ink); }
         .st-lede { margin: 12px 0 0; font-size: 18px; line-height: 28px; color: var(--text); }
         .st-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
-        .st-btn { display: inline-flex; align-items: center; height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--rule); font-size: 14px; color: var(--ink); text-decoration: none; transition: background 0.2s, border-color 0.2s; }
-        .st-btn:hover { background: var(--rule); }
+        .st-btn { display: inline-flex; align-items: center; height: 38px; padding: 0 20px; border-radius: 0; border: 1px solid rgba(0, 0, 0, 0.1); font-size: 13px; font-weight: 500; color: var(--ink); text-decoration: none; transition: background 0.2s, border-color 0.2s, color 0.2s; }
+        .st-btn:hover { background: var(--hover); }
         .st-btn-primary { background: var(--ink); border-color: var(--ink); color: var(--bg); }
-        .st-btn-primary:hover { background: var(--ink); opacity: 0.85; }
-        .st-image { margin-top: 40px; border-radius: 16px; overflow: hidden; border: 1px solid var(--rule); aspect-ratio: 16 / 10; background: #fafafa; }
+        .st-btn-primary:hover { background: #333333; border-color: #333333; }
+        .st-image { margin-top: 40px; border-radius: 0; overflow: hidden; border: 1px solid var(--rule); aspect-ratio: 16 / 10; background: var(--hover); }
         .st-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .st-section { margin-top: 48px; display: flex; flex-direction: column; gap: 16px; }
-        .st-section h2 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 400; color: var(--ink); }
+        .st-section h2 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 500; color: var(--ink); }
         .st-section ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; border-left: 1px solid var(--rule); }
         .st-section li { padding-left: 20px; }
-        .st-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 32px; padding-top: 24px; border-top: 1px dashed var(--rule); }
-        .st-meta-label { font-size: 12px; line-height: 16px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--half); }
+        .st-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--rule); }
+        .st-meta-label { font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--half); }
         .st-meta-value { margin-top: 6px; font-size: 14px; line-height: 20px; color: var(--ink); }
         .st-timeline { list-style: none; margin: 40px 0 0; padding: 0; display: flex; flex-direction: column; gap: 28px; border-left: 1px solid var(--rule); }
         .st-timeline li { position: relative; padding-left: 20px; }

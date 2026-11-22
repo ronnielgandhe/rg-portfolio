@@ -45,7 +45,7 @@ function renderInline(text: string): React.ReactNode[] {
 
     switch (first.type) {
       case 'bold':
-        parts.push(<strong key={key++} style={{ color: 'rgba(255,255,255,0.95)', fontFamily: 'NeueMontreal-Medium, sans-serif' }}>{first.match[1]}</strong>);
+        parts.push(<strong key={key++} style={{ color: 'rgba(255,255,255,0.95)', fontFamily: 'inherit' }}>{first.match[1]}</strong>);
         remaining = remaining.slice(first.index + first.match[0].length);
         break;
       case 'italic':
@@ -167,7 +167,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
       if (line.startsWith('### ')) {
         elements.push(
           <h3 key={key++} style={{
-            fontFamily: 'NeueMontreal-Medium, sans-serif',
+            fontFamily: 'inherit',
             fontSize: '1.1rem',
             color: 'rgba(255, 255, 255, 0.95)',
             margin: '2rem 0 0.75rem',
@@ -183,7 +183,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
       if (line.startsWith('## ')) {
         elements.push(
           <h2 key={key++} style={{
-            fontFamily: 'NeueMontreal-Medium, sans-serif',
+            fontFamily: 'inherit',
             fontSize: '1.35rem',
             color: 'white',
             margin: '2.5rem 0 1rem',
@@ -211,8 +211,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
             paddingLeft: '1rem',
             margin: '1.5rem 0',
             color: 'rgba(255,255,255,0.85)',
-            fontStyle: 'italic',
-            fontFamily: 'NeueMontreal-Light, sans-serif',
+                        fontFamily: 'inherit',
             lineHeight: '1.7'
           }}>
             {renderInline(quoteLines.join(' '))}
@@ -241,7 +240,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
               width: '100%',
               borderCollapse: 'collapse',
               fontSize: '0.85rem',
-              fontFamily: 'NeueMontreal-Light, sans-serif'
+              fontFamily: 'inherit'
             }}>
               <thead>
                 <tr>
@@ -251,7 +250,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
                       padding: '0.6rem 0.8rem',
                       borderBottom: '1px solid rgba(255,255,255,0.2)',
                       color: 'rgba(255,255,255,0.95)',
-                      fontFamily: 'NeueMontreal-Medium, sans-serif',
+                      fontFamily: 'inherit',
                       fontWeight: 500,
                       whiteSpace: 'nowrap'
                     }}>{renderInline(h)}</th>
@@ -287,7 +286,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         }
         elements.push(
           <ul key={key++} style={{
-            fontFamily: 'NeueMontreal-Light, sans-serif',
+            fontFamily: 'inherit',
             color: 'rgba(255,255,255,0.92)',
             fontSize: '0.9rem',
             lineHeight: '1.7',
@@ -311,7 +310,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         }
         elements.push(
           <ol key={key++} style={{
-            fontFamily: 'NeueMontreal-Light, sans-serif',
+            fontFamily: 'inherit',
             color: 'rgba(255,255,255,0.92)',
             fontSize: '0.9rem',
             lineHeight: '1.7',
@@ -377,7 +376,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         const joined = paraLines.join(' ');
         elements.push(
           <p key={key++} style={{
-            fontFamily: 'NeueMontreal-Light, sans-serif',
+            fontFamily: 'inherit',
             color: 'rgba(255, 255, 255, 0.92)',
             fontSize: '0.9rem',
             lineHeight: '1.8',

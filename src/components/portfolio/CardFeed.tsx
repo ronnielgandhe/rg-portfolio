@@ -210,7 +210,7 @@ export default function CardFeed({ items }: { items: FeedItem[] }) {
         .hf-aside, .hf-spacer { display: none; }
         .hf-feed { margin-top: 32px; display: flex; flex-direction: column; gap: 32px; }
         .hf-anchor { scroll-margin-top: 112px; }
-        .hf-card { position: relative; display: block; width: 100%; aspect-ratio: 16 / 10; border-radius: 16px; overflow: hidden; text-decoration: none; background: #000; transform: translateZ(0); }
+        .hf-card { position: relative; display: block; width: 100%; aspect-ratio: 16 / 10; border-radius: 0; overflow: hidden; text-decoration: none; background: #000; transform: translateZ(0); }
         .hf-card-art { position: absolute; inset: 0; background-size: cover; }
         .hf-card-art canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity 0.6s ease, transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
         .hf-card:hover .hf-card-art canvas { transform: scale(1.04); }
@@ -219,7 +219,8 @@ export default function CardFeed({ items }: { items: FeedItem[] }) {
         .hf-card-text p { margin: 4px 0 0; font-size: 14px; line-height: 20px; color: rgba(255, 255, 255, 0.85); filter: drop-shadow(0 1px 8px rgba(0, 0, 0, 0.35)); }
 
         .hf-shot { display: block; text-decoration: none; }
-        .hf-shot-media { aspect-ratio: 16 / 10; border-radius: 16px; overflow: hidden; border: 1px solid var(--rule); background: #fafafa; }
+        .hf-shot-media { aspect-ratio: 16 / 10; border-radius: 0; overflow: hidden; border: 1px solid var(--rule); background: var(--hover); transition: border-color 0.2s; }
+        .hf-shot:hover .hf-shot-media { border-color: rgba(0, 0, 0, 0.25); }
         .hf-shot-media img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
         .hf-shot:hover .hf-shot-media img { transform: scale(1.025); }
         .hf-shot-caption { padding: 14px 2px 0; }

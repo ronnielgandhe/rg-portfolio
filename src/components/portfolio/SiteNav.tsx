@@ -5,7 +5,7 @@ const LINKS = [
   { id: 'writing', label: 'writing', href: '/writing' },
 ];
 
-export const SITE_FONT = "'Geist', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif";
+export const SITE_FONT = "'Manrope', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif";
 
 export function readTheme() {
   try { return localStorage.getItem('rg-theme') === 'dark'; } catch { return false; }
@@ -88,12 +88,13 @@ export default function SiteNav({ active, crumb, dark, onToggleTheme }: { active
       <style>{`
         .site {
           --bg: #ffffff;
-          --ink: rgb(38, 38, 38);
-          --text: rgb(112, 112, 112);
-          --faint: rgba(112, 112, 112, 0.4);
-          --half: rgba(112, 112, 112, 0.5);
-          --rule: rgba(112, 112, 112, 0.1);
-          --strong: rgb(10, 10, 10);
+          --ink: #1a1a1a;
+          --text: rgba(26, 26, 26, 0.6);
+          --faint: rgba(26, 26, 26, 0.3);
+          --half: rgba(26, 26, 26, 0.4);
+          --rule: rgba(0, 0, 0, 0.08);
+          --hover: #fafaf8;
+          --strong: #1a1a1a;
           position: relative;
           min-height: 100vh;
           padding: 144px 24px 96px;
@@ -109,13 +110,14 @@ export default function SiteNav({ active, crumb, dark, onToggleTheme }: { active
           transition: background 0.3s ease;
         }
         .site-dark {
-          --bg: #0a0a0a;
-          --ink: rgb(237, 237, 237);
-          --text: rgb(150, 150, 150);
-          --faint: rgba(150, 150, 150, 0.45);
-          --half: rgba(150, 150, 150, 0.55);
-          --rule: rgba(150, 150, 150, 0.16);
-          --strong: rgb(250, 250, 250);
+          --bg: #0e0e0e;
+          --ink: #f2f2f0;
+          --text: rgba(242, 242, 240, 0.62);
+          --faint: rgba(242, 242, 240, 0.32);
+          --half: rgba(242, 242, 240, 0.42);
+          --rule: rgba(255, 255, 255, 0.1);
+          --hover: #161616;
+          --strong: #f2f2f0;
         }
         .site *, .site *::before, .site *::after { box-sizing: border-box; }
         .site ::selection { background: rgba(120, 120, 120, 0.25); }
@@ -128,7 +130,7 @@ export default function SiteNav({ active, crumb, dark, onToggleTheme }: { active
         }
         .sn-crumb {
           display: flex; align-items: center; gap: 12px; padding: 8px 16px; pointer-events: auto;
-          border: 1px solid transparent; border-radius: 999px;
+          border: 1px solid transparent; border-radius: 0;
           animation: snCrumb 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
           transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease;
         }
@@ -136,12 +138,11 @@ export default function SiteNav({ active, crumb, dark, onToggleTheme }: { active
           background: color-mix(in srgb, var(--bg) 72%, transparent);
           -webkit-backdrop-filter: saturate(160%) blur(16px); backdrop-filter: saturate(160%) blur(16px);
           border-color: var(--rule);
-          box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
         }
         .sn-settled, .sn-settled .sn-dot { animation: none; }
-        .sn-dot { width: 10px; height: 10px; border-radius: 50%; background: #3a3a3a; animation: snDot 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-        .site-dark .sn-dot { background: #d4d4d4; }
-        .sn-name { font-size: 14px; line-height: 20px; color: var(--ink); text-decoration: none; }
+        .sn-dot { width: 9px; height: 9px; border-radius: 0; background: #1a1a1a; animation: snDot 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+        .site-dark .sn-dot { background: #f2f2f0; }
+        .sn-name { font-size: 15px; line-height: 20px; font-weight: 400; letter-spacing: -0.01em; color: var(--ink); text-decoration: none; }
         .sn-sep { font-size: 14px; line-height: 20px; color: var(--faint); }
         .sn-here { font-size: 14px; line-height: 20px; color: var(--text); }
         .sn-gap { width: 12px; }
@@ -159,12 +160,12 @@ export default function SiteNav({ active, crumb, dark, onToggleTheme }: { active
         .site > :not(nav):not(.sn-fade-top):not(.sn-fade-bottom):not(style) { transition: opacity 0.16s ease, transform 0.16s ease; }
         .site-leaving > :not(nav):not(.sn-fade-top):not(.sn-fade-bottom):not(style) { opacity: 0; transform: translateY(6px); }
         .site-meta { display: flex; align-items: center; gap: 6px; height: 16px; margin-bottom: 16px; font-size: 12px; line-height: 16px; color: var(--half); font-variant-numeric: tabular-nums; }
-        .site-h1 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 400; color: var(--ink); }
+        .site-h1 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 500; color: var(--ink); }
         .site-p { margin: 0; font-size: 16px; line-height: 26px; color: var(--text); }
         .site-body { margin-top: 32px; display: flex; flex-direction: column; gap: 24px; }
         .site-link { color: var(--strong); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; transition: opacity 0.2s; white-space: nowrap; }
         .site-link:hover { opacity: 0.6; }
-        .site-ico { display: inline-block; width: 14px; height: 14px; object-fit: contain; vertical-align: -2px; margin-right: 5px; border-radius: 3px; }
+        .site-ico { display: inline-block; width: 14px; height: 14px; object-fit: contain; vertical-align: -2px; margin-right: 5px; border-radius: 0; }
         .site-socials { display: flex; align-items: center; gap: 8px; line-height: 26px; flex-wrap: wrap; }
         .site-social { position: relative; display: inline-flex; align-items: center; gap: 6px; color: var(--strong); text-decoration: none; }
         .site-social svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--text); transition: color 0.2s; }
