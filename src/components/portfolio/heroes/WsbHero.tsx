@@ -10,7 +10,6 @@ const DRAW0 = 380;
 const DRAW = 1000;
 
 const F = on(ID, 'full');
-const Q = on(ID, 'quick');
 
 interface Tape { price: number; ch1d: number; abs1d: number; spark: number[]; date: string; name: string }
 
@@ -80,14 +79,13 @@ ${F} .wsh-logo .pl-c2{animation:wshCandle 360ms ${SPRING} 160ms both}
 ${F} .wsh-logo .pl-c3{animation:wshCandle 420ms ${SPRING} 280ms both}
 ${F} .wsh-r{display:inline-block;animation:wshR 360ms ${SPRING} 240ms both}
 ${F} .wsh-sa{animation:wshClip ${DRAW}ms cubic-bezier(.5,0,.3,1) ${DRAW0}ms both}
-${Q} .wsh-logo .pl-c{animation:wshCandle 300ms ${SPRING} both}
 @media (max-width:560px){.wsh-t{font-size:40px}.wsh-logo{width:40px;height:40px}.wsh-top{gap:12px}.wsh-chart{height:84px}.wsh-lede{font-size:17px;line-height:26px}}
 @media (prefers-reduced-motion:reduce){.wsh *,.wsh *::after{animation:none!important;transition:none!important}}
 `;
 
 export default function WsbHero({
   title = 'wallstreetbets',
-  lede = "what's going on in the market right now, and my ideas for making money from it.",
+  lede = 'where i think out loud about markets.',
   actions = [],
   className,
 }: {

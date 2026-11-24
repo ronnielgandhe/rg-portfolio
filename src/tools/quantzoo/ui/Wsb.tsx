@@ -190,7 +190,7 @@ export function WsbPage({ ideas }: { ideas: Idea[] }) {
         <section className="qz-section qz-full qz-enter" style={{ animationDelay: '160ms' }}>
           <div className="qz-section-head">
             <h2 className="qz-h2">ideas</h2>
-            <p className="qz-fine">newest first. each one is scored from the day i wrote it, on real prices.</p>
+            <p className="qz-fine">each one is scored from the day i wrote it, on real prices.</p>
           </div>
           <div className="wsb-ideas">
             {shown.map((i) => (
@@ -198,7 +198,7 @@ export function WsbPage({ ideas }: { ideas: Idea[] }) {
             ))}
           </div>
         </section>
-        <p className="wsb-foot qz-full">my own notebook. not affiliated with the subreddit, not advice.</p>
+        <p className="wsb-foot qz-full">just my notebook, not advice, not affiliated with the subreddit.</p>
       </div>
       <style>{QZ_CSS + WSB_CSS}</style>
     </PageShell>
@@ -339,7 +339,7 @@ export function IdeaPage({ idea }: { idea: Idea }) {
         <Sections idea={idea} className="wsb-cols qz-full" />
         {bag && idea.versions.length > 0 && <History idea={idea} bag={bag} />}
         {bag && tune && idea.versions.length > 0 && <Tune slug={idea.slug} latest={idea.versions[idea.versions.length - 1]} bag={bag} symbols={symbols} intraday={false} />}
-        <p className="wsb-foot qz-full">my own notebook. not affiliated with the subreddit, not advice.</p>
+        <p className="wsb-foot qz-full">just my notebook, not advice, not affiliated with the subreddit.</p>
       </div>
       <style>{QZ_CSS + WSB_CSS}</style>
     </PageShell>

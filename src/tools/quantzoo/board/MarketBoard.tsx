@@ -188,7 +188,6 @@ function Odds({ d }: { d: OddsData }) {
   const bind = useFlip(rows.map((r) => r.id).join('|'));
   return (
     <>
-      <p className="qzb-odds-intro qzb-in">people put real money on yes or no questions. the price of a yes is the crowd's odds.</p>
       <div className="qzb-odds">
         {rows.map((r, i) => {
           const ch = r.d7 ?? r.d1;
@@ -199,10 +198,12 @@ function Odds({ d }: { d: OddsData }) {
               </a>
               <div className="qzb-odd-p">
                 <Tick value={r.p * 100} format={(x) => `${Math.round(x)}%`} />
+                <span className="qzb-odd-yes">say yes</span>
               </div>
               <div className="qzb-odd-bar" aria-hidden="true">
                 <span className={`qzb-odd-fill ${dir(ch)}`} style={{ width: `${(r.p * 100).toFixed(1)}%` }} />
               </div>
+              <p className="qzb-odd-bet">people bet real money on this. a yes costs {Math.round(r.p * 100)} cents and pays $1 if it happens, so the crowd thinks it's about {Math.round(r.p * 100)}% likely.</p>
               <p className="qzb-odd-line">
                 <span className={dir(ch)}>{oddsLine(r)}</span>
                 <span className="qzb-odd-src">
@@ -210,7 +211,7 @@ function Odds({ d }: { d: OddsData }) {
                     <span key={x.source}>
                       {k ? ', ' : ''}
                       <a className="qzb-link" href={x.url} target="_blank" rel="noopener noreferrer" title={x.title}>
-                        {x.source} {Math.round(x.p * 100)}%
+                        bet on {x.source} {Math.round(x.p * 100)}%
                       </a>
                     </span>
                   ))}
@@ -334,7 +335,7 @@ export default function MarketBoard() {
       <header className="qzb-top">
         <h2 className="qzb-title">what's going on</h2>
         <p className="qzb-status" aria-live="polite">
-          updated {ago(oldest, now)}, checks again every {every / 60000} min. just a notebook, not advice.
+          updated {ago(oldest, now)}, checks again every {every / 60000} min.
         </p>
       </header>
 
@@ -372,7 +373,6 @@ export default function MarketBoard() {
 
       <footer className="qzb-foot">
         <p>prices from yahoo finance, can run 15 minutes behind. odds from polymarket and kalshi, each linked to its market. headlines from each publisher's public feed, linked to the original story.</p>
-        <p>a research notebook, not financial advice. nothing here says buy or sell, and none of it is anyone's real positions.</p>
       </footer>
     </div>
   );

@@ -82,6 +82,8 @@ export const BOARD_CSS = `
 .qzb-odds-intro { margin: 0 0 20px; font-size: 18px; line-height: 28px; color: var(--text); max-width: 640px; }
 .qzb-odd-title { min-width: 0; font-size: 17px; line-height: 25px; color: var(--ink) !important; }
 .qzb-odd-title:hover { text-decoration: underline !important; text-decoration-color: var(--rule) !important; text-underline-offset: 3px; }
+.qzb-odd-bet { grid-column: 1 / -1; margin: 0; font-size: 14px; line-height: 22px; color: var(--text); }
+.qzb-odd-yes { display: block; margin-top: 4px; font-size: 12px; line-height: 16px; letter-spacing: 0; color: var(--half); }
 .qzb-odd-why { grid-column: 1 / -1; margin: 0; font-size: 13px; line-height: 20px; color: var(--half); }
 .qzb-odd-p { font-size: 36px; line-height: 1; font-weight: 300; letter-spacing: -0.04em; color: var(--ink); text-align: right; }
 .qzb-odd-bar { grid-column: 1 / -1; position: relative; height: 6px; background: var(--rule); }

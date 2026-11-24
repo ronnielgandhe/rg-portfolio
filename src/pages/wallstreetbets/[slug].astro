@@ -10,7 +10,7 @@ if (!idea) return Astro.redirect('/wallstreetbets');
 
 <html lang="en">
   <head>
-    <SiteHead title={`${idea.title}, r/wallstreetbets | Ronniel Gandhe`} description={`${idea.title}. an idea from my macro letter, scored from the day i wrote it. not advice.`} path={`/wallstreetbets/${idea.slug}`} />
+    <SiteHead title={`${idea.title}, r/wallstreetbets | Ronniel Gandhe`} description={`${idea.title}. an idea of mine, scored from the day i wrote it.`} path={`/wallstreetbets/${idea.slug}`} />
   </head>
   <body>
     <IdeaPage client:only="react" idea={idea} />
