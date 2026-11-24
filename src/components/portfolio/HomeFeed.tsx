@@ -77,9 +77,9 @@ export default function HomeFeed() {
               </p>
               <p className="site-p">
                 outside of work, you'll find me{' '}
-                <a className="site-link" href="/projects">building small tools</a>
+                <a className="site-link" href="#projects">building small tools</a>
                 {' '}and{' '}
-                <a className="site-link" href="/writing">writing</a>
+                <a className="site-link" href="#writing">writing</a>
                 .
               </p>
               <div className="hm-reach">

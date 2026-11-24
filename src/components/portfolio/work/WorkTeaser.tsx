@@ -1,4 +1,4 @@
-import { ELSEWHERE, ROLES, type Role } from './data';
+import { ROLES, type Role } from './data';
 import { Arrow, splitHead, WORK_CSS } from './ui';
 
 const yearsOf = (r: Role) => {
@@ -42,15 +42,6 @@ export default function WorkTeaser() {
           {r.brief && <span className="wt-brief">{r.brief}</span>}
         </a>
       ))}
-
-      <div className="wt-else">
-        <span className="wk-label">elsewhere</span>
-        <span className="wk-links">
-          {ELSEWHERE.map((l) => (
-            <a key={l.href} className="wk-out" href={l.href} {...ext(l.href)}>{l.label}<Arrow /></a>
-          ))}
-        </span>
-      </div>
       <style>{`
         ${WORK_CSS}
         .wt-root { width: 100%; max-width: 576px; display: flex; flex-direction: column; }
@@ -70,7 +61,6 @@ export default function WorkTeaser() {
         .wt-earlier:hover .wt-brief { color: var(--ink); }
         .wt-brief { transition: color 0.2s; }
         .wt-brief { font-size: 14px; line-height: 22px; color: var(--text); }
-        .wt-else { display: flex; align-items: baseline; gap: 16px; padding-top: 16px; border-top: 1px solid var(--rule); }
       `}</style>
     </div>
   );

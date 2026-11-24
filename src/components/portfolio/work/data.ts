@@ -50,13 +50,6 @@ export const BLUEJAY_MONTHS = [
   { month: 'oct', prs: 55 },
   { month: 'nov', prs: 70, soFar: true },
 ];
-
-export const ELSEWHERE: Link[] = [
-  { href: 'https://github.com/ronnielgandhe', label: 'github' },
-  { href: '/leanfetch', label: 'leanfetch' },
-  { href: '/harvey', label: 'harvey' },
-];
-
 const MIVAS = 'https://research.getbluejay.ai/benchmarks/mivas';
 
 export const ROLES: Role[] = [

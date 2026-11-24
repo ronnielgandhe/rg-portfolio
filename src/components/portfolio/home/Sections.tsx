@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import WorkSlot from './WorkSlot';
 import ProjectsSlot from './ProjectsSlot';
 import Book from './Book';
-import { CALENDLY, EMAIL, POSTS, formatDate } from './data';
+import { EMAIL, POSTS, formatDate } from './data';
 
 function Sec({ id, label, wide, extra, children }: { id: string; label: string; wide?: boolean; extra?: ReactNode; children: ReactNode }) {
   return (
@@ -47,8 +47,6 @@ export function Contact() {
       <p className="site-p hm-line">if any of it was interesting, i'm easy to reach.</p>
       <div className="hm-slot"><Book /></div>
       <p className="hm-alt">
-        <a href={CALENDLY} target="_blank" rel="noopener noreferrer">or open calendly</a>
-        <span aria-hidden="true">·</span>
         <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
       </p>
       <footer className="hm-foot">

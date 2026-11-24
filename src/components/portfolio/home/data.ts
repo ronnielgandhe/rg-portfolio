@@ -1,7 +1,5 @@
 import { POSTS as WRITING_POSTS } from '../WritingPage';
 
-export const CALENDLY = 'https://calendly.com/ronnielgandhe?hide_gdpr_banner=1';
-export const CALENDLY_EMBED = 'https://calendly.com/ronnielgandhe/30min?hide_gdpr_banner=1&hide_event_type_details=1&primary_color=1a1a1a&embed_type=Inline&embed_domain=ronnielgandhe.com';
 export const EMAIL = 'ronnielgandhe@gmail.com';
 
 

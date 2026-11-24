@@ -23,10 +23,6 @@ html:has(.hm) { scroll-snap-type: y proximity; scroll-padding-top: 0; }
 .hm-post:hover .hm-post-t { opacity: 0.6; }
 .hm-post-m { flex-shrink: 0; font-size: 13px; line-height: 24px; color: var(--faint); font-variant-numeric: tabular-nums; }
 
-.hm-cal { position: relative; height: 680px; border: 1px solid var(--rule); background: var(--bg); overflow: hidden; }
-.hm-cal-ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--faint); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
-.hm-cal iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #fff; opacity: 0; transition: opacity 0.5s var(--ease); }
-.hm-cal[data-ready] iframe { opacity: 1; }
 .hm-alt { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 16px 0 64px; font-size: 14px; line-height: 20px; color: var(--faint); }
 .hm-alt a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: var(--rule); transition: color 0.2s, text-decoration-color 0.2s; }
 .hm-alt a:hover { color: var(--ink); text-decoration-color: currentColor; }
@@ -40,9 +36,8 @@ html:has(.hm) { scroll-snap-type: y proximity; scroll-padding-top: 0; }
   .hm { --top: clamp(84px, 12svh, 140px); --bot: clamp(40px, 5svh, 64px); --avail: calc(100svh - var(--top) - var(--bot) - 36px); }
   .hm-sec { height: 100vh; height: 100svh; min-height: 0; padding: var(--top) 0 var(--bot); overflow: visible clip; scroll-snap-stop: always; }
   .hm-intro { justify-content: center; padding-bottom: calc(var(--bot) + 6svh); }
-  .hm .hm-proj .pt-compact .pt-grid { grid-auto-rows: clamp(48px, calc((var(--avail) - 60px) / 7), 112px); }
+  .hm .hm-proj .pt-lead { grid-auto-rows: clamp(150px, calc(var(--avail) - 250px), 300px); }
   .hm-slot { flex: none; max-height: min(720px, calc(var(--avail) - 135px)); overflow: hidden; }
-  .hm-slot > .hm-cal { height: 100%; }
   .hm-alt { margin-bottom: 16px; }
   @media (prefers-reduced-motion: no-preference) {
     .hm-anim .hm-sec > * { opacity: 0; transform: translate3d(0, 8px, 0); }
@@ -67,7 +62,6 @@ html:has(.hm) { scroll-snap-type: y proximity; scroll-padding-top: 0; }
   .hm { --top: 108px; }
   .hm-post { flex-direction: column; gap: 2px; padding: 14px 0; }
   .hm-post-m { font-size: 12px; line-height: 16px; }
-  .hm-cal { height: 620px; }
   .hm .site-socials { gap: 4px 18px; }
   .hm .site-bar { display: none; }
 }
