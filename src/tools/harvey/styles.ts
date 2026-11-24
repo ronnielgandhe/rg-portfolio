@@ -111,14 +111,14 @@ export const HARVEY_CSS = `
 .hv-trade-who { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); }
 .hv-trade-side { text-align: right; font-size: 13px; line-height: 20px; color: var(--ink); white-space: nowrap; }
 
-.hv-extras { margin-top: 56px; transition: opacity var(--t3) var(--e); }
+.hv-extras { margin-top: 40px; transition: opacity var(--t3) var(--e); }
 .hv-dim { opacity: 0.5; }
 .hv-dim:hover, .hv-dim:focus-within { opacity: 0.85; }
 .hv-asks-label { margin: 0 0 14px; }
-.hv-ask-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
-.hv-ask { border: 1px solid var(--rule); padding: 20px; display: flex; flex-direction: column; gap: 10px; transition: border-color var(--t1) var(--e), background var(--t1) var(--e); }
-.hv-ask:hover { border-color: var(--line2); background: var(--hover); }
-.hv-ask-q { font-size: 15px; line-height: 22px; font-weight: 500; color: var(--ink); }
+.hv-ask-grid { display: flex; flex-direction: column; gap: 6px; }
+.hv-ask { display: block; }
+.hv-ask-q { font-size: 15px; line-height: 24px; color: var(--text); }
+.hv-link { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 .hv-ask-a { font-size: 13px; line-height: 1.6; color: var(--text); }
 
 .hv-write { margin-top: 96px; padding-top: 24px; border-top: 1px solid var(--rule); }

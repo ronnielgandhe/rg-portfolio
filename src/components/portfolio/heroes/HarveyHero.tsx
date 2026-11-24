@@ -11,13 +11,12 @@ const LAND = 1180;
 const DONE = 1500;
 
 const F = on(ID, 'full');
-const Q = on(ID, 'quick');
 
 const CSS = `
 ${accentCss(ID, 'hvh')}
 .site-app .hvh.site-col>*{max-width:none}
 .site-col .hvh.site-col{margin-left:0;margin-right:0;max-width:none}
-.site-app .hvh.site-col>.hvh-lede{max-width:520px}
+.site-app .hvh.site-col>.hvh-lede{max-width:640px}
 .hvh-id{display:flex;align-items:center;gap:10px;height:20px;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--half);font-variant-numeric:tabular-nums}
 .hvh-logo{flex:none;color:var(--acc);overflow:visible}
 .hvh-logo .pl-w{transform-box:fill-box;transform-origin:center;animation:hvhTalk 1.8s ease-in-out infinite}
@@ -31,7 +30,7 @@ ${F} .hvh-logo .pl-w{animation:hvhTalk .42s ease-in-out 3,hvhTalk 1.8s ease-in-o
 .hvh-t{position:relative;margin:0;font-size:112px;line-height:1;font-weight:300;letter-spacing:-0.055em;color:var(--ink);padding-bottom:22px}
 .hvh-cv{position:absolute;left:-8px;top:0;width:calc(100% + 48px);height:100%;pointer-events:none}
 .hvh-line{position:absolute;left:0;right:0;top:56%;height:1px;background:var(--ink);opacity:0;transform-origin:left}
-.hvh-lede{margin:10px 0 0;max-width:520px;font-size:18px;line-height:28px;color:var(--text)}
+.hvh-lede{margin:10px 0 0;max-width:640px;font-size:18px;line-height:28px;color:var(--text)}
 .hvh-acts{margin-top:24px}
 ${ACTIONS_CSS('hvh')}
 @keyframes hvhTalk{0%,100%{transform:none}50%{transform:scaleY(.45)}}
@@ -43,9 +42,8 @@ ${F} .hvh-t{animation:hvhIn 320ms ease ${LAND}ms both}
 ${F} .hvh-line{animation:hvhDial ${DIAL}ms cubic-bezier(.6,0,.2,1) both,hvhLine 260ms linear ${DIAL + 80}ms forwards}
 ${F} .hvh-sw0{animation:hvhOut 1ms linear ${LAND}ms both}
 ${F} .hvh-sw1{animation:hvhIn 240ms ease ${LAND}ms both}
-${Q} .hvh-t{animation:hvhIn 300ms ease both}
 .hvh-stage:not([data-js]) .hvh-cv{display:none}
-@media (max-width:560px){.hvh-t{font-size:76px;padding-bottom:18px}.hvh-lede{font-size:17px;line-height:26px}}
+@media (max-width:640px){.hvh-t{font-size:76px;padding-bottom:18px}.hvh-lede{font-size:17px;line-height:26px}}
 @media (prefers-reduced-motion:reduce){.hvh *{animation:none!important}}
 `;
 
@@ -55,7 +53,7 @@ const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 
 
 export default function HarveyHero({
   title = 'harvey',
-  lede = 'a lawyer that picks up. ask him anything, out loud.',
+  lede = 'my friends kept having dumb legal problems, so i built a lawyer you can call.',
   incoming = 'incoming call',
   connected = 'on the line',
   region = 'ontario + federal law',

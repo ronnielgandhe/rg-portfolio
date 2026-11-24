@@ -7,18 +7,20 @@ import CallStage from './CallStage';
 import LiveCall from './LiveCall';
 import PreviewCall from './PreviewCall';
 import Waveform, { type WaveFeed, type WaveMode } from './Waveform';
-import Writeup, { REPO } from './Writeup';
+import Writeup from './Writeup';
 import { wakeAudio } from './audio';
 import { EMPTY_VIEW, NO_ACTIONS, mmss, type CallActions, type CallView, type Phase } from './events';
 import { HARVEY_CSS } from './styles';
 
 
 const ASKS = [
-  { label: 'renting', q: 'can my landlord evict me so his son can move in?' },
-  { label: 'driving', q: 'i got pulled over doing 50 over. what happens now?' },
-  { label: 'work', q: 'can my boss fire me without any notice?' },
-  { label: 'cannabis', q: 'can i drive the morning after smoking?' },
+  'can my landlord evict me so his son can move in?',
+  'i got pulled over doing 50 over. what happens now?',
+  'can my boss fire me without any notice?',
+  'can i drive the morning after smoking?',
 ];
+const AWAY = 'harvey is away from his desk right now. try again later.';
+const PICKUP_MS = 12000;
 
 const STATUS: Record<Phase, string> = {
   idle: 'harvey is at his desk',
@@ -133,14 +135,22 @@ export default function HarveyPage() {
       } catch {
         throw new Error('harvey needs your microphone. allow it for this site and try again.');
       }
-      const res = await fetch('/api/harvey/token', { cache: 'no-store' });
+      const ctl = new AbortController();
+      const to = window.setTimeout(() => ctl.abort(), 6000);
+      const res = await fetch('/api/harvey/token', { cache: 'no-store', signal: ctl.signal }).finally(() => window.clearTimeout(to));
       const body = await res.json().catch(() => ({}));
-      if (!res.ok || !body?.token || !body?.url) throw new Error(body?.error || 'could not reach harvey. try again in a minute.');
+      if (!res.ok || !body?.token || !body?.url) throw new Error(AWAY);
       if (!liveRef.current) return;
       setConn({ token: body.token, url: body.url });
       begin();
-    })().catch((e) => endCall(e instanceof Error ? e.message : 'could not reach harvey. try again in a minute.'));
+    })().catch((e) => endCall(e instanceof Error && e.name !== 'AbortError' ? e.message : AWAY));
   }, [preview, room, begin, endCall]);
+
+  useEffect(() => {
+    if (stage !== 'call' || preview || view.phase !== 'connecting') return;
+    const id = window.setTimeout(() => { startRef.current = 0; endCall(AWAY); }, PICKUP_MS);
+    return () => window.clearTimeout(id);
+  }, [stage, preview, view.phase, endCall]);
 
   const hangUp = useCallback(() => {
     if (stage === 'dialing') { endCall(); return; }
@@ -151,7 +161,7 @@ export default function HarveyPage() {
   const onEnd = useCallback(() => endCall(), [endCall]);
 
   const mainLabel = stage === 'dialing' ? 'cancel' : stage === 'call' ? 'end call' : stage === 'ended' ? 'call again' : 'call harvey';
-  const rightText = live ? mmss(elapsed) : stage === 'ended' ? mmss(duration) : 'ontario + federal law';
+  const rightText = live ? mmss(elapsed) : stage === 'ended' ? mmss(duration) : '\u00a0';
   const showSilent = stage === 'call' && view.phase === 'silent';
   const showTap = stage === 'call' && view.needsTap;
 
@@ -171,7 +181,6 @@ export default function HarveyPage() {
               </button>
             </div>
           </div>
-          <a className="hv-btn hv-code" href={REPO} target="_blank" rel="noopener noreferrer">read the code</a>
         </div>
 
         <Reveal open={!!error}>
@@ -206,16 +215,11 @@ export default function HarveyPage() {
         </section>
 
         <section className={`hv-full hv-extras hv-rise${live ? ' hv-dim' : ''}`} style={rise(3)}>
-          <div className="hv-label hv-asks-label">things to ask him</div>
+          <div className="hv-label hv-asks-label">try asking him</div>
           <div className="hv-ask-grid">
-            {ASKS.map((a) => (
-              <div key={a.label} className="hv-ask">
-                <div className="hv-label">{a.label}</div>
-                <div className="hv-ask-q">"{a.q}"</div>
-              </div>
-            ))}
+            {ASKS.map((q) => <div key={q} className="hv-ask"><div className="hv-ask-q">"{q}"</div></div>)}
           </div>
-          <p className="hv-fine">uses your microphone. calls cap at ten minutes. not legal advice, he just sounds like it.</p>
+          <p className="hv-fine">uses your microphone. calls cap at ten minutes.</p>
         </section>
 
         <div className="hv-full hv-rise" style={rise(4)}>
