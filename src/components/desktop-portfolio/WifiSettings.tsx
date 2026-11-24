@@ -52,11 +52,11 @@ function SpeedGauge({ value, maxValue, label }: { value: number; maxValue: numbe
           style={{ transition: 'stroke-dashoffset 0.4s ease-out, stroke 0.4s' }} />
         {/* Center text */}
         <text x="100" y="92" textAnchor="middle" fontSize="40" fontWeight="700"
-          fill="#fff" fontFamily="SF Pro Display, -apple-system, sans-serif">
+          fill="#fff">
           {value > 0 ? value.toFixed(1) : '—'}
         </text>
         <text x="100" y="115" textAnchor="middle" fontSize="14" fontWeight="500" fill="rgba(255,255,255,0.45)"
-          fontFamily="SF Pro Text, -apple-system, sans-serif">
+>
           Mbps
         </text>
       </svg>
@@ -74,7 +74,7 @@ function ResultCard({ icon, label, value, unit }: { icon: React.ReactNode; label
       background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)',
     }}>
       <div style={{ fontSize: '20px', marginBottom: '6px' }}>{icon}</div>
-      <div style={{ fontSize: '20px', fontWeight: 700, color: '#fff', fontFamily: "'SF Pro Display', -apple-system, sans-serif", fontVariantNumeric: 'tabular-nums' }}>
+      <div style={{ fontSize: '20px', fontWeight: 700, color: '#fff', fontFamily: 'var(--os-font-display)', fontVariantNumeric: 'tabular-nums' }}>
         {value}
       </div>
       <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>{unit}</div>
@@ -245,7 +245,7 @@ export default function WifiSettings() {
   return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
-      background: 'transparent', fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif",
+      background: 'transparent', fontFamily: 'var(--os-font)',
       color: 'rgba(255,255,255,0.85)', overflow: 'auto',
     }}>
       {/* Header */}
@@ -309,7 +309,7 @@ export default function WifiSettings() {
             marginTop: '24px', padding: '10px 32px', borderRadius: '10px', border: 'none',
             background: isRunning ? 'rgba(0,122,255,0.3)' : '#007aff',
             color: '#fff', fontSize: '15px', fontWeight: 600, cursor: isRunning ? 'default' : 'pointer',
-            fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+            fontFamily: 'var(--os-font)',
             transition: 'background 0.2s',
             marginBottom: '16px',
           }}

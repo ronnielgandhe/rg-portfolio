@@ -111,7 +111,7 @@ const CaseStudies = ({ onContentClick, windowMode }: CaseStudiesProps) => {
   return (
     <div ref={sectionRef} style={{
       display: 'flex', width: '100%', height: '100%',
-      fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif",
+      fontFamily: 'var(--os-font)',
       background: 'transparent', color: 'rgba(0,0,0,0.85)',
     }}>
       {/* ── Left Sidebar — solid grey like Apple Books ── */}
@@ -156,7 +156,7 @@ const CaseStudies = ({ onContentClick, windowMode }: CaseStudiesProps) => {
         {/* Section title */}
         <h1 style={{
           fontSize: '28px', fontWeight: 700, color: 'rgba(0,0,0,0.8)', margin: '0 0 28px',
-          fontFamily: "'SF Pro Display', -apple-system, sans-serif",
+          fontFamily: 'var(--os-font-display)',
         }}>
           All
         </h1>
@@ -216,7 +216,7 @@ function BookCard({ paper, onClick }: {
       return <img src="/ikigai.png" alt="Ikigai" height={30} style={{ opacity: 0.7 }} />;
     }
     return (
-      <span style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.6)', letterSpacing: '2px', fontFamily: "'SF Mono', monospace" }}>
+      <span style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.02em', fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums' }}>
         {paper.company}
       </span>
     );
@@ -266,7 +266,7 @@ function BookCard({ paper, onClick }: {
             <h3 style={{
               fontSize: '15px', fontWeight: 700, color: 'rgba(255,255,255,0.95)',
               lineHeight: 1.35, margin: '0 0 8px',
-              fontFamily: "'SF Pro Display', -apple-system, sans-serif",
+              fontFamily: 'var(--os-font-display)',
             }}>
               {paper.title}
             </h3>
@@ -378,7 +378,7 @@ function ScrollModeFallback({ sectionRef, titleAnimated, cardAnimated, onContent
     >
       <h2 className="cs-title" style={{
         fontSize: '1.5rem', color: 'rgba(0, 0, 0, 0.65)',
-        fontFamily: 'NeueMontreal-MediumItalic, sans-serif', fontStyle: 'italic',
+        fontFamily: 'var(--os-font)', fontStyle: 'italic',
         margin: '0 0 1rem 0', fontWeight: '500',
         opacity: titleAnimated ? 1 : 0, transform: titleAnimated ? 'translateY(0)' : 'translateY(20px)',
         transition: 'opacity 0.8s ease-out, transform 0.8s ease-out',
@@ -400,11 +400,11 @@ function ScrollModeFallback({ sectionRef, titleAnimated, cardAnimated, onContent
               </div>
               <h3 style={{
                 fontSize: 'clamp(1.1rem, 3vw, 1.5rem)', color: 'rgba(0, 0, 0, 0.8)',
-                fontFamily: 'NeueMontreal-Medium, sans-serif', margin: '0.5rem 0 1rem', fontWeight: '500', lineHeight: '1.4',
+                fontFamily: 'var(--os-font)', margin: '0.5rem 0 1rem', fontWeight: '500', lineHeight: '1.4',
               }}>{paper.title}</h3>
               <p style={{
                 color: 'rgba(0, 0, 0, 0.5)', fontSize: '0.95rem',
-                fontFamily: 'NeueMontreal-Light, sans-serif', lineHeight: '1.7', margin: '0 0 1.25rem',
+                fontFamily: 'var(--os-font)', lineHeight: '1.7', margin: '0 0 1.25rem',
               }}>{paper.summary}</p>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
@@ -412,14 +412,14 @@ function ScrollModeFallback({ sectionRef, titleAnimated, cardAnimated, onContent
                     const tc = getTagColor(tag);
                     return (
                       <span key={i} className="cs-tag-pill" style={{
-                        fontSize: '0.7rem', fontFamily: 'NeueMontreal-Light, sans-serif',
+                        fontSize: '0.7rem', fontFamily: 'var(--os-font)',
                         color: tc.text, padding: '0.2rem 0.5rem', borderRadius: '12px',
                         background: tc.bg, border: `0.5px solid ${tc.border}`,
                       }}>{tag}</span>
                     );
                   })}
                 </div>
-                <span style={{ fontSize: '0.85rem', fontFamily: 'NeueMontreal-Medium, sans-serif', color: 'rgba(0, 0, 0, 0.45)' }}>
+                <span style={{ fontSize: '0.85rem', fontFamily: 'var(--os-font)', color: 'rgba(0, 0, 0, 0.45)' }}>
                   Read &rarr;
                 </span>
               </div>

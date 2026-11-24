@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useDesktop } from './DesktopContext';
 import type { WindowId } from './types';
 import { BsGithub } from 'react-icons/bs';
+import { SYSTEM_FONT, VIBRANCY, chromeTokens } from './chrome';
 
 interface DockItem {
   id: WindowId | 'github' | 'email' | 'spotify';
@@ -12,13 +13,18 @@ interface DockItem {
 }
 
 const BASE_SIZE = 50;
-const MAX_SIZE = 72;
-const MAGNIFY_RANGE = 150; // px range of magnification
+const ICON_SIZE = BASE_SIZE - 6;
+const MAX_SCALE = 1.5;
+const MAGNIFY_RANGE = 150;
+const SLOT_GAP = 3;
+const DIVIDER_SLOT = 17;
 
 export default function DesktopDock() {
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
   const { state, dispatch } = useDesktop();
+  const chrome = chromeTokens(state.dark);
   const [mouseX, setMouseX] = useState<number | null>(null);
+  const [bouncing, setBouncing] = useState<string | null>(null);
   const dockRef = useRef<HTMLDivElement>(null);
 
   const windowItems: DockItem[] = [
@@ -31,7 +37,7 @@ export default function DesktopDock() {
   ];
 
   const externalItems: DockItem[] = [
-    { id: 'github', label: 'GitHub', icon: <AppIcon gradient="linear-gradient(135deg, #2d2d2d 0%, #434343 100%)" iconEl={<BsGithub size={24} color="white" />} />, isExternal: true, href: 'https://github.com/ronnielgandhe' },
+    { id: 'github', label: 'GitHub', icon: <AppIcon gradient="linear-gradient(180deg, #3a3a3c 0%, #1c1c1e 100%)" iconEl={<BsGithub size={26} color="white" />} />, isExternal: true, href: 'https://github.com/ronnielgandhe' },
     { id: 'email' as any, label: 'Email Me', icon: <DockImage src="/usethismailicon.png" alt="Mail" cropScale={1.2} /> },
     { id: 'spotify', label: 'Dev Playlist', icon: <DockImage src="/spotify_logo_icon_189218.png" alt="Spotify" cropScale={1.45} />, isExternal: true, href: 'https://open.spotify.com/playlist/2uud5zGJZf3U98FlTnQip8' },
   ];
@@ -39,7 +45,6 @@ export default function DesktopDock() {
   const allItems = [...windowItems, { id: 'divider' as any, label: '', icon: null }, ...externalItems];
 
   const handleClick = (item: DockItem) => {
-    // Collapse terminal if it's fullscreened before doing anything
     if (state.windows.terminal?.isFullscreen) {
       dispatch({ type: 'TOGGLE_FULLSCREEN', id: 'terminal' });
     }
@@ -60,57 +65,50 @@ export default function DesktopDock() {
     } else if (win?.isOpen) {
       dispatch({ type: 'FOCUS_WINDOW', id });
     } else {
-      // Reducer handles closing other windows automatically
+      setBouncing(id);
+      window.setTimeout(() => setBouncing(b => (b === id ? null : b)), 620);
       dispatch({ type: 'OPEN_WINDOW', id });
     }
   };
 
-  const isOpen = (id: string) => {
-    const win = state.windows[id as WindowId];
-    return win?.isOpen && !win.isMinimized;
-  };
+  const isRunning = (id: string) => !!state.windows[id as WindowId]?.isOpen;
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!dockRef.current) return;
-    const rect = dockRef.current.getBoundingClientRect();
-    setMouseX(e.clientX - rect.left);
+    setMouseX(e.clientX - window.innerWidth / 2);
   }, []);
 
   const handleMouseLeave = useCallback(() => {
     setMouseX(null);
   }, []);
 
-  // Calculate icon scale based on distance from mouse
-  const getScale = (index: number): number => {
-    if (mouseX === null) return 1;
-    // Calculate center X of each icon slot
-    const iconCenters: number[] = [];
-    let x = 12; // padding
-    for (let i = 0; i < allItems.length; i++) {
-      if (allItems[i].id === 'divider') {
-        x += 9 + 8; // divider width + margin
+  const restCenters: number[] = [];
+  {
+    let x = 0;
+    for (const item of allItems) {
+      if (item.id === 'divider') {
+        x += DIVIDER_SLOT + SLOT_GAP;
       } else {
-        x += BASE_SIZE / 2;
-        iconCenters.push(x);
-        x += BASE_SIZE / 2 + 4; // gap
+        restCenters.push(x + BASE_SIZE / 2);
+        x += BASE_SIZE + SLOT_GAP;
       }
     }
+    const total = x - SLOT_GAP;
+    for (let i = 0; i < restCenters.length; i++) restCenters[i] -= total / 2;
+  }
 
-    const center = iconCenters[index];
-    if (center === undefined) return 1;
-    const dist = Math.abs(mouseX - center);
+  const getScale = (index: number): number => {
+    if (mouseX === null || isMobile) return 1;
+    const dist = Math.abs(mouseX - restCenters[index]);
     if (dist > MAGNIFY_RANGE) return 1;
-
-    const scale = 1 + (MAX_SIZE / BASE_SIZE - 1) * Math.cos((dist / MAGNIFY_RANGE) * (Math.PI / 2));
-    return scale;
+    return 1 + (MAX_SCALE - 1) * Math.cos((dist / MAGNIFY_RANGE) * (Math.PI / 2)) ** 2;
   };
 
   let iconIndex = 0;
 
   return (
-    <div style={{
+    <div className="desktop-dock" style={{
       position: 'fixed',
-      bottom: '6px',
+      bottom: '5px',
       left: '50%',
       transform: isMobile ? 'translateX(-50%) scale(0.72)' : 'translateX(-50%)',
       transformOrigin: 'bottom center',
@@ -120,31 +118,37 @@ export default function DesktopDock() {
     }}>
       <div
         ref={dockRef}
+        data-dock-bar
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         style={{
           display: 'flex',
           alignItems: 'flex-end',
-          gap: '4px',
-          padding: '6px 12px',
-          borderRadius: '18px',
-          background: 'rgba(255, 255, 255, 0.5)',
-          backdropFilter: 'saturate(200%) blur(32px)',
-          WebkitBackdropFilter: 'saturate(200%) blur(32px)',
-          border: '0.5px solid rgba(0, 0, 0, 0.1)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.12), inset 0 0.5px 0 rgba(255,255,255,0.6)',
+          gap: `${SLOT_GAP}px`,
+          height: `${BASE_SIZE + 12}px`,
+          padding: '4px 7px 8px',
+          borderRadius: '20px',
+          background: chrome.dockBg,
+          backdropFilter: VIBRANCY,
+          WebkitBackdropFilter: VIBRANCY,
+          border: chrome.dockBorder,
+          boxShadow: chrome.dockShadow,
+          boxSizing: 'border-box',
         }}
       >
-        {allItems.map((item, i) => {
+        {allItems.map((item) => {
           if (item.id === 'divider') {
             return (
               <div key="divider" style={{
-                width: '1px',
-                height: '44px',
-                background: 'rgba(0,0,0,0.1)',
-                margin: '0 4px',
-                alignSelf: 'center',
-              }} />
+                width: `${DIVIDER_SLOT}px`,
+                height: `${BASE_SIZE}px`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <div style={{ width: '1px', height: '42px', background: chrome.dockDivider }} />
+              </div>
             );
           }
           const currentIndex = iconIndex++;
@@ -154,61 +158,77 @@ export default function DesktopDock() {
               key={item.id}
               item={item}
               scale={scale}
-              isOpen={!('isExternal' in item && item.isExternal) && isOpen(item.id)}
+              magnifying={mouseX !== null}
+              bouncing={bouncing === item.id}
+              running={!('isExternal' in item && item.isExternal) && isRunning(item.id)}
               onClick={() => handleClick(item)}
             />
           );
         })}
       </div>
+      <style>{`
+        @keyframes dockBounce {
+          0%, 100% { transform: translateY(0); }
+          35% { transform: translateY(-22px); }
+          65% { transform: translateY(0); }
+          82% { transform: translateY(-7px); }
+        }
+      `}</style>
     </div>
   );
 }
 
-function DockButton({ item, scale, isOpen, onClick }: {
+function DockButton({ item, scale, magnifying, bouncing, running, onClick }: {
   item: DockItem;
   scale: number;
-  isOpen: boolean;
+  magnifying: boolean;
+  bouncing: boolean;
+  running: boolean;
   onClick: () => void;
 }) {
+  const { state } = useDesktop();
+  const chrome = chromeTokens(state.dark);
   const [hovered, setHovered] = useState(false);
-  const size = BASE_SIZE * scale;
-  const translateY = -(size - BASE_SIZE) / 2;
+  const ease = magnifying
+    ? 'width 0.09s linear, transform 0.09s linear'
+    : 'width 0.24s cubic-bezier(0.22, 1, 0.36, 1), transform 0.24s cubic-bezier(0.22, 1, 0.36, 1)';
 
   return (
     <div
+      data-dock-id={item.id}
       style={{
         position: 'relative',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
+        width: `${BASE_SIZE * scale}px`,
+        height: `${BASE_SIZE}px`,
+        flexShrink: 0,
+        transition: ease,
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Tooltip — Apple-style speech bubble above icon */}
       {hovered && (
         <div style={{
           position: 'absolute',
-          bottom: `${size + 16 + Math.abs(translateY)}px`,
-          padding: '4px 12px',
-          borderRadius: '4px',
-          background: 'rgba(244, 244, 244, 0.92)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          border: '0.5px solid rgba(0,0,0,0.08)',
-          color: 'rgba(0,0,0,0.85)',
+          left: '50%',
+          bottom: `${BASE_SIZE * scale + 16}px`,
+          transform: 'translateX(-50%)',
+          padding: '3px 10px',
+          borderRadius: '6px',
+          background: chrome.tooltipBg,
+          backdropFilter: 'saturate(180%) blur(20px)',
+          WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+          border: chrome.panelBorder,
+          color: chrome.tooltipText,
           fontSize: '13px',
-          fontWeight: 500,
-          fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+          fontWeight: 400,
+          fontFamily: SYSTEM_FONT,
           whiteSpace: 'nowrap',
           pointerEvents: 'none',
           zIndex: 10,
-          boxShadow: '0 2px 10px rgba(0,0,0,0.12)',
+          boxShadow: '0 0 0 0.5px rgba(0,0,0,0.18), 0 4px 14px rgba(0,0,0,0.18)',
           lineHeight: '18px',
-          letterSpacing: '-0.01em',
         }}>
           {item.label}
-          {/* Downward triangle */}
           <div style={{
             position: 'absolute',
             bottom: '-5px',
@@ -218,51 +238,52 @@ function DockButton({ item, scale, isOpen, onClick }: {
             height: 0,
             borderLeft: '6px solid transparent',
             borderRight: '6px solid transparent',
-            borderTop: '6px solid rgba(244, 244, 244, 0.92)',
+            borderTop: `6px solid ${chrome.tooltipBg}`,
           }} />
         </div>
       )}
 
       <button
         onClick={onClick}
+        aria-label={item.label}
         style={{
-          width: `${size}px`,
-          height: `${size}px`,
-          borderRadius: `${12 * scale}px`,
+          position: 'absolute',
+          left: '50%',
+          bottom: '3px',
+          width: `${ICON_SIZE}px`,
+          height: `${ICON_SIZE}px`,
+          marginLeft: `${-ICON_SIZE / 2}px`,
           border: 'none',
           outline: 'none',
           WebkitTapHighlightColor: 'transparent',
           background: 'transparent',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transform: `translateY(${translateY}px)`,
-          transition: scale === 1 ? 'all 0.2s cubic-bezier(0.22, 1, 0.36, 1)' : 'none',
+          cursor: 'default',
           padding: 0,
-          position: 'relative',
+          transform: `scale(${scale})`,
+          transformOrigin: 'bottom center',
+          transition: ease,
         }}
       >
         <div style={{
           width: '100%',
           height: '100%',
-          transform: `scale(${scale})`,
-          transformOrigin: 'bottom center',
-          transition: scale === 1 ? 'transform 0.2s cubic-bezier(0.22, 1, 0.36, 1)' : 'none',
+          animation: bouncing ? 'dockBounce 0.62s cubic-bezier(0.3, 0, 0.4, 1)' : undefined,
+          filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.22))',
         }}>
           {item.icon}
         </div>
       </button>
 
-      {/* Open indicator dot */}
-      {isOpen && (
+      {running && (
         <div style={{
+          position: 'absolute',
+          left: '50%',
+          bottom: '-5px',
           width: '4px',
           height: '4px',
+          marginLeft: '-2px',
           borderRadius: '50%',
-          background: 'rgba(0, 0, 0, 0.5)',
-          marginTop: `${2 + translateY}px`,
-          boxShadow: '0 0 4px rgba(0,0,0,0.15)',
+          background: chrome.dockDot,
         }} />
       )}
     </div>
@@ -272,12 +293,12 @@ function DockButton({ item, scale, isOpen, onClick }: {
 // ── Icon Components ────────────────────────────────────────────
 
 function DockImage({ src, alt, cropScale = 1.12 }: { src: string; alt: string; contain?: boolean; cropScale?: number }) {
-  const s = BASE_SIZE - 6;
+  const s = ICON_SIZE;
   return (
     <div style={{
       width: `${s}px`,
       height: `${s}px`,
-      borderRadius: '11px',
+      borderRadius: '10px',
       overflow: 'hidden',
       pointerEvents: 'none',
       display: 'flex',
@@ -302,62 +323,15 @@ function DockImage({ src, alt, cropScale = 1.12 }: { src: string; alt: string; c
 function AppIcon({ gradient, iconEl }: { gradient: string; iconEl: React.ReactNode }) {
   return (
     <div style={{
-      width: `${BASE_SIZE - 6}px`,
-      height: `${BASE_SIZE - 6}px`,
-      borderRadius: '11px',
+      width: `${ICON_SIZE}px`,
+      height: `${ICON_SIZE}px`,
+      borderRadius: '10px',
       background: gradient,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.35), 0 0 0 0.5px rgba(255,255,255,0.1) inset',
     }}>
       {iconEl}
-    </div>
-  );
-}
-
-function TerminalIcon() {
-  const s = BASE_SIZE - 6;
-  return (
-    <div style={{
-      width: `${s}px`,
-      height: `${s}px`,
-      borderRadius: '11px',
-      overflow: 'hidden',
-      position: 'relative',
-      background: 'linear-gradient(180deg, #e0e0e0 0%, #b8b8b8 40%, #a0a0a0 100%)',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.35), 0 0 0 0.5px rgba(255,255,255,0.3) inset',
-    }}>
-      {/* Inner black screen */}
-      <div style={{
-        position: 'absolute',
-        inset: '3px',
-        borderRadius: '9px',
-        background: 'linear-gradient(180deg, #3a3a3c 0%, #2c2c2e 30%, #1c1c1e 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '2px',
-        boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.4)',
-      }}>
-        {/* > prompt */}
-        <span style={{
-          color: '#fff',
-          fontSize: '18px',
-          fontWeight: 300,
-          fontFamily: "'SF Mono', Menlo, monospace",
-          lineHeight: 1,
-          marginBottom: '2px',
-        }}>{'>'}</span>
-        {/* _ cursor */}
-        <span style={{
-          display: 'inline-block',
-          width: '8px',
-          height: '2px',
-          background: '#fff',
-          marginTop: '6px',
-        }} />
-      </div>
     </div>
   );
 }
@@ -366,80 +340,41 @@ function CalendarIcon() {
   const now = new Date();
   const monthStr = now.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
   const dayNum = now.getDate();
-  const s = BASE_SIZE - 6;
   return (
     <div style={{
-      width: `${s}px`,
-      height: `${s}px`,
-      borderRadius: '11px',
+      width: `${ICON_SIZE}px`,
+      height: `${ICON_SIZE}px`,
+      borderRadius: '10px',
       overflow: 'hidden',
       display: 'flex',
       flexDirection: 'column',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.35), 0 0 0 0.5px rgba(255,255,255,0.1) inset',
-      background: '#fff',
-    }}>
-      {/* Red header with month */}
-      <div style={{
-        height: '15px',
-        background: 'linear-gradient(180deg, #ea4335 0%, #d62d20 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        <span style={{
-          fontSize: '8.5px',
-          fontWeight: 800,
-          color: 'white',
-          fontFamily: "'SF Pro Text', -apple-system, sans-serif",
-          letterSpacing: '0.8px',
-          lineHeight: 1,
-        }}>
-          {monthStr}
-        </span>
-      </div>
-      {/* White body with date number */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(180deg, #fff 0%, #f8f8f8 100%)',
-      }}>
-        <span style={{
-          fontSize: '20px',
-          fontWeight: 300,
-          color: '#1a1a1a',
-          fontFamily: "'SF Pro Display', -apple-system, sans-serif",
-          lineHeight: 1,
-          marginTop: '-1px',
-        }}>
-          {dayNum}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function BooksIcon() {
-  const s = BASE_SIZE - 6;
-  return (
-    <div style={{
-      width: `${s}px`,
-      height: `${s}px`,
-      borderRadius: '11px',
-      background: 'linear-gradient(180deg, #f5a623 0%, #e88b10 100%)',
-      display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.35), 0 0 0 0.5px rgba(255,255,255,0.1) inset',
+      background: 'linear-gradient(180deg, #ffffff 0%, #f2f2f2 100%)',
+      boxShadow: 'inset 0 0 0 0.5px rgba(0,0,0,0.12)',
+      pointerEvents: 'none',
     }}>
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5V4.5A2.5 2.5 0 016.5 2z" stroke="white" strokeWidth="1.8" fill="rgba(255,255,255,0.15)" />
-        <line x1="8" y1="7" x2="16" y2="7" stroke="white" strokeWidth="1.2" strokeLinecap="round" opacity="0.8" />
-        <line x1="8" y1="10" x2="14" y2="10" stroke="white" strokeWidth="1.2" strokeLinecap="round" opacity="0.6" />
-        <line x1="8" y1="13" x2="12" y2="13" stroke="white" strokeWidth="1.2" strokeLinecap="round" opacity="0.4" />
-      </svg>
+      <span style={{
+        marginTop: '5px',
+        fontSize: '9px',
+        fontWeight: 600,
+        color: '#ff3b30',
+        fontFamily: SYSTEM_FONT,
+        letterSpacing: '0.04em',
+        lineHeight: 1,
+      }}>
+        {monthStr}
+      </span>
+      <span style={{
+        fontSize: '25px',
+        fontWeight: 300,
+        color: '#1d1d1f',
+        fontFamily: SYSTEM_FONT,
+        lineHeight: 1,
+        marginTop: '1px',
+        letterSpacing: '-0.02em',
+      }}>
+        {dayNum}
+      </span>
     </div>
   );
 }

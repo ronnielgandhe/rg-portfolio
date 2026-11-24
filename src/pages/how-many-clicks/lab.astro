@@ -1,0 +1,5 @@
+---
+const q = new URLSearchParams(Astro.url.search);
+const hash = q.get('race') === '1' || q.has('a') || q.has('b') ? '#race' : '#model';
+return Astro.redirect(`/how-many-clicks${Astro.url.search}${hash}`, 301);
+---

@@ -36,7 +36,7 @@ export default function MobileShell() {
       minHeight: '100vh',
       background: '#0b1220',
       color: 'white',
-      fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif",
+      fontFamily: 'var(--os-font)',
       overflow: 'hidden',
     }}>
       {/* Background image */}
@@ -87,7 +87,7 @@ export default function MobileShell() {
             <span style={{
               flex: 1,
               textAlign: 'center',
-              fontFamily: "'SF Mono', monospace",
+              fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
               fontSize: '12px',
               color: 'rgba(255,255,255,0.5)',
             }}>
@@ -99,7 +99,7 @@ export default function MobileShell() {
           {/* Terminal content */}
           <div style={{
             padding: '16px 18px',
-            fontFamily: "'SF Mono', 'JetBrains Mono', monospace",
+            fontFamily: 'var(--os-mono)',
             fontSize: '13px',
             lineHeight: 1.7,
             color: '#e6e9ef',
@@ -108,7 +108,7 @@ export default function MobileShell() {
               Ronniel Gandhe — Software Engineer
             </div>
             <div style={{ marginBottom: '2px' }}>
-              <span style={{ color: '#ff79c6' }}>Location:</span> Waterloo, ON
+              <span style={{ color: '#ff79c6' }}>Location:</span> San Francisco, CA
             </div>
             <div style={{ marginBottom: '2px' }}>
               <span style={{ color: '#f1fa8c' }}>Email:</span> ronnielgandhe@gmail.com
@@ -145,7 +145,7 @@ export default function MobileShell() {
                 WebkitBackdropFilter: 'blur(12px)',
                 cursor: 'pointer',
                 color: 'white',
-                fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+                fontFamily: 'var(--os-font)',
                 fontSize: '13px',
                 fontWeight: 500,
                 textAlign: 'left',
@@ -212,14 +212,14 @@ export default function MobileShell() {
                 color: '#4facfe',
                 fontSize: '15px',
                 cursor: 'pointer',
-                fontFamily: "'SF Pro Text', sans-serif",
+                fontFamily: 'var(--os-font)',
                 padding: '4px 0',
               }}
             >
               ← Back
             </button>
             <span style={{
-              fontFamily: "'SF Mono', monospace",
+              fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
               fontSize: '13px',
               color: 'rgba(255,255,255,0.6)',
             }}>
@@ -283,7 +283,7 @@ function ExternalLink({ href, icon, label }: { href: string; icon: React.ReactNo
         color: 'rgba(255,255,255,0.6)',
         textDecoration: 'none',
         fontSize: '11px',
-        fontFamily: "'SF Pro Text', sans-serif",
+        fontFamily: 'var(--os-font)',
         transition: 'color 0.15s ease',
       }}
     >

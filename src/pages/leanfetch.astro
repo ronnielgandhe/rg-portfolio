@@ -1,0 +1,21 @@
+---
+import SiteHead from '../components/portfolio/SiteHead.astro';
+import LeanFetchPage from '../tools/leanfetch/ui/LeanFetchPage';
+import '../tools/leanfetch/leanfetch.css';
+
+const initial = Astro.url.searchParams.get('view') === 'benchmarks' ? 'benchmarks' : 'scan';
+---
+
+
+<html lang="en">
+  <head>
+    <SiteHead title="leanfetch | Ronniel Gandhe" description="leanfetch, a tool that stops startups from losing cash to unnecessary api calls. ronniel gandhe, software engineer in san francisco." path="/leanfetch" viewport="width=device-width, initial-scale=1.0, user-scalable=no" reset={false}>
+      <style is:global>
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+      </style>
+    </SiteHead>
+  </head>
+  <body>
+    <LeanFetchPage client:load initial={initial} />
+  </body>
+</html>

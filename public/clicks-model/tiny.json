@@ -1,0 +1,88 @@
+{
+ "buckets": 4096,
+ "dim": 16,
+ "hid": 16,
+ "mlp": 32,
+ "feats": 6,
+ "hash": "fnv1a32",
+ "tokens": "w:<word> + g:<char trigram of <word>>",
+ "id": "tiny",
+ "name": "tiny",
+ "tensors": {
+  "E_q": {
+   "offset": 0,
+   "dtype": "int8",
+   "shape": [
+    4096,
+    16
+   ]
+  },
+  "E_scale": {
+   "offset": 65536,
+   "dtype": "float32",
+   "shape": [
+    4096
+   ]
+  },
+  "Ws": {
+   "offset": 81920,
+   "dtype": "float32",
+   "shape": [
+    16,
+    16
+   ]
+  },
+  "bs": {
+   "offset": 82944,
+   "dtype": "float32",
+   "shape": [
+    16
+   ]
+  },
+  "Wt": {
+   "offset": 83008,
+   "dtype": "float32",
+   "shape": [
+    16,
+    16
+   ]
+  },
+  "bt": {
+   "offset": 84032,
+   "dtype": "float32",
+   "shape": [
+    16
+   ]
+  },
+  "W1": {
+   "offset": 84096,
+   "dtype": "float32",
+   "shape": [
+    54,
+    32
+   ]
+  },
+  "b1": {
+   "offset": 91008,
+   "dtype": "float32",
+   "shape": [
+    32
+   ]
+  },
+  "w2": {
+   "offset": 91136,
+   "dtype": "float32",
+   "shape": [
+    32
+   ]
+  },
+  "b2": {
+   "offset": 91264,
+   "dtype": "float32",
+   "shape": [
+    1
+   ]
+  }
+ },
+ "bytes": 91268
+}

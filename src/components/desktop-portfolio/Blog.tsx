@@ -128,7 +128,7 @@ const Blog = ({ onContentClick, windowMode }: BlogProps) => {
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
-      fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif",
+      fontFamily: 'var(--os-font)',
       color: 'rgba(0,0,0,0.85)',
       fontSize: '13px',
     }}>
@@ -519,7 +519,7 @@ const Blog = ({ onContentClick, windowMode }: BlogProps) => {
                 color: 'rgba(0,0,0,0.85)',
                 lineHeight: 1.3,
                 margin: '0 0 20px',
-                fontFamily: 'NeueMontreal-Medium, -apple-system, BlinkMacSystemFont, sans-serif',
+                fontFamily: 'var(--os-font)',
               }}>
                 My Notes
               </h1>
@@ -527,7 +527,7 @@ const Blog = ({ onContentClick, windowMode }: BlogProps) => {
                 fontSize: fs.body,
                 lineHeight: 1.8,
                 color: 'rgba(0,0,0,0.65)',
-                fontFamily: 'NeueMontreal-Light, -apple-system, BlinkMacSystemFont, sans-serif',
+                fontFamily: 'var(--os-font)',
                 transition: 'font-size 0.2s ease',
               }}>
                 <MarkdownRenderer content={prefaceContent.markdown} />
@@ -562,7 +562,7 @@ const Blog = ({ onContentClick, windowMode }: BlogProps) => {
               color: 'rgba(0,0,0,0.9)',
               lineHeight: 1.3,
               margin: '0 0 8px',
-              fontFamily: 'NeueMontreal-Medium, -apple-system, BlinkMacSystemFont, sans-serif',
+              fontFamily: 'var(--os-font)',
               transition: 'font-size 0.2s ease',
             }}>
               {selectedPost.title}
@@ -574,7 +574,7 @@ const Blog = ({ onContentClick, windowMode }: BlogProps) => {
               color: 'rgba(0,0,0,0.5)',
               lineHeight: 1.5,
               margin: '0 0 24px',
-              fontFamily: 'NeueMontreal-Light, -apple-system, BlinkMacSystemFont, sans-serif',
+              fontFamily: 'var(--os-font)',
               transition: 'font-size 0.2s ease',
             }}>
               {selectedPost.summary}
@@ -609,7 +609,7 @@ const Blog = ({ onContentClick, windowMode }: BlogProps) => {
       <style>{`
         /* Override MarkdownRenderer dark-theme inline styles for Notes light theme */
         .notes-content h2 {
-          font-family: NeueMontreal-Medium, -apple-system, BlinkMacSystemFont, sans-serif !important;
+          font-family: var(--os-font) !important;
           font-size: 1.2em !important;
           font-weight: 500 !important;
           color: rgba(0,0,0,0.85) !important;
@@ -619,7 +619,7 @@ const Blog = ({ onContentClick, windowMode }: BlogProps) => {
           line-height: 1.35 !important;
         }
         .notes-content h3 {
-          font-family: NeueMontreal-Medium, -apple-system, BlinkMacSystemFont, sans-serif !important;
+          font-family: var(--os-font) !important;
           font-size: 1.05em !important;
           font-weight: 500 !important;
           color: rgba(0,0,0,0.8) !important;
@@ -629,14 +629,14 @@ const Blog = ({ onContentClick, windowMode }: BlogProps) => {
           padding-bottom: 0 !important;
         }
         .notes-content p {
-          font-family: NeueMontreal-Light, -apple-system, BlinkMacSystemFont, sans-serif !important;
+          font-family: var(--os-font) !important;
           margin: 0 0 1em !important;
           color: rgba(0,0,0,0.7) !important;
           line-height: 1.8 !important;
           font-weight: normal !important;
         }
         .notes-content strong {
-          font-family: NeueMontreal-Medium, -apple-system, BlinkMacSystemFont, sans-serif !important;
+          font-family: var(--os-font) !important;
           font-weight: 500 !important;
           color: rgba(0,0,0,0.85) !important;
         }
@@ -644,7 +644,7 @@ const Blog = ({ onContentClick, windowMode }: BlogProps) => {
           color: rgba(0,0,0,0.75) !important;
         }
         .notes-content blockquote {
-          font-family: NeueMontreal-Light, -apple-system, BlinkMacSystemFont, sans-serif !important;
+          font-family: var(--os-font) !important;
           border-left: 3px solid rgba(0,0,0,0.15) !important;
           padding-left: 16px !important;
           margin: 1.2em 0 !important;
@@ -682,7 +682,7 @@ const Blog = ({ onContentClick, windowMode }: BlogProps) => {
         }
         .notes-content ul,
         .notes-content ol {
-          font-family: NeueMontreal-Light, -apple-system, BlinkMacSystemFont, sans-serif !important;
+          font-family: var(--os-font) !important;
           color: rgba(0,0,0,0.7) !important;
           line-height: 1.8 !important;
           margin: 0.8em 0 !important;
@@ -692,10 +692,10 @@ const Blog = ({ onContentClick, windowMode }: BlogProps) => {
           margin-bottom: 0.3em !important;
         }
         .notes-content table {
-          font-family: NeueMontreal-Light, -apple-system, BlinkMacSystemFont, sans-serif !important;
+          font-family: var(--os-font) !important;
         }
         .notes-content table th {
-          font-family: NeueMontreal-Medium, -apple-system, BlinkMacSystemFont, sans-serif !important;
+          font-family: var(--os-font) !important;
           color: rgba(0,0,0,0.85) !important;
           border-bottom-color: rgba(0,0,0,0.15) !important;
         }

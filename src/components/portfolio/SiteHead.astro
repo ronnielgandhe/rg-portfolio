@@ -1,0 +1,310 @@
+---
+import { AstroSeo } from '@astrolib/seo';
+
+interface Props {
+  title: string;
+  description: string;
+  path: string;
+  viewport?: string;
+  reset?: boolean;
+}
+
+const { title, description, path, viewport = 'width=device-width, initial-scale=1.0', reset = true } = Astro.props;
+const url = `https://ronnielgandhe.com${path === '/' ? '' : path}`;
+
+const speculation = JSON.stringify({
+  prerender: [{
+    source: 'document',
+    where: {
+      and: [
+        { href_matches: '/*' },
+        { not: { href_matches: '/desktop*' } },
+        { not: { href_matches: '/api/*' } },
+        { not: { href_matches: '/*.pdf' } },
+        { not: { selector_matches: '[target=_blank], [download]' } },
+      ],
+    },
+    eagerness: 'moderate',
+  }],
+});
+---
+
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content={viewport} />
+<meta name="author" content="Ronniel Gandhe" />
+
+<AstroSeo
+  title={title}
+  description={description}
+  canonical={url}
+  openGraph={{ url, title, description, site_name: 'Ronniel Gandhe' }}
+/>
+
+<link rel="icon" type="image/png" href="/icons/baseheadlogo.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/baseheadlogo.png" />
+<meta name="theme-color" content="#ffffff" />
+<script is:inline>
+  (function () {
+    var root = document.documentElement;
+    window.__rgApplyTheme = function () {
+      var dark = false;
+      try { dark = localStorage.getItem('rg-theme') === 'dark'; } catch (e) {}
+      root.classList.toggle('rg-dark', dark);
+      root.style.backgroundColor = dark ? '#0e0e0e' : '#ffffff';
+      var meta = document.querySelector('meta[name=theme-color]');
+      if (meta) meta.content = dark ? '#0e0e0e' : '#ffffff';
+      return dark;
+    };
+    window.__rgApplyTheme();
+
+    var TITLE = 'rg-morph-title';
+    var sheet = null;
+    var lastClick = null;
+
+    function pathOf(u) { try { return new URL(u, location.href).pathname.replace(/\/$/, '') || '/'; } catch (e) { return null; } }
+    function isList(p) { return p === '/projects' || p === '/writing' || p === '/'; }
+    function visible(el) {
+      var r = el.getBoundingClientRect();
+      return r.bottom > 60 && r.top < innerHeight && r.width > 0;
+    }
+    function clear() { if (sheet) sheet.textContent = ''; }
+    function name(sel, n, cls) {
+      var all = sel ? document.querySelectorAll(sel) : [];
+      if (all.length !== 1) return;
+      if (!sheet) { sheet = document.createElement('style'); document.head.appendChild(sheet); }
+      sheet.textContent += visible(all[0])
+        ? sel + '{view-transition-name:' + n + ' !important;view-transition-class:' + (cls || 'rg-morph') + '}'
+        : sel + '{view-transition-name:none !important}';
+    }
+    function coverId(p) {
+      if (p === '/desktop') return 'ronnielos';
+      var m = /^\/([a-z0-9-]+)$/.exec(p || '');
+      return m && !isList(p) ? m[1] : null;
+    }
+    function introSel() {
+      if (document.querySelector('.site .pi')) return '.site .pi';
+      return document.querySelectorAll('.site :has(> h1)').length === 1 ? '.site :has(> h1)' : null;
+    }
+    function morph(from, to) {
+      clear();
+      if (!from || !to || from === to) return;
+      var here = pathOf(location.href);
+      if (document.querySelector('[style*="view-transition-name:cover-"]')) {
+        if (!sheet) { sheet = document.createElement('style'); document.head.appendChild(sheet); }
+        sheet.textContent += '[style*="view-transition-name:cover-"]{view-transition-name:none !important}';
+      }
+      var post = from.indexOf('/writing/') === 0 ? from : to.indexOf('/writing/') === 0 ? to : null;
+      if (post) {
+        var postList = post === to ? from : to;
+        if (postList === '/writing' || postList === '/') {
+          name(here === post ? '.site .wp-post-title' : 'a[href="' + post + '"] :is(.wp-title, .hm-post-t)', TITLE, 'rg-morph-text');
+        }
+        return;
+      }
+      var list = from === '/projects' || from === '/' ? from : to === '/projects' || to === '/' ? to : null;
+      var id = list && coverId(list === from ? to : from);
+      if (!id) return;
+      name(here === list ? '[style*="cover-' + id + '"]' : introSel(), 'cover-' + id);
+    }
+
+    document.addEventListener('click', function (e) {
+      var a = e.target && e.target.closest && e.target.closest('a[href]');
+      lastClick = a ? pathOf(a.href) : null;
+    }, true);
+
+    addEventListener('pageswap', function (e) {
+      if (!e.viewTransition) return;
+      var to = e.activation && e.activation.entry ? pathOf(e.activation.entry.url) : lastClick;
+      var from = pathOf(location.href);
+      try { sessionStorage.setItem('rg-vt-from', from); } catch (err) {}
+      morph(from, to);
+    });
+
+    var restored = false;
+    addEventListener('pageshow', function (e) { restored = e.persisted; });
+
+    addEventListener('pagereveal', function (e) {
+      window.__rgApplyTheme();
+      window.dispatchEvent(new Event('rg-theme'));
+      clear();
+      if (!e.viewTransition) return;
+      e.viewTransition.ready.catch(function () {});
+      if (restored) { restored = false; e.viewTransition.skipTransition(); return; }
+      root.classList.add('rg-vt', 'rg-vt-run');
+      e.viewTransition.finished.finally(function () { root.classList.remove('rg-vt-run'); });
+      if (!document.querySelector('.site')) {
+        root.classList.add('rg-vt-wait');
+        var done = function () {
+          mo.disconnect();
+          root.classList.remove('rg-vt-wait');
+          root.classList.add('rg-vt-ready');
+        };
+        var mo = new MutationObserver(function () { if (document.querySelector('.site .sn-nav')) requestAnimationFrame(done); });
+        mo.observe(document.body, { childList: true, subtree: true });
+        e.viewTransition.finished.finally(function () { mo.disconnect(); root.classList.remove('rg-vt-wait', 'rg-vt-ready'); });
+        return;
+      }
+      var from = null;
+      try {
+        var act = window.navigation && navigation.activation;
+        from = act && act.from ? pathOf(act.from.url) : sessionStorage.getItem('rg-vt-from');
+      } catch (err) {}
+      var here = pathOf(location.href);
+      root.classList.toggle('rg-vt-list', isList(here));
+      root.classList.toggle('rg-vt-detail', !isList(here));
+      morph(from, here);
+      e.viewTransition.finished.finally(clear);
+    });
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600&display=swap" />
+<link rel="sitemap" href="/sitemap-index.xml" />
+<script type="speculationrules" is:inline set:html={speculation} />
+
+{reset && (
+  <style is:inline>
+    :where(*) { margin: 0; padding: 0; box-sizing: border-box; }
+  </style>
+)}
+<style is:inline>
+  html { background-color: #ffffff; overflow-x: clip; max-width: 100vw; min-height: 100vh; }
+  html.rg-dark { background-color: #0e0e0e; }
+  body { margin: 0; min-width: 320px; background: transparent; overflow-x: clip; min-height: 100vh; width: 100%; }
+  canvas { display: block !important; max-width: 100% !important; max-height: 100% !important; }
+  a { color: inherit; text-decoration: inherit; }
+
+  .site {
+    --bg: #ffffff;
+    --ink: #1a1a1a;
+    --text: rgba(26, 26, 26, 0.6);
+    --faint: rgba(26, 26, 26, 0.45);
+    --half: rgba(26, 26, 26, 0.55);
+    --rule: rgba(0, 0, 0, 0.08);
+    --hover: #fafaf8;
+    --strong: #1a1a1a;
+    --app-w: 1040px;
+    position: relative;
+    min-height: 100vh;
+    padding: 132px 24px 96px;
+    background: var(--bg);
+    color: var(--strong);
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    transition: background 0.3s ease;
+  }
+  .site-dark, .rg-dark .site {
+    --bg: #0e0e0e;
+    --ink: #f2f2f0;
+    --text: rgba(242, 242, 240, 0.62);
+    --faint: rgba(242, 242, 240, 0.46);
+    --half: rgba(242, 242, 240, 0.56);
+    --rule: rgba(255, 255, 255, 0.1);
+    --hover: #161616;
+    --strong: #f2f2f0;
+  }
+  .site *, .site *::before, .site *::after { box-sizing: border-box; }
+  .site ::selection { background: rgba(120, 120, 120, 0.25); }
+  .site :focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
+  :where(.site) button { font: inherit; color: inherit; background: none; border: none; padding: 0; cursor: pointer; }
+
+  .sn-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20; height: 60px;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    -webkit-backdrop-filter: saturate(160%) blur(14px); backdrop-filter: saturate(160%) blur(14px);
+    border-bottom: 1px solid var(--rule);
+    transition: background 0.3s ease, border-color 0.3s ease;
+    view-transition-name: site-nav;
+  }
+  .sn-in { display: flex; align-items: center; height: 100%; max-width: 624px; margin: 0 auto; padding: 0 24px; }
+  .sn-wide .sn-in { max-width: calc(var(--app-w) + 48px); }
+  .sn-back { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 28px; height: 28px; margin-right: 14px; border: 1px solid var(--rule); color: var(--text); text-decoration: none; transition: color 0.2s, background 0.2s, border-color 0.2s; view-transition-name: sn-back; }
+  .sn-back:hover { color: var(--ink); background: var(--hover); border-color: var(--faint); }
+  .sn-back svg { transition: transform 0.2s; }
+  .sn-back:hover svg { transform: translateX(-1.5px); }
+  .sn-back:focus-visible { outline-offset: 2px; }
+  .sn-name { font-size: 19px; line-height: 24px; font-weight: 300; letter-spacing: -0.02em; color: var(--ink); text-decoration: none; white-space: nowrap; view-transition-name: sn-name; }
+  .sn-sep { margin: 0 10px; font-size: 15px; line-height: 24px; font-weight: 300; color: var(--faint); view-transition-name: sn-sep; }
+  .sn-here { font-size: 14px; line-height: 24px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; view-transition-name: sn-here; }
+  .sn-gap { flex: 1; min-width: 16px; }
+  .sn-right { display: flex; align-items: center; height: 100%; flex-shrink: 0; view-transition-name: sn-right; }
+  .sn-theme { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin-left: 20px; color: var(--faint); transition: color 0.2s; }
+  .sn-theme:hover { color: var(--ink); }
+  .sn-fade-bottom { position: fixed; bottom: 0; left: 0; right: 0; height: 40px; z-index: 10; pointer-events: none; background: linear-gradient(to top, var(--bg), transparent); }
+
+  .site:has(.lf-root) { --app-w: 1104px; }
+  .site:has(.site-app) .sn-fade-bottom { display: none; }
+  .site-col { margin: 0 auto; width: 100%; max-width: 576px; }
+  .site-app .site-col { max-width: 1040px; }
+  .site-app .site-col > * { max-width: 640px; }
+  .site-meta { display: flex; align-items: center; gap: 6px; height: 16px; margin-bottom: 16px; font-size: 12px; line-height: 16px; color: var(--half); font-variant-numeric: tabular-nums; }
+  .site-h1 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 500; color: var(--ink); }
+  .site-p { margin: 0; font-size: 16px; line-height: 26px; color: var(--text); }
+  .site-body { margin-top: 32px; display: flex; flex-direction: column; gap: 24px; }
+  .site-link { color: var(--strong); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; transition: opacity 0.2s; white-space: nowrap; }
+  .site-link:hover { opacity: 0.6; }
+  .site-ico { display: inline-block; width: 14px; height: 14px; object-fit: contain; vertical-align: -2px; margin-right: 5px; border-radius: 0; }
+  .site-ico-d { display: none; }
+  .site-ico-inv { filter: invert(1); }
+  .site-dark .site-ico-l, .rg-dark .site-ico-l { display: none; }
+  .site-dark .site-ico-d, .rg-dark .site-ico-d { display: inline-block; }
+  .site-dark .site-ico-inv, .rg-dark .site-ico-inv { filter: none; }
+  .site-socials { display: flex; align-items: center; gap: 8px; line-height: 26px; flex-wrap: wrap; }
+  .site-social { position: relative; display: inline-flex; align-items: center; gap: 6px; color: var(--strong); text-decoration: none; }
+  .site-social svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--text); transition: color 0.2s; }
+  .site-social:hover svg { color: var(--strong); }
+  .site-social::after { content: ''; position: absolute; left: 20px; right: 0; bottom: 2px; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: left; transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+  .site-social:hover::after { transform: scaleX(1); }
+  .site-bar { color: var(--text); }
+  .site-enter { animation: siteEnter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .rg-vt .site-enter, .rg-vt .hv-rise, .rg-vt .wk-rise, .rg-vt .wk-row, .rg-vt .wk-rule, .rg-vt .bs-bar { animation: none; }
+  .rg-vt-run .hm-anim [data-reveal] { opacity: 1 !important; transform: none !important; clip-path: none !important; transition: none !important; }
+  .rg-vt-run .hm-anim .hm-post::after { display: none; }
+  @keyframes siteEnter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @media (max-width: 640px) {
+    .site { padding-top: 108px; padding-bottom: 64px; }
+    .sn-in { padding: 0 24px; }
+    .sn-sep, .sn-here { display: none; }
+    .sn-name { font-size: 17px; }
+    .sn-theme { margin-left: 10px; }
+    .sn-back { margin-right: 10px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .site-enter { animation: none; } }
+
+  @media (prefers-reduced-motion: no-preference) {
+    @view-transition { navigation: auto; }
+  }
+  ::view-transition-group(*) { animation-duration: 360ms; animation-timing-function: cubic-bezier(0.2, 0, 0, 1); }
+  ::view-transition-old(*), ::view-transition-new(*) { animation-duration: 240ms; animation-timing-function: cubic-bezier(0.2, 0, 0, 1); }
+  ::view-transition-old(root) { animation: 240ms cubic-bezier(0.2, 0, 0, 1) both rg-fade-out; }
+  ::view-transition-new(root) { animation: 240ms cubic-bezier(0.2, 0, 0, 1) both rg-fade-in; }
+  ::view-transition-group(site-nav) { animation: none; }
+  ::view-transition-old(site-nav), ::view-transition-new(site-nav) { animation: none; }
+  ::view-transition-old(site-nav):not(:only-child) { display: none; }
+  .rg-vt-wait::view-transition-old(*) { animation: 4s linear both rg-hold; }
+  .rg-vt-wait::view-transition-new(*) { animation: 4s linear both rg-hold-hidden; }
+  .rg-vt-wait::view-transition-group(*) { animation-duration: 4s; }
+  ::view-transition-old(*):only-child { animation: 240ms cubic-bezier(0.2, 0, 0, 1) both rg-fade-out; }
+  ::view-transition-new(*):only-child { animation: 240ms cubic-bezier(0.2, 0, 0, 1) both rg-fade-in; }
+  ::view-transition-group(*.rg-morph) { overflow: clip; }
+  ::view-transition-old(*.rg-morph), ::view-transition-new(*.rg-morph) { width: 100%; height: 100%; object-fit: none; object-position: top left; }
+  .rg-vt-detail::view-transition-old(*.rg-morph), .rg-vt-list::view-transition-new(*.rg-morph) { object-fit: cover; object-position: top center; }
+  ::view-transition-old(*.rg-morph), ::view-transition-old(*.rg-morph-text) { animation: 240ms cubic-bezier(0.2, 0, 0, 1) both rg-fade-out; }
+  ::view-transition-new(*.rg-morph), ::view-transition-new(*.rg-morph-text) { animation: 240ms cubic-bezier(0.2, 0, 0, 1) 60ms both rg-fade-in; }
+  .rg-vt-ready::view-transition-old(*) { animation: 240ms cubic-bezier(0.2, 0, 0, 1) both rg-fade-out; }
+  .rg-vt-ready::view-transition-new(*) { animation: 240ms cubic-bezier(0.2, 0, 0, 1) both rg-fade-in; }
+  .rg-vt-ready::view-transition-old(*):only-child { animation: 160ms cubic-bezier(0.2, 0, 0, 1) 240ms both rg-fade-out; }
+  .rg-vt-ready::view-transition-old(*.rg-morph):only-child { animation: 240ms cubic-bezier(0.2, 0, 0, 1) both rg-fade-out; }
+  @keyframes rg-hold { from { opacity: 1; } to { opacity: 1; } }
+  @keyframes rg-hold-hidden { from { opacity: 0; } to { opacity: 0; } }
+  @keyframes rg-fade-out { to { opacity: 0; } }
+  @keyframes rg-fade-in { from { opacity: 0; } }
+</style>
+<slot />

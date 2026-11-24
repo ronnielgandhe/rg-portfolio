@@ -200,17 +200,17 @@ const ContentViewer = ({ content, onClose, windowMode }: ContentViewerProps) => 
                   <div className="cv-cascade-item cv-cascade-0" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
                     <CompanyLogo company={content.company} />
                     {content.company !== 'Uber' && (
-                      <span style={{ fontFamily: 'NeueMontreal-Medium, sans-serif', fontSize: '1rem', color: brand.color, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+                      <span style={{ fontFamily: 'var(--os-font)', fontSize: '1rem', color: brand.color, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
                         {content.company}
                       </span>
                     )}
                   </div>
                 )}
-                <h1 className="cv-cascade-item cv-cascade-1" style={{ fontFamily: 'NeueMontreal-Medium, sans-serif', fontSize: 'clamp(1.2rem, 3vw, 1.6rem)', color: 'white', margin: '0 0 0.75rem', fontWeight: 500, lineHeight: '1.3' }}>
+                <h1 className="cv-cascade-item cv-cascade-1" style={{ fontFamily: 'var(--os-font)', fontSize: 'clamp(1.2rem, 3vw, 1.6rem)', color: 'white', margin: '0 0 0.75rem', fontWeight: 500, lineHeight: '1.3' }}>
                   {content.title}
                 </h1>
                 <div className="cv-cascade-item cv-cascade-2" style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                  <span style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.6)', fontFamily: 'NeueMontreal-Light, sans-serif' }}>
+                  <span style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.6)', fontFamily: 'var(--os-font)' }}>
                     {new Date(content.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                   </span>
                 </div>
@@ -218,13 +218,13 @@ const ContentViewer = ({ content, onClose, windowMode }: ContentViewerProps) => 
                   {content.tags.map((tag, i) => {
                     const tc = getTagColor(tag);
                     return (
-                      <span key={i} style={{ fontSize: '0.7rem', fontFamily: 'NeueMontreal-Light, sans-serif', color: tc.text, padding: '0.2rem 0.55rem', borderRadius: '12px', background: tc.bg, border: `0.5px solid ${tc.border}` }}>
+                      <span key={i} style={{ fontSize: '0.7rem', fontFamily: 'var(--os-font)', color: tc.text, padding: '0.2rem 0.55rem', borderRadius: '12px', background: tc.bg, border: `0.5px solid ${tc.border}` }}>
                         #{tag}
                       </span>
                     );
                   })}
                 </div>
-                <p className="cv-cascade-item cv-cascade-4" style={{ fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.95rem', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.7', margin: 0, paddingBottom: '1.25rem', borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                <p className="cv-cascade-item cv-cascade-4" style={{ fontFamily: 'var(--os-font)', fontSize: '0.95rem', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.7', margin: 0, paddingBottom: '1.25rem', borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
                   {content.summary}
                 </p>
               </header>
@@ -298,7 +298,7 @@ const ContentViewer = ({ content, onClose, windowMode }: ContentViewerProps) => 
               padding: '0.4rem 0',
               cursor: 'pointer',
               color: 'rgba(255, 255, 255, 0.45)',
-              fontFamily: 'NeueMontreal-Light, sans-serif',
+              fontFamily: 'var(--os-font)',
               fontSize: '0.85rem',
               transition: 'color 0.2s ease',
             }}
@@ -349,7 +349,7 @@ const ContentViewer = ({ content, onClose, windowMode }: ContentViewerProps) => 
                     <CompanyLogo company={content.company} />
                     {content.company !== 'Uber' && (
                       <span style={{
-                        fontFamily: 'NeueMontreal-Medium, sans-serif',
+                        fontFamily: 'var(--os-font)',
                         fontSize: '1rem',
                         color: brand.color,
                         textTransform: 'uppercase',
@@ -363,7 +363,7 @@ const ContentViewer = ({ content, onClose, windowMode }: ContentViewerProps) => 
 
                 {/* Title */}
                 <h1 className="cv-cascade-item cv-cascade-1" style={{
-                  fontFamily: 'NeueMontreal-Medium, sans-serif',
+                  fontFamily: 'var(--os-font)',
                   fontSize: 'clamp(1.4rem, 3.5vw, 2rem)',
                   color: 'white',
                   margin: '0 0 1rem',
@@ -381,7 +381,7 @@ const ContentViewer = ({ content, onClose, windowMode }: ContentViewerProps) => 
                   flexWrap: 'wrap',
                   marginBottom: '1.25rem',
                 }}>
-                  <span style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.6)', fontFamily: 'NeueMontreal-Light, sans-serif' }}>
+                  <span style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.6)', fontFamily: 'var(--os-font)' }}>
                     {new Date(content.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                   </span>
                 </div>
@@ -393,7 +393,7 @@ const ContentViewer = ({ content, onClose, windowMode }: ContentViewerProps) => 
                     return (
                       <span key={i} style={{
                         fontSize: '0.7rem',
-                        fontFamily: 'NeueMontreal-Light, sans-serif',
+                        fontFamily: 'var(--os-font)',
                         color: tc.text,
                         padding: '0.2rem 0.55rem',
                         borderRadius: '12px',
@@ -408,7 +408,7 @@ const ContentViewer = ({ content, onClose, windowMode }: ContentViewerProps) => 
 
                 {/* Summary */}
                 <p className="cv-cascade-item cv-cascade-4" style={{
-                  fontFamily: 'NeueMontreal-Light, sans-serif',
+                  fontFamily: 'var(--os-font)',
                   fontSize: '1rem',
                   color: 'rgba(255, 255, 255, 0.85)',
                   lineHeight: '1.7',

@@ -1,0 +1,18 @@
+---
+import SiteHead from '../../components/portfolio/SiteHead.astro';
+import { IdeaPage } from '../../tools/quantzoo/ui/Wsb';
+import { getIdea } from '../../tools/quantzoo/ideas';
+
+export const prerender = false;
+const idea = getIdea(Astro.params.slug ?? '');
+if (!idea) return Astro.redirect('/wallstreetbets');
+---
+
+<html lang="en">
+  <head>
+    <SiteHead title={`${idea.title}, r/wallstreetbets | Ronniel Gandhe`} description={`${idea.title}. an idea of mine, scored from the day i wrote it.`} path={`/wallstreetbets/${idea.slug}`} />
+  </head>
+  <body>
+    <IdeaPage client:only="react" idea={idea} />
+  </body>
+</html>

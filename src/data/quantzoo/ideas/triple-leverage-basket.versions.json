@@ -1,0 +1,293 @@
+[
+  {
+    "id": "v1",
+    "date": "2026-11-22",
+    "note": "buy a third each of the 3 funds and never touch it. $10k turns into $863k by nov 20, 2026, about 31% a year vs 13% for just holding the s&p. but in 2022 it fell 82%: $1.04m on paper down to $187k. and right now it's 70% below its best day.",
+    "draft": "ronniel to edit",
+    "config": {
+      "kind": "portfolio",
+      "start": "2010-03-11",
+      "initial": 10000,
+      "universe": [
+        {
+          "symbol": "TQQQ",
+          "weight": 0.3333
+        },
+        {
+          "symbol": "UPRO",
+          "weight": 0.3333
+        },
+        {
+          "symbol": "SOXL",
+          "weight": 0.3334
+        }
+      ],
+      "rebalance": "none",
+      "costBps": 5,
+      "benchmark": "SPY",
+      "oosStart": "2020-01-01"
+    }
+  },
+  {
+    "id": "v2",
+    "date": "2026-11-22",
+    "note": "put it back to a third each on the first day of every month, so one fund can't take over after a big run. $1.30m, about 34% a year. still fell 80% in 2022. resetting the mix doesn't stop a crash.",
+    "draft": "ronniel to edit",
+    "config": {
+      "kind": "portfolio",
+      "start": "2010-03-11",
+      "initial": 10000,
+      "universe": [
+        {
+          "symbol": "TQQQ",
+          "weight": 0.3333
+        },
+        {
+          "symbol": "UPRO",
+          "weight": 0.3333
+        },
+        {
+          "symbol": "SOXL",
+          "weight": 0.3334
+        }
+      ],
+      "rebalance": "monthly",
+      "costBps": 5,
+      "benchmark": "SPY",
+      "oosStart": "2020-01-01"
+    }
+  },
+  {
+    "id": "v3",
+    "date": "2026-11-22",
+    "note": "added 35% in a fund that goes up 3x when long term us government bonds go up, the classic 'bonds catch you when stocks fall' idea. in 2022 stocks and bonds fell together, so it still fell 76% and took over 4 years to get back. worse. keeping it so i remember.",
+    "draft": "ronniel to edit",
+    "config": {
+      "kind": "portfolio",
+      "start": "2010-03-11",
+      "initial": 10000,
+      "universe": [
+        {
+          "symbol": "TQQQ",
+          "weight": 0.25
+        },
+        {
+          "symbol": "UPRO",
+          "weight": 0.25
+        },
+        {
+          "symbol": "SOXL",
+          "weight": 0.15
+        },
+        {
+          "symbol": "TMF",
+          "weight": 0.35
+        }
+      ],
+      "rebalance": "quarterly",
+      "costBps": 5,
+      "benchmark": "SPY",
+      "oosStart": "2020-01-01"
+    }
+  },
+  {
+    "id": "v4",
+    "date": "2026-11-22",
+    "note": "new rule: when the s&p closes below its average price of the last 200 days, sell everything and sit in cash. the 2022 fall shrinks from 80% to 57%. still too much. and it flips in and out 79 times, which costs money.",
+    "draft": "ronniel to edit",
+    "config": {
+      "kind": "portfolio",
+      "start": "2010-03-11",
+      "initial": 10000,
+      "universe": [
+        {
+          "symbol": "TQQQ",
+          "weight": 0.3333
+        },
+        {
+          "symbol": "UPRO",
+          "weight": 0.3333
+        },
+        {
+          "symbol": "SOXL",
+          "weight": 0.3334
+        }
+      ],
+      "rebalance": "monthly",
+      "costBps": 5,
+      "benchmark": "SPY",
+      "oosStart": "2020-01-01",
+      "trend": {
+        "signal": "SPY",
+        "sma": 200,
+        "riskOff": [
+          {
+            "symbol": "CASH",
+            "weight": 1
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "v5",
+    "date": "2026-11-22",
+    "note": "keep the 200 day rule and add a second one: when the funds are swinging around a lot, hold less of them and keep the rest in cash. worst fall 45%. first version i could maybe live with.",
+    "draft": "ronniel to edit",
+    "config": {
+      "kind": "portfolio",
+      "start": "2010-03-11",
+      "initial": 10000,
+      "universe": [
+        {
+          "symbol": "TQQQ",
+          "weight": 0.3333
+        },
+        {
+          "symbol": "UPRO",
+          "weight": 0.3333
+        },
+        {
+          "symbol": "SOXL",
+          "weight": 0.3334
+        }
+      ],
+      "rebalance": "monthly",
+      "costBps": 5,
+      "benchmark": "SPY",
+      "oosStart": "2020-01-01",
+      "trend": {
+        "signal": "SPY",
+        "sma": 200,
+        "riskOff": [
+          {
+            "symbol": "CASH",
+            "weight": 1
+          }
+        ]
+      },
+      "volTarget": {
+        "annual": 0.4,
+        "lookback": 20,
+        "maxExposure": 1
+      }
+    }
+  },
+  {
+    "id": "v6",
+    "date": "2026-11-22",
+    "note": "dropped the 200 day rule, kept only the 'hold less when it's swinging' rule. about 31% a year, worst fall 50%. best so far. but i picked its settings by trying lots of them on these same years, so it's flattering itself.",
+    "draft": "ronniel to edit",
+    "config": {
+      "kind": "portfolio",
+      "start": "2010-03-11",
+      "initial": 10000,
+      "universe": [
+        {
+          "symbol": "TQQQ",
+          "weight": 0.3333
+        },
+        {
+          "symbol": "UPRO",
+          "weight": 0.3333
+        },
+        {
+          "symbol": "SOXL",
+          "weight": 0.3334
+        }
+      ],
+      "rebalance": "monthly",
+      "costBps": 5,
+      "benchmark": "SPY",
+      "oosStart": "2020-01-01",
+      "volTarget": {
+        "annual": 0.4,
+        "lookback": 20,
+        "maxExposure": 1
+      }
+    },
+    "tunedOnFullHistory": true
+  },
+  {
+    "id": "v7",
+    "date": "2026-11-22",
+    "note": "stress test. 2010 to 2026 was the best run tech ever had, so i rebuilt fake versions of these funds back to 2000 from the index (3x its daily move, minus fees and borrowing costs). same rules as v6: it fell 86% from 2000 to 2009 and took almost 14 years to get back. that rule alone doesn't survive the dot com crash.",
+    "draft": "ronniel to edit",
+    "config": {
+      "kind": "portfolio",
+      "start": "2000-01-03",
+      "initial": 10000,
+      "universe": [
+        {
+          "symbol": "TQQQ",
+          "weight": 0.3333
+        },
+        {
+          "symbol": "UPRO",
+          "weight": 0.3333
+        },
+        {
+          "symbol": "SOXL",
+          "weight": 0.3334
+        }
+      ],
+      "rebalance": "monthly",
+      "costBps": 5,
+      "benchmark": "SPY",
+      "oosStart": "2020-01-01",
+      "volTarget": {
+        "annual": 0.4,
+        "lookback": 20,
+        "maxExposure": 1
+      },
+      "synthetic": true
+    },
+    "tunedOnFullHistory": true
+  },
+  {
+    "id": "v8",
+    "date": "2026-11-22",
+    "note": "put the 200 day rule back on top, still tested back to 2000. about 14.5% a year vs 7.8% for just holding the s&p over the same 27 years, worst fall 51%, about the same as the s&p's own worst fall. not a money printer. i don't know if it's right, but it survived both crashes.",
+    "draft": "ronniel to edit",
+    "config": {
+      "kind": "portfolio",
+      "start": "2000-01-03",
+      "initial": 10000,
+      "universe": [
+        {
+          "symbol": "TQQQ",
+          "weight": 0.3333
+        },
+        {
+          "symbol": "UPRO",
+          "weight": 0.3333
+        },
+        {
+          "symbol": "SOXL",
+          "weight": 0.3334
+        }
+      ],
+      "rebalance": "monthly",
+      "costBps": 5,
+      "benchmark": "SPY",
+      "oosStart": "2020-01-01",
+      "volTarget": {
+        "annual": 0.4,
+        "lookback": 20,
+        "maxExposure": 1
+      },
+      "trend": {
+        "signal": "SPY",
+        "sma": 200,
+        "riskOff": [
+          {
+            "symbol": "CASH",
+            "weight": 1
+          }
+        ]
+      },
+      "synthetic": true
+    },
+    "tunedOnFullHistory": true
+  }
+]

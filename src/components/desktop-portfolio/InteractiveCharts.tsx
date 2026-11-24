@@ -12,16 +12,16 @@ const chartContainer: React.CSSProperties = {
 };
 
 const chartTitle: React.CSSProperties = {
-  fontFamily: '"SF Mono", "JetBrains Mono", monospace',
+  fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
   fontSize: '0.75rem',
   color: 'rgba(255, 255, 255, 0.4)',
   textTransform: 'uppercase',
-  letterSpacing: '0.1em',
+  letterSpacing: '0.04em',
   marginBottom: '1.25rem',
 };
 
 const sourceText: React.CSSProperties = {
-  fontFamily: 'NeueMontreal-Light, sans-serif',
+  fontFamily: 'var(--os-font)',
   fontSize: '0.7rem',
   color: 'rgba(255, 255, 255, 0.3)',
   marginTop: '1rem',
@@ -64,13 +64,13 @@ export const ReturnGapChart = () => {
               marginBottom: '0.4rem',
             }}>
               <span style={{
-                fontFamily: 'NeueMontreal-Medium, sans-serif',
+                fontFamily: 'var(--os-font)',
                 fontSize: '0.85rem',
                 color: hovered === d.label ? 'white' : 'rgba(255,255,255,0.7)',
                 transition: 'color 0.2s',
               }}>{d.label}</span>
               <span style={{
-                fontFamily: '"SF Mono", monospace',
+                fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
                 fontSize: '0.85rem',
                 color: d.color,
                 fontWeight: 600,
@@ -96,7 +96,7 @@ export const ReturnGapChart = () => {
               }}>
                 {hovered === d.label && (
                   <span style={{
-                    fontFamily: '"SF Mono", monospace',
+                    fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
                     fontSize: '0.7rem',
                     color: 'white',
                     whiteSpace: 'nowrap',
@@ -117,7 +117,7 @@ export const ReturnGapChart = () => {
         borderRadius: '8px',
       }}>
         <p style={{
-          fontFamily: '"SF Mono", monospace',
+          fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
           fontSize: '0.75rem',
           color: '#F87171',
           margin: 0,
@@ -178,7 +178,7 @@ export const CompoundGrowthChart = () => {
         {[0, 50000, 100000, 150000].map((v) => (
           <g key={v}>
             <line x1="40" y1={toY(v)} x2="560" y2={toY(v)} stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-            <text x="36" y={toY(v) + 4} textAnchor="end" fill="rgba(255,255,255,0.25)" fontSize="8" fontFamily="monospace">
+            <text x="36" y={toY(v) + 4} textAnchor="end" fill="rgba(255,255,255,0.25)" fontSize="8">
               ${(v / 1000).toFixed(0)}k
             </text>
           </g>
@@ -186,7 +186,7 @@ export const CompoundGrowthChart = () => {
 
         {/* Year labels */}
         {[0, 5, 10, 15, 20, 25, 30].map((y) => (
-          <text key={y} x={toX(y)} y="200" textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="8" fontFamily="monospace">
+          <text key={y} x={toX(y)} y="200" textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="8">
             Yr {y}
           </text>
         ))}
@@ -233,17 +233,17 @@ export const CompoundGrowthChart = () => {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#4ADE80' }} />
-          <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
+          <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
             S&P 500: <strong style={{ color: '#4ADE80' }}>${Math.round(sp500Val).toLocaleString()}</strong>
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#F87171' }} />
-          <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
+          <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
             Avg. Investor: <strong style={{ color: '#F87171' }}>${Math.round(investorVal).toLocaleString()}</strong>
           </span>
         </div>
-        <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
+        <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
           Year {nearestYear}
         </span>
       </div>
@@ -285,8 +285,8 @@ export const SpeculativeCycleChart = () => {
       <svg viewBox="0 0 580 200" style={{ width: '100%', height: 'auto' }}>
         {/* Grid */}
         <line x1="40" y1="170" x2="560" y2="170" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-        <text x="30" y="35" fill="rgba(255,255,255,0.2)" fontSize="7" fontFamily="monospace" textAnchor="end">Price</text>
-        <text x="560" y="185" fill="rgba(255,255,255,0.2)" fontSize="7" fontFamily="monospace" textAnchor="end">Time →</text>
+        <text x="30" y="35" fill="rgba(255,255,255,0.2)" fontSize="7" textAnchor="end">Price</text>
+        <text x="560" y="185" fill="rgba(255,255,255,0.2)" fontSize="7" textAnchor="end">Time →</text>
 
         {/* Curve */}
         <path
@@ -301,7 +301,7 @@ export const SpeculativeCycleChart = () => {
 
         {/* Retail entry zone highlight */}
         <rect x="330" y="20" width="80" height="55" rx="4" fill="rgba(248,113,113,0.06)" stroke="rgba(248,113,113,0.15)" strokeWidth="0.5" strokeDasharray="3 3" />
-        <text x="370" y="82" fill="rgba(248,113,113,0.4)" fontSize="6" fontFamily="monospace" textAnchor="middle">RETAIL ENTRY</text>
+        <text x="370" y="82" fill="rgba(248,113,113,0.4)" fontSize="6" textAnchor="middle">RETAIL ENTRY</text>
 
         {/* Phase dots */}
         {phases.map((p, i) => (
@@ -322,7 +322,7 @@ export const SpeculativeCycleChart = () => {
               x={p.x} y={p.y - 14}
               fill={activePhase === i ? p.color : 'rgba(255,255,255,0.35)'}
               fontSize="7"
-              fontFamily="monospace"
+
               textAnchor="middle"
               style={{ transition: 'fill 0.2s' }}
             >
@@ -345,7 +345,7 @@ export const SpeculativeCycleChart = () => {
         {activePhase !== null ? (
           <>
             <span style={{
-              fontFamily: '"SF Mono", monospace',
+              fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
               fontSize: '0.8rem',
               color: phases[activePhase].color,
               fontWeight: 600,
@@ -353,7 +353,7 @@ export const SpeculativeCycleChart = () => {
               {phases[activePhase].name}
             </span>
             <p style={{
-              fontFamily: 'NeueMontreal-Light, sans-serif',
+              fontFamily: 'var(--os-font)',
               fontSize: '0.8rem',
               color: 'rgba(255,255,255,0.6)',
               margin: '0.3rem 0 0',
@@ -364,7 +364,7 @@ export const SpeculativeCycleChart = () => {
           </>
         ) : (
           <p style={{
-            fontFamily: '"SF Mono", monospace',
+            fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
             fontSize: '0.75rem',
             color: 'rgba(255,255,255,0.3)',
             margin: 0,
@@ -418,14 +418,14 @@ export const SPIVAChart = () => {
               marginBottom: '0.25rem',
             }}>
               <span style={{
-                fontFamily: '"SF Mono", monospace',
+                fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
                 fontSize: '0.75rem',
                 color: hovered === i ? 'white' : 'rgba(255,255,255,0.5)',
                 transition: 'color 0.2s',
                 minWidth: '65px',
               }}>{d.period}</span>
               <span style={{
-                fontFamily: '"SF Mono", monospace',
+                fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
                 fontSize: '0.8rem',
                 color: d.pct > 85 ? '#EF4444' : d.pct > 70 ? '#FB923C' : '#FBBF24',
                 fontWeight: 600,
@@ -457,7 +457,7 @@ export const SPIVAChart = () => {
         borderRadius: '6px',
       }}>
         <p style={{
-          fontFamily: '"SF Mono", monospace',
+          fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
           fontSize: '0.7rem',
           color: 'rgba(255,255,255,0.5)',
           margin: 0,
@@ -536,28 +536,28 @@ export const BehavioralBiasesChart = () => {
           >
             <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{b.icon}</div>
             <p style={{
-              fontFamily: 'NeueMontreal-Medium, sans-serif',
+              fontFamily: 'var(--os-font)',
               fontSize: '0.85rem',
               color: activeBias === i ? b.color : 'rgba(255,255,255,0.8)',
               margin: '0 0 0.3rem',
               transition: 'color 0.2s',
             }}>{b.name}</p>
             <p style={{
-              fontFamily: 'NeueMontreal-Light, sans-serif',
+              fontFamily: 'var(--os-font)',
               fontSize: '0.75rem',
               color: 'rgba(255,255,255,0.5)',
               margin: '0 0 0.2rem',
               lineHeight: 1.5,
             }}>{b.effect}</p>
             <p style={{
-              fontFamily: '"SF Mono", monospace',
+              fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
               fontSize: '0.7rem',
               color: b.color,
               margin: '0.5rem 0 0',
               opacity: 0.8,
             }}>→ {b.result}</p>
             <p style={{
-              fontFamily: '"SF Mono", monospace',
+              fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
               fontSize: '0.6rem',
               color: 'rgba(255,255,255,0.25)',
               margin: '0.4rem 0 0',
@@ -575,7 +575,7 @@ export const BehavioralBiasesChart = () => {
         textAlign: 'center',
       }}>
         <p style={{
-          fontFamily: '"SF Mono", monospace',
+          fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums',
           fontSize: '0.75rem',
           color: 'rgba(255,255,255,0.5)',
           margin: 0,
@@ -644,13 +644,13 @@ export const MotivationDecayChart = () => {
         {[0, 25, 50, 75, 100].map(v => (
           <g key={v}>
             <line x1={pL} y1={toY(v)} x2={w - pR} y2={toY(v)} stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-            <text x={pL - 4} y={toY(v) + 3} textAnchor="end" fill="rgba(255,255,255,0.25)" fontSize="7" fontFamily="monospace">{v}%</text>
+            <text x={pL - 4} y={toY(v) + 3} textAnchor="end" fill="rgba(255,255,255,0.25)" fontSize="7">{v}%</text>
           </g>
         ))}
 
         {/* Crossover zone */}
         <rect x={toX(crossoverDay) - 12} y={pT} width="24" height={cH} fill="rgba(45, 212, 191, 0.05)" rx="3" />
-        <text x={toX(crossoverDay)} y={pT + 8} fill="rgba(45, 212, 191, 0.5)" fontSize="6" fontFamily="monospace" textAnchor="middle">CROSSOVER</text>
+        <text x={toX(crossoverDay)} y={pT + 8} fill="rgba(45, 212, 191, 0.5)" fontSize="6" textAnchor="middle">CROSSOVER</text>
 
         {/* Motivation line */}
         <path d={motivPath} fill="none" stroke="#FB923C" strokeWidth="2" opacity="0.8"
@@ -672,7 +672,7 @@ export const MotivationDecayChart = () => {
         )}
 
         {[0, 15, 30, 45, 60, 75, 90].map(d => (
-          <text key={d} x={toX(d)} y={h - 5} textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="7" fontFamily="monospace">
+          <text key={d} x={toX(d)} y={h - 5} textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="7">
             Day {d}
           </text>
         ))}
@@ -681,17 +681,17 @@ export const MotivationDecayChart = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#FB923C' }} />
-          <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
+          <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
             Motivation: <strong style={{ color: '#FB923C' }}>{Math.round(motivation[nearDay])}%</strong>
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#2DD4BF' }} />
-          <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
+          <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
             Discipline: <strong style={{ color: '#2DD4BF' }}>{Math.round(discipline[nearDay])}%</strong>
           </span>
         </div>
-        <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
+        <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
           Day {nearDay}
         </span>
       </div>
@@ -701,7 +701,7 @@ export const MotivationDecayChart = () => {
         border: '0.5px solid rgba(45, 212, 191, 0.15)',
         borderRadius: '8px',
       }}>
-        <p style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+        <p style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
           Motivation starts high but decays exponentially. Discipline starts low but compounds. Around day {crossoverDay}, discipline becomes the dominant force.
         </p>
       </div>
@@ -782,9 +782,9 @@ export const CompoundDisciplineChart = () => {
           style={{ transition: 'stroke-dashoffset 2.5s ease-out 0.3s' }} />
 
         {/* End labels */}
-        <text x={w - pR + 5} y={toY(improve[samples]) + 4} fill="#4ADE80" fontSize="9" fontFamily="monospace" fontWeight="bold">37.78x</text>
-        <text x={w - pR + 5} y={toY(1) + 4} fill="rgba(255,255,255,0.3)" fontSize="8" fontFamily="monospace">1.00x</text>
-        <text x={w - pR + 5} y={toY(decline[samples]) + 4} fill="#F87171" fontSize="9" fontFamily="monospace" fontWeight="bold">0.03x</text>
+        <text x={w - pR + 5} y={toY(improve[samples]) + 4} fill="#4ADE80" fontSize="9" fontWeight="bold">37.78x</text>
+        <text x={w - pR + 5} y={toY(1) + 4} fill="rgba(255,255,255,0.3)" fontSize="8">1.00x</text>
+        <text x={w - pR + 5} y={toY(decline[samples]) + 4} fill="#F87171" fontSize="9" fontWeight="bold">0.03x</text>
 
         {/* Hover */}
         {hoveredDay !== null && (
@@ -797,20 +797,20 @@ export const CompoundDisciplineChart = () => {
         )}
 
         {[0, 60, 120, 180, 240, 300, 365].map(d => (
-          <text key={d} x={toX(d)} y={h - 5} textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="7" fontFamily="monospace">
+          <text key={d} x={toX(d)} y={h - 5} textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="7">
             {d === 0 ? 'Start' : `Day ${d}`}
           </text>
         ))}
       </svg>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
-        <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: '#4ADE80' }}>
+        <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: '#4ADE80' }}>
           +1%/day: {Math.pow(1.01, nearDay).toFixed(2)}x
         </span>
-        <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: '#F87171' }}>
+        <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: '#F87171' }}>
           -1%/day: {Math.pow(0.99, nearDay).toFixed(4)}x
         </span>
-        <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
+        <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
           Day {nearDay}
         </span>
       </div>
@@ -820,7 +820,7 @@ export const CompoundDisciplineChart = () => {
         border: '0.5px solid rgba(74, 222, 128, 0.15)',
         borderRadius: '8px',
       }}>
-        <p style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+        <p style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
           After one year: the disciplined path is <strong style={{ color: '#4ADE80' }}>1,260x</strong> better than the declining path. Same starting point. Same daily magnitude. Opposite direction.
         </p>
       </div>
@@ -860,12 +860,12 @@ export const DopamineCycleChart = () => {
       <p style={chartTitle}>Figure 3 &mdash; The Dopamine Abandonment Loop (Interactive)</p>
       <svg viewBox="0 0 580 200" style={{ width: '100%', height: 'auto' }}>
         <line x1="40" y1="175" x2="560" y2="175" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-        <text x="30" y="48" fill="rgba(255,255,255,0.2)" fontSize="7" fontFamily="monospace" textAnchor="end">Drive</text>
-        <text x="560" y="190" fill="rgba(255,255,255,0.2)" fontSize="7" fontFamily="monospace" textAnchor="end">Time</text>
+        <text x="30" y="48" fill="rgba(255,255,255,0.2)" fontSize="7" textAnchor="end">Drive</text>
+        <text x="560" y="190" fill="rgba(255,255,255,0.2)" fontSize="7" textAnchor="end">Time</text>
 
         {/* Quit zone */}
         <rect x="345" y="128" width="115" height="38" rx="4" fill="rgba(248,113,113,0.06)" stroke="rgba(248,113,113,0.15)" strokeWidth="0.5" strokeDasharray="3 3" />
-        <text x="403" y="175" fill="rgba(248,113,113,0.4)" fontSize="6" fontFamily="monospace" textAnchor="middle">85% QUIT HERE</text>
+        <text x="403" y="175" fill="rgba(248,113,113,0.4)" fontSize="6" textAnchor="middle">85% QUIT HERE</text>
 
         {/* Curve */}
         <path d={curvePath} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="2"
@@ -879,7 +879,7 @@ export const DopamineCycleChart = () => {
               stroke={p.color} strokeWidth="1.5"
               style={{ transition: 'all 0.2s ease' }} />
             <text x={p.x} y={p.y - 14} fill={activePhase === i ? p.color : 'rgba(255,255,255,0.35)'}
-              fontSize="7" fontFamily="monospace" textAnchor="middle" style={{ transition: 'fill 0.2s' }}>
+              fontSize="7" textAnchor="middle" style={{ transition: 'fill 0.2s' }}>
               {p.name}
             </text>
           </g>
@@ -894,15 +894,15 @@ export const DopamineCycleChart = () => {
       }}>
         {activePhase !== null ? (
           <>
-            <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.8rem', color: phases[activePhase].color, fontWeight: 600 }}>
+            <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.8rem', color: phases[activePhase].color, fontWeight: 600 }}>
               {phases[activePhase].name}
             </span>
-            <p style={{ fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', margin: '0.3rem 0 0', lineHeight: 1.5 }}>
+            <p style={{ fontFamily: 'var(--os-font)', fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', margin: '0.3rem 0 0', lineHeight: 1.5 }}>
               {phases[activePhase].desc}
             </p>
           </>
         ) : (
-          <p style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+          <p style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
             Hover over a phase to explore the cycle
           </p>
         )}
@@ -947,15 +947,15 @@ export const GritFormulaChart = () => {
           background: 'rgba(255,255,255,0.02)', borderRadius: '8px',
           border: '0.5px solid rgba(255,255,255,0.08)',
         }}>
-          <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '1rem', color: '#60A5FA' }}>
+          <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '1rem', color: '#60A5FA' }}>
             Talent ({talent})
           </span>
-          <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '1.2rem', color: 'rgba(255,255,255,0.3)' }}>&times;</span>
-          <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '1rem', color: '#FBBF24', fontWeight: 'bold' }}>
+          <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '1.2rem', color: 'rgba(255,255,255,0.3)' }}>&times;</span>
+          <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '1rem', color: '#FBBF24', fontWeight: 'bold' }}>
             Effort ({effort})
           </span>
-          <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '1.2rem', color: 'rgba(255,255,255,0.3)' }}>=</span>
-          <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '1rem', color: '#A78BFA' }}>
+          <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '1.2rem', color: 'rgba(255,255,255,0.3)' }}>=</span>
+          <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '1rem', color: '#A78BFA' }}>
             Skill ({skill})
           </span>
         </div>
@@ -967,15 +967,15 @@ export const GritFormulaChart = () => {
           background: 'rgba(255,255,255,0.02)', borderRadius: '8px',
           border: '0.5px solid rgba(255,255,255,0.08)',
         }}>
-          <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '1rem', color: '#A78BFA' }}>
+          <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '1rem', color: '#A78BFA' }}>
             Skill ({skill})
           </span>
-          <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '1.2rem', color: 'rgba(255,255,255,0.3)' }}>&times;</span>
-          <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '1rem', color: '#FBBF24', fontWeight: 'bold' }}>
+          <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '1.2rem', color: 'rgba(255,255,255,0.3)' }}>&times;</span>
+          <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '1rem', color: '#FBBF24', fontWeight: 'bold' }}>
             Effort ({effort})
           </span>
-          <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '1.2rem', color: 'rgba(255,255,255,0.3)' }}>=</span>
-          <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '1.1rem', color: '#4ADE80', fontWeight: 'bold' }}>
+          <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '1.2rem', color: 'rgba(255,255,255,0.3)' }}>=</span>
+          <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '1.1rem', color: '#4ADE80', fontWeight: 'bold' }}>
             Achievement ({achievement})
           </span>
         </div>
@@ -983,14 +983,14 @@ export const GritFormulaChart = () => {
         {/* Interactive sliders */}
         <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
           <div style={{ flex: '1 1 200px', maxWidth: '250px' }}>
-            <label style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: '#60A5FA', display: 'block', marginBottom: '0.4rem' }}>
+            <label style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: '#60A5FA', display: 'block', marginBottom: '0.4rem' }}>
               Talent: {talent}
             </label>
             <input type="range" min="1" max="10" value={talent} onChange={(e) => setTalent(Number(e.target.value))}
               style={{ width: '100%', accentColor: '#60A5FA' }} />
           </div>
           <div style={{ flex: '1 1 200px', maxWidth: '250px' }}>
-            <label style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: '#FBBF24', display: 'block', marginBottom: '0.4rem' }}>
+            <label style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: '#FBBF24', display: 'block', marginBottom: '0.4rem' }}>
               Effort: {effort}
             </label>
             <input type="range" min="1" max="10" value={effort} onChange={(e) => setEffort(Number(e.target.value))}
@@ -1005,7 +1005,7 @@ export const GritFormulaChart = () => {
         border: '0.5px solid rgba(251, 191, 36, 0.15)',
         borderRadius: '8px',
       }}>
-        <p style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+        <p style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
           <span style={{ color: '#FBBF24' }}>Effort appears in both equations.</span> Doubling effort quadruples achievement. Doubling talent only doubles it. The algebra is unambiguous: effort is the dominant variable.
         </p>
       </div>
@@ -1052,7 +1052,7 @@ export const DelayedGratificationChart = () => {
               <span role="img" aria-label="marshmallow">&#x25CB;</span>
               <span role="img" aria-label="marshmallow" style={{ marginLeft: '0.25rem' }}>&#x25CB;</span>
             </div>
-            <p style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.8rem', color: '#4ADE80', margin: 0, fontWeight: 600 }}>
+            <p style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.8rem', color: '#4ADE80', margin: 0, fontWeight: 600 }}>
               Waited (Delayed Gratification)
             </p>
           </div>
@@ -1064,8 +1064,8 @@ export const DelayedGratificationChart = () => {
               { metric: 'BMI (Health)', value: '5 pts lower' },
             ].map((m, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <span style={{ fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>{m.metric}</span>
-                <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: '#4ADE80', fontWeight: 600 }}>{m.value}</span>
+                <span style={{ fontFamily: 'var(--os-font)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>{m.metric}</span>
+                <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: '#4ADE80', fontWeight: 600 }}>{m.value}</span>
               </div>
             ))}
           </div>
@@ -1088,7 +1088,7 @@ export const DelayedGratificationChart = () => {
             <div style={{ fontSize: '1.5rem', marginBottom: '0.4rem' }}>
               <span role="img" aria-label="marshmallow">&#x25CB;</span>
             </div>
-            <p style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.8rem', color: '#F87171', margin: 0, fontWeight: 600 }}>
+            <p style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.8rem', color: '#F87171', margin: 0, fontWeight: 600 }}>
               Ate Immediately (Instant Gratification)
             </p>
           </div>
@@ -1100,8 +1100,8 @@ export const DelayedGratificationChart = () => {
               { metric: 'BMI (Health)', value: 'Baseline' },
             ].map((m, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <span style={{ fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>{m.metric}</span>
-                <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: '#F87171' }}>{m.value}</span>
+                <span style={{ fontFamily: 'var(--os-font)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>{m.metric}</span>
+                <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: '#F87171' }}>{m.value}</span>
               </div>
             ))}
           </div>
@@ -1114,7 +1114,7 @@ export const DelayedGratificationChart = () => {
         border: '0.5px solid rgba(167, 139, 250, 0.15)',
         borderRadius: '8px',
       }}>
-        <p style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+        <p style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
           The ability to delay gratification at age 4 predicted life outcomes more reliably than IQ, socioeconomic background, or parental education.
         </p>
       </div>
@@ -1175,7 +1175,7 @@ export const EnterpriseCostBreakdownChart = () => {
           >
             {visible && d.pct >= 15 && (
               <span style={{
-                fontFamily: '"SF Mono", monospace', fontSize: '0.7rem',
+                fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.7rem',
                 color: 'white', fontWeight: 600, whiteSpace: 'nowrap',
               }}>{d.pct}%</span>
             )}
@@ -1204,18 +1204,18 @@ export const EnterpriseCostBreakdownChart = () => {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                 <span style={{
-                  fontFamily: 'NeueMontreal-Medium, sans-serif', fontSize: '0.8rem',
+                  fontFamily: 'var(--os-font)', fontSize: '0.8rem',
                   color: hovered === i ? 'white' : 'rgba(255,255,255,0.7)',
                   transition: 'color 0.2s',
                 }}>{d.label}</span>
                 <span style={{
-                  fontFamily: '"SF Mono", monospace', fontSize: '0.8rem',
+                  fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.8rem',
                   color: d.color, fontWeight: 600,
                 }}>{d.cost}</span>
               </div>
               {hovered === i && (
                 <p style={{
-                  fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.7rem',
+                  fontFamily: 'var(--os-font)', fontSize: '0.7rem',
                   color: 'rgba(255,255,255,0.5)', margin: '0.2rem 0 0',
                 }}>{d.desc}</p>
               )}
@@ -1230,7 +1230,7 @@ export const EnterpriseCostBreakdownChart = () => {
         border: '0.5px solid rgba(74, 158, 255, 0.15)',
         borderRadius: '8px',
       }}>
-        <p style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+        <p style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
           The license fee is only <strong style={{ color: '#4A9EFF' }}>20%</strong> of total cost. For every $1 spent on software, $4 is spent making it work.
         </p>
       </div>
@@ -1304,7 +1304,7 @@ export const SwitchingCostChart = () => {
         {[0, 10, 20, 30].map(v => (
           <g key={v}>
             <line x1={pL} y1={toY(v)} x2={w - pR} y2={toY(v)} stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-            <text x={pL - 4} y={toY(v) + 3} textAnchor="end" fill="rgba(255,255,255,0.25)" fontSize="7" fontFamily="monospace">
+            <text x={pL - 4} y={toY(v) + 3} textAnchor="end" fill="rgba(255,255,255,0.25)" fontSize="7">
               ${v}M
             </text>
           </g>
@@ -1329,14 +1329,14 @@ export const SwitchingCostChart = () => {
         {/* Zone labels */}
         {zones.map((z) => (
           <text key={z.label} x={(toX(z.start) + toX(z.end)) / 2} y={h - pB + 20}
-            textAnchor="middle" fill={z.color} fontSize="6.5" fontFamily="monospace" opacity="0.7">
+            textAnchor="middle" fill={z.color} fontSize="6.5" opacity="0.7">
             {z.label}
           </text>
         ))}
 
         {/* Year labels */}
         {[0, 5, 10, 15, 20].map(y => (
-          <text key={y} x={toX(y)} y={h - 5} textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="7" fontFamily="monospace">
+          <text key={y} x={toX(y)} y={h - 5} textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="7">
             Yr {y}
           </text>
         ))}
@@ -1353,7 +1353,7 @@ export const SwitchingCostChart = () => {
       </svg>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-        <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
+        <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
           Year {nearYear}: <strong style={{ color: '#06B6D4' }}>${switchingCost[nearYear].toFixed(1)}M</strong> estimated switching cost
         </span>
       </div>
@@ -1419,18 +1419,18 @@ export const ProcessComplexityChart = () => {
               >
                 <span style={{ fontSize: '0.9rem' }}>{l.icon}</span>
                 <span style={{
-                  fontFamily: '"SF Mono", monospace', fontSize: '0.7rem',
+                  fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.7rem',
                   color: activeLayer === i ? 'white' : 'rgba(255,255,255,0.5)',
                   transition: 'color 0.2s', whiteSpace: 'nowrap',
                 }}>{l.name}</span>
                 <span style={{
-                  fontFamily: '"SF Mono", monospace', fontSize: '0.65rem',
+                  fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.65rem',
                   color: l.color, marginLeft: 'auto', paddingRight: '0.75rem',
                 }}>{l.pct}%</span>
                 {i === 0 && (
                   <div style={{
                     position: 'absolute', right: '-70px', top: '50%', transform: 'translateY(-50%)',
-                    fontFamily: '"SF Mono", monospace', fontSize: '0.6rem',
+                    fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.6rem',
                     color: 'rgba(74, 158, 255, 0.5)', whiteSpace: 'nowrap',
                   }}>← Visible</div>
                 )}
@@ -1446,7 +1446,7 @@ export const ProcessComplexityChart = () => {
         }}>
           <span style={{
             position: 'absolute', right: '0', top: '-8px',
-            fontFamily: '"SF Mono", monospace', fontSize: '0.55rem',
+            fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.55rem',
             color: 'rgba(74, 158, 255, 0.4)',
           }}>WATERLINE ▼</span>
         </div>
@@ -1461,15 +1461,15 @@ export const ProcessComplexityChart = () => {
       }}>
         {activeLayer !== null ? (
           <>
-            <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.8rem', color: layers[activeLayer].color, fontWeight: 600 }}>
+            <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.8rem', color: layers[activeLayer].color, fontWeight: 600 }}>
               {layers[activeLayer].name}
             </span>
-            <p style={{ fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', margin: '0.3rem 0 0', lineHeight: 1.5 }}>
+            <p style={{ fontFamily: 'var(--os-font)', fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', margin: '0.3rem 0 0', lineHeight: 1.5 }}>
               {layers[activeLayer].desc}
             </p>
           </>
         ) : (
-          <p style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+          <p style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
             Hover over a layer to explore the hidden complexity
           </p>
         )}
@@ -1521,7 +1521,7 @@ export const EnterpriseMarketSizeChart = () => {
           >
             {/* Value label */}
             <span style={{
-              fontFamily: '"SF Mono", monospace', fontSize: '0.75rem',
+              fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem',
               color: hovered === i ? 'white' : s.color,
               fontWeight: 600, marginBottom: '0.35rem',
               opacity: visible ? 1 : 0, transition: 'opacity 0.5s',
@@ -1542,7 +1542,7 @@ export const EnterpriseMarketSizeChart = () => {
 
             {/* Label */}
             <span style={{
-              fontFamily: '"SF Mono", monospace', fontSize: '0.7rem',
+              fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.7rem',
               color: hovered === i ? 'white' : 'rgba(255,255,255,0.5)',
               marginTop: '0.5rem', textAlign: 'center', transition: 'color 0.2s',
             }}>{s.name}</span>
@@ -1559,15 +1559,15 @@ export const EnterpriseMarketSizeChart = () => {
       }}>
         {hovered !== null ? (
           <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
-            <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: segments[hovered].color }}>
+            <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: segments[hovered].color }}>
               {segments[hovered].name}: {segments[hovered].share}
             </span>
-            <span style={{ fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>
+            <span style={{ fontFamily: 'var(--os-font)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>
               Top vendors: {segments[hovered].companies}
             </span>
           </div>
         ) : (
-          <p style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+          <p style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
             Hover over a segment to see market leaders
           </p>
         )}
@@ -1579,7 +1579,7 @@ export const EnterpriseMarketSizeChart = () => {
         border: '0.5px solid rgba(74, 158, 255, 0.12)',
         borderRadius: '6px',
       }}>
-        <p style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+        <p style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
           Combined enterprise software market: <strong style={{ color: '#4A9EFF' }}>$205B+</strong> annual revenue. The top 5 vendors capture over 50% of total spend.
         </p>
       </div>
@@ -1644,14 +1644,14 @@ export const AttentionSpanChart = () => {
         {[4, 6, 8, 10, 12, 14].map(v => (
           <g key={v}>
             <line x1={pL} y1={toY(v)} x2={w - pR} y2={toY(v)} stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-            <text x={pL - 4} y={toY(v) + 3} textAnchor="end" fill="rgba(255,255,255,0.25)" fontSize="7" fontFamily="monospace">{v}s</text>
+            <text x={pL - 4} y={toY(v) + 3} textAnchor="end" fill="rgba(255,255,255,0.25)" fontSize="7">{v}s</text>
           </g>
         ))}
 
         {/* Goldfish line at 9s */}
         <line x1={pL} y1={toY(9)} x2={w - pR} y2={toY(9)}
           stroke="rgba(245, 158, 11, 0.2)" strokeWidth="1" strokeDasharray="4 4" />
-        <text x={w - pR - 2} y={toY(9) - 4} textAnchor="end" fill="rgba(245, 158, 11, 0.4)" fontSize="6.5" fontFamily="monospace">
+        <text x={w - pR - 2} y={toY(9) - 4} textAnchor="end" fill="rgba(245, 158, 11, 0.4)" fontSize="6.5">
           Goldfish: 9s
         </text>
 
@@ -1675,7 +1675,7 @@ export const AttentionSpanChart = () => {
         {data.filter((_, i) => i % 2 === 0 || i === data.length - 1).map((d, _, arr) => {
           const i = data.indexOf(d);
           return (
-            <text key={d.year} x={toX(i)} y={h - 5} textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="7" fontFamily="monospace">
+            <text key={d.year} x={toX(i)} y={h - 5} textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="7">
               {d.year}
             </text>
           );
@@ -1689,10 +1689,10 @@ export const AttentionSpanChart = () => {
       </svg>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-        <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: '#E8554A' }}>
+        <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: '#E8554A' }}>
           {data[nearIdx].year}: {data[nearIdx].seconds}s avg. attention
         </span>
-        <span style={{ fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)' }}>
+        <span style={{ fontFamily: 'var(--os-font)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)' }}>
           {data[nearIdx].event}
         </span>
       </div>
@@ -1703,7 +1703,7 @@ export const AttentionSpanChart = () => {
         border: '0.5px solid rgba(232, 85, 74, 0.12)',
         borderRadius: '6px',
       }}>
-        <p style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+        <p style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
           Average attention span has dropped <strong style={{ color: '#E8554A' }}>54%</strong> since 2000, falling below the commonly cited goldfish benchmark of 9 seconds.
         </p>
       </div>
@@ -1770,7 +1770,7 @@ export const DopamineFeedbackChart = () => {
               </text>
               <text x={x} y={y + (angle > 90 && angle < 270 ? 30 : -26)}
                 textAnchor="middle" fill={activeStep === i ? steps[i].color : 'rgba(255,255,255,0.4)'}
-                fontSize="7" fontFamily="monospace" style={{ transition: 'fill 0.2s' }}>
+                fontSize="7" style={{ transition: 'fill 0.2s' }}>
                 {steps[i].name}
               </text>
             </g>
@@ -1778,10 +1778,10 @@ export const DopamineFeedbackChart = () => {
         })}
 
         {/* Center label */}
-        <text x="200" y="122" textAnchor="middle" fill="rgba(232, 85, 74, 0.3)" fontSize="8" fontFamily="monospace">
+        <text x="200" y="122" textAnchor="middle" fill="rgba(232, 85, 74, 0.3)" fontSize="8">
           FEEDBACK
         </text>
-        <text x="200" y="133" textAnchor="middle" fill="rgba(232, 85, 74, 0.3)" fontSize="8" fontFamily="monospace">
+        <text x="200" y="133" textAnchor="middle" fill="rgba(232, 85, 74, 0.3)" fontSize="8">
           LOOP
         </text>
       </svg>
@@ -1795,15 +1795,15 @@ export const DopamineFeedbackChart = () => {
       }}>
         {activeStep !== null ? (
           <>
-            <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.8rem', color: steps[activeStep].color, fontWeight: 600 }}>
+            <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.8rem', color: steps[activeStep].color, fontWeight: 600 }}>
               {steps[activeStep].icon} {steps[activeStep].name}
             </span>
-            <p style={{ fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', margin: '0.3rem 0 0', lineHeight: 1.5 }}>
+            <p style={{ fontFamily: 'var(--os-font)', fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', margin: '0.3rem 0 0', lineHeight: 1.5 }}>
               {steps[activeStep].desc}
             </p>
           </>
         ) : (
-          <p style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+          <p style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
             Hover over a step to explore the dopamine feedback loop
           </p>
         )}
@@ -1853,7 +1853,7 @@ export const DeepVsShallowChart = () => {
             transitionDelay: '0.2s',
           }}
         >
-          <p style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.85rem', color: '#F59E0B', margin: '0 0 0.75rem', fontWeight: 600 }}>
+          <p style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.85rem', color: '#F59E0B', margin: '0 0 0.75rem', fontWeight: 600 }}>
             Deep Work
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
@@ -1865,7 +1865,7 @@ export const DeepVsShallowChart = () => {
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F59E0B', flexShrink: 0 }} />
-                <span style={{ fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
+                <span style={{ fontFamily: 'var(--os-font)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
                   {item}
                 </span>
               </div>
@@ -1875,10 +1875,10 @@ export const DeepVsShallowChart = () => {
             marginTop: '1rem', padding: '0.5rem 0.75rem',
             background: 'rgba(245, 158, 11, 0.08)', borderRadius: '6px',
           }}>
-            <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '1.5rem', color: '#F59E0B', fontWeight: 700 }}>
+            <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '1.5rem', color: '#F59E0B', fontWeight: 700 }}>
               {visible ? '4' : '0'}x
             </span>
-            <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginLeft: '0.5rem' }}>
+            <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginLeft: '0.5rem' }}>
               output multiplier
             </span>
           </div>
@@ -1897,7 +1897,7 @@ export const DeepVsShallowChart = () => {
             transitionDelay: '0.35s',
           }}
         >
-          <p style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.85rem', color: '#E8554A', margin: '0 0 0.75rem', fontWeight: 600 }}>
+          <p style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.85rem', color: '#E8554A', margin: '0 0 0.75rem', fontWeight: 600 }}>
             Shallow Work
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
@@ -1909,7 +1909,7 @@ export const DeepVsShallowChart = () => {
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#E8554A', flexShrink: 0 }} />
-                <span style={{ fontFamily: 'NeueMontreal-Light, sans-serif', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
+                <span style={{ fontFamily: 'var(--os-font)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
                   {item}
                 </span>
               </div>
@@ -1919,10 +1919,10 @@ export const DeepVsShallowChart = () => {
             marginTop: '1rem', padding: '0.5rem 0.75rem',
             background: 'rgba(232, 85, 74, 0.08)', borderRadius: '6px',
           }}>
-            <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '1.5rem', color: '#E8554A', fontWeight: 700 }}>
+            <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '1.5rem', color: '#E8554A', fontWeight: 700 }}>
               {visible ? '1' : '0'}x
             </span>
-            <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginLeft: '0.5rem' }}>
+            <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginLeft: '0.5rem' }}>
               baseline output
             </span>
           </div>
@@ -1937,10 +1937,10 @@ export const DeepVsShallowChart = () => {
             transition: 'all 0.5s', transitionDelay: `${i * 0.1 + 0.6}s`,
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-              <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)' }}>{c.metric}</span>
+              <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)' }}>{c.metric}</span>
               <div style={{ display: 'flex', gap: '1rem' }}>
-                <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.7rem', color: '#F59E0B' }}>{c.deep}</span>
-                <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.7rem', color: '#E8554A' }}>{c.shallow}</span>
+                <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.7rem', color: '#F59E0B' }}>{c.deep}</span>
+                <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.7rem', color: '#E8554A' }}>{c.shallow}</span>
               </div>
             </div>
             <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', background: 'rgba(255,255,255,0.04)' }}>
@@ -1963,7 +1963,7 @@ export const DeepVsShallowChart = () => {
         border: '0.5px solid rgba(245, 158, 11, 0.12)',
         borderRadius: '6px',
       }}>
-        <p style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+        <p style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
           The average knowledge worker spends <strong style={{ color: '#E8554A' }}>81%</strong> of their day on shallow work. The <strong style={{ color: '#F59E0B' }}>19%</strong> spent in deep focus produces the majority of their economic value.
         </p>
       </div>
@@ -2046,16 +2046,16 @@ export const FocusAdvantageChart = () => {
           style={{ transition: 'stroke-dashoffset 2.5s ease-out 0.3s' }} />
 
         {/* End labels */}
-        <text x={w - pR + 5} y={toY(focused[20]) + 4} fill="#F59E0B" fontSize="8" fontFamily="monospace" fontWeight="bold">
+        <text x={w - pR + 5} y={toY(focused[20]) + 4} fill="#F59E0B" fontSize="8" fontWeight="bold">
           {(focused[20] / 100).toFixed(0)}x
         </text>
-        <text x={w - pR + 5} y={toY(distracted[20]) + 4} fill="#E8554A" fontSize="8" fontFamily="monospace">
+        <text x={w - pR + 5} y={toY(distracted[20]) + 4} fill="#E8554A" fontSize="8">
           {(distracted[20] / 100).toFixed(1)}x
         </text>
 
         {/* Year labels */}
         {[0, 5, 10, 15, 20].map(y => (
-          <text key={y} x={toX(y)} y={h - 5} textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="7" fontFamily="monospace">
+          <text key={y} x={toX(y)} y={h - 5} textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="7">
             Yr {y}
           </text>
         ))}
@@ -2074,17 +2074,17 @@ export const FocusAdvantageChart = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#F59E0B' }} />
-          <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
+          <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
             Deep Focus: <strong style={{ color: '#F59E0B' }}>{(focused[nearYear] / 100).toFixed(1)}x</strong>
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#E8554A' }} />
-          <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
+          <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
             Distracted: <strong style={{ color: '#E8554A' }}>{(distracted[nearYear] / 100).toFixed(1)}x</strong>
           </span>
         </div>
-        <span style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
+        <span style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
           Year {nearYear} &mdash; {ratio}x gap
         </span>
       </div>
@@ -2095,7 +2095,7 @@ export const FocusAdvantageChart = () => {
         border: '0.5px solid rgba(245, 158, 11, 0.15)',
         borderRadius: '8px',
       }}>
-        <p style={{ fontFamily: '"SF Mono", monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+        <p style={{ fontFamily: 'var(--os-font)', fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
           After 20 years, the focused individual has produced <strong style={{ color: '#F59E0B' }}>{(focused[20] / distracted[20]).toFixed(0)}x</strong> more cumulative output than the chronically distracted one. Same talent. Same hours. Different attention management.
         </p>
       </div>

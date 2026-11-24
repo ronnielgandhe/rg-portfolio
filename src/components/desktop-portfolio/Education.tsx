@@ -186,7 +186,7 @@ const Education = ({ onCardClick, windowMode }: EducationProps) => {
             <h2 style={{
               fontSize: '1.2rem',
               color: 'rgba(255, 255, 255, 0.9)',
-              fontFamily: '-apple-system, BlinkMacSystemFont, NeueMontreal-MediumItalic, sans-serif',
+              fontFamily: 'var(--os-font)',
               fontStyle: 'italic',
               margin: '0 0 0.75rem 0',
               fontWeight: '600'
@@ -236,7 +236,7 @@ const Education = ({ onCardClick, windowMode }: EducationProps) => {
             <h3 style={{
               fontSize: '1.2rem',
               color: 'rgba(255, 255, 255, 0.9)',
-              fontFamily: '-apple-system, BlinkMacSystemFont, NeueMontreal-MediumItalic, sans-serif',
+              fontFamily: 'var(--os-font)',
               fontStyle: 'italic',
               margin: '1.25rem 0 0.75rem 0',
               fontWeight: '600',
@@ -288,10 +288,10 @@ const Education = ({ onCardClick, windowMode }: EducationProps) => {
                       style={{ width: 55, height: 55, objectFit: 'contain', borderRadius: 8, flexShrink: 0 }}
                     />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 'clamp(1rem, 2.5vw, 1.3rem)', fontWeight: 600, color: 'rgba(255, 255, 255, 0.95)', fontFamily: '-apple-system, BlinkMacSystemFont, NeueMontreal-Medium, sans-serif', lineHeight: 1.3 }}>
+                      <div style={{ fontSize: 'clamp(1rem, 2.5vw, 1.3rem)', fontWeight: 600, color: 'rgba(255, 255, 255, 0.95)', fontFamily: 'var(--os-font)', lineHeight: 1.3 }}>
                         {cert.title}
                       </div>
-                      <div style={{ fontSize: 'clamp(0.9rem, 2.2vw, 1rem)', color: 'rgba(255,255,255,0.7)', fontFamily: '-apple-system, BlinkMacSystemFont, NeueMontreal-Light, sans-serif', marginTop: '4px' }}>
+                      <div style={{ fontSize: 'clamp(0.9rem, 2.2vw, 1rem)', color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--os-font)', marginTop: '4px' }}>
                         {cert.issuer} · {cert.date}
                       </div>
                     </div>
@@ -323,7 +323,7 @@ const Education = ({ onCardClick, windowMode }: EducationProps) => {
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
                   background: 'none', border: 'none', cursor: 'pointer',
                   color: 'rgba(255,255,255,0.5)', fontSize: '13px',
-                  fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+                  fontFamily: 'var(--os-font)',
                   padding: '4px 0', marginBottom: '1.25rem',
                   transition: 'color 0.15s',
                 }}
@@ -348,10 +348,10 @@ const Education = ({ onCardClick, windowMode }: EducationProps) => {
                       style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 8 }}
                     />
                     <div>
-                      <div style={{ fontSize: '18px', fontWeight: 700, color: '#fff', fontFamily: "'SF Pro Display', -apple-system, sans-serif", lineHeight: 1.3 }}>
+                      <div style={{ fontSize: '18px', fontWeight: 700, color: '#fff', fontFamily: 'var(--os-font-display)', lineHeight: 1.3 }}>
                         {selectedCert.title}
                       </div>
-                      <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', fontFamily: "'SF Pro Text', -apple-system, sans-serif", marginTop: '3px' }}>
+                      <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--os-font)', marginTop: '3px' }}>
                         {selectedCert.issuer} · {selectedCert.date}
                       </div>
                     </div>
@@ -365,11 +365,11 @@ const Education = ({ onCardClick, windowMode }: EducationProps) => {
                     padding: '16px 18px',
                     marginBottom: '1.25rem',
                   }}>
-                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.4)', fontFamily: "'SF Pro Text', -apple-system, sans-serif", marginBottom: '8px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--os-font)', marginBottom: '8px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                       Reflection
                     </div>
                     <div style={{
-                      fontSize: '13px', color: 'rgba(255,255,255,0.7)', fontFamily: "'SF Pro Text', -apple-system, sans-serif",
+                      fontSize: '13px', color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--os-font)',
                       lineHeight: 1.65, fontStyle: 'italic',
                     }}>
                       {selectedCert.reflection}
@@ -399,7 +399,7 @@ const Education = ({ onCardClick, windowMode }: EducationProps) => {
           <h2 style={{
             fontSize: '1.2rem',
             color: '#1d1d1f',
-            fontFamily: '-apple-system, BlinkMacSystemFont, NeueMontreal-MediumItalic, sans-serif',
+            fontFamily: 'var(--os-font)',
             fontStyle: 'italic',
             margin: '0 0 1rem 0',
             fontWeight: '600'

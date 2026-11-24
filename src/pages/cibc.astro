@@ -1,0 +1,13 @@
+---
+import SiteHead from '../components/portfolio/SiteHead.astro';
+import WorkPage from '../components/portfolio/work/WorkPage';
+---
+
+<html lang="en">
+  <head>
+    <SiteHead title="cibc | Ronniel Gandhe" description="cibc, technology operations. ronniel gandhe, software engineer in san francisco." path="/cibc" />
+  </head>
+  <body>
+    <WorkPage slug="cibc" client:load />
+  </body>
+</html>
