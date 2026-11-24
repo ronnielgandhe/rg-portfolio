@@ -121,7 +121,6 @@ export default function App() {
             key={inputKey}
             onScan={handleScan}
             disabled={phase === 'scanning'}
-            ready={!showSplash}
           />
 
           {phase === 'scanning' && (

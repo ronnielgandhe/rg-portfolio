@@ -16,8 +16,6 @@ const CSS = `
 .lfp .site-col { max-width: none; }
 .lfp-edge { padding: 0; }
 @media (min-width: 768px) { .lfp-edge { padding: 0 24px; } }
-.lfp-logo { display: inline-flex; align-items: center; gap: 0.22em; letter-spacing: -0.03em; }
-.lfp-logo svg { width: 1.18em; height: 1.18em; flex-shrink: 0; }
 .lfp-tabs { display: flex; margin-top: 40px; border-bottom: 1px solid var(--rule); }
 .lfp-tab { padding: 10px 20px; margin-bottom: -1px; font-size: 13px; line-height: 20px; font-weight: 500; color: var(--faint); border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; }
 .lfp-tab:first-child { padding-left: 0; }
@@ -31,8 +29,12 @@ const CSS = `
 .lfp-panel[data-state='off'] { display: none; }
 @keyframes lfpIn { from { opacity: 0; } to { opacity: 1; } }
 .lfp-panel.lfp-edge { padding-top: 48px; }
+.lfp-bd { max-width: 640px; margin: 72px 0 0; padding: 20px 0 0; border-top: 1px solid var(--rule); }
+.lfp-bd p { margin: 0; font-size: 15px; line-height: 24px; color: var(--text); }
+.lfp-bd a { display: inline-block; margin-top: 12px; font-size: 13px; line-height: 20px; color: var(--ink); text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.lfp-bd a:hover { text-decoration-color: var(--ink); }
+.lfp-end { height: 96px; }
 .lfp-wait { height: 1px; margin-top: 48px; background: var(--rule); }
-.lfp-settle .audit-title, .lfp-settle .lf-root .translate-y-6 { opacity: 1 !important; transform: none !important; transition: none !important; }
 @media (prefers-reduced-motion: reduce) { .lfp-wrap, .lfp-panel { transition: none; animation: none; } }
 `;
 
@@ -56,13 +58,6 @@ export default function LeanFetchPage({ initial = 'scan' }: { initial?: View }) 
   const wrap = useRef<HTMLDivElement>(null);
   const panels = useRef<Record<View, HTMLDivElement | null>>({ scan: null, benchmarks: null });
   const timer = useRef(0);
-  const [settle, setSettle] = useState(true);
-
-  useEffect(() => {
-    const t = window.setTimeout(() => setSettle(false), 1000);
-    return () => window.clearTimeout(t);
-  }, []);
-
   useEffect(() => {
     const v = readUrl();
     setView(v);
@@ -100,15 +95,9 @@ export default function LeanFetchPage({ initial = 'scan' }: { initial?: View }) 
   return (
     <PageShell activePage="projects" crumb="leanfetch" wide>
       <style>{CSS}</style>
-      <div className={settle ? 'lfp lfp-settle' : 'lfp'}>
+      <div className="lfp">
         <div className="lfp-edge">
-          <LeanFetchHero
-            actions={[
-              { label: 'scan a repo', href: '/leanfetch', primary: true, onClick: tabLink('scan') },
-              { label: 'benchmarks', href: '/leanfetch?view=benchmarks', onClick: tabLink('benchmarks') },
-              { label: 'read the code', href: 'https://github.com/ronnielgandhe/leanfetch', external: true },
-            ]}
-          />
+          <LeanFetchHero />
           <div id="lfp-tabs" className="lfp-tabs" role="tablist" style={{ scrollMarginTop: 96 }}>
             {TABS.map((t) => (
               <button key={t.id} type="button" role="tab" aria-selected={view === t.id} className={view === t.id ? 'lfp-tab lfp-tab-on' : 'lfp-tab'} onClick={() => go(t.id)}>
@@ -131,6 +120,15 @@ export default function LeanFetchPage({ initial = 'scan' }: { initial?: View }) 
               </Suspense>
             )}
           </div>
+        </div>
+        <div className="lfp-edge">
+          <div className="lfp-bd">
+            <p>{view === 'benchmarks'
+              ? 'public benchmark scores joined to what each model costs per token, so you can pick a job, see who is good at it, and find the cheapest model that clears your bar. every number links back to its source.'
+              : 'the scanner reads your code without running it. static analysis finds every llm call site, flags waste patterns like a call inside a loop, no output cap, or a top-tier model on a simple task, and puts a monthly dollar figure on each one. nothing is stored.'}</p>
+            <a href="https://github.com/ronnielgandhe/leanfetch" target="_blank" rel="noopener noreferrer">read the code</a>
+          </div>
+          <div className="lfp-end" />
         </div>
       </div>
     </PageShell>

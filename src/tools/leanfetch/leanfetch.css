@@ -167,3 +167,16 @@
   opacity: 1;
   transform: scale(1);
 }
+
+.site-dark .lf-root { color: var(--ink); background: var(--bg); }
+.site-dark .lf-root [class*="bg-white"] { background-color: var(--bg) !important; }
+.site-dark .lf-root [class*="bg-[#FAFAF8]"] { background-color: var(--hover) !important; }
+.site-dark .lf-root [class*="text-[#1A1A1A]"] { color: var(--ink) !important; }
+.site-dark .lf-root [class*="text-[rgba(26,26,26"] { color: var(--faint) !important; }
+.site-dark .lf-root [class*="border-[rgba(0,0,0"] { border-color: var(--rule) !important; }
+.site-dark .lf-root [class*="divide-[rgba(0,0,0"] > * { border-color: var(--rule) !important; }
+.site-dark .lf-root [class*="bg-[#1A1A1A]"], .site-dark .lf-root [class*="bg-[#333333]"] { background-color: var(--ink) !important; color: var(--bg) !important; }
+.site-dark .lf-root input, .site-dark .lf-root textarea { color: var(--ink); }
+.site-dark .lf-root [class*="bg-[#F8F8F6]"] { background-color: var(--hover) !important; }
+.site-dark .lf-root [class*="bg-amber-50"], .site-dark .lf-root [class*="bg-blue-50"], .site-dark .lf-root [class*="bg-red-50"] { background-color: var(--hover) !important; }
+.site-dark .lf-root button:disabled { background-color: var(--hover) !important; color: var(--faint) !important; }

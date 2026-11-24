@@ -16,67 +16,19 @@ const DeepReadTooltip = ({ text }) => (
 );
 
 const TABS = [
-  { id: 'github', label: 'GitHub Repo' },
-  { id: 'files', label: 'Direct Files Upload' },
-  { id: 'plan', label: 'Plan Analysis' },
+  { id: 'github', label: 'github repo' },
+  { id: 'files', label: 'upload files' },
 ];
 
-const SOURCE_CARDS = [
-  {
-    id: 'github',
-    label: 'GitHub Repo',
-    description: 'Scan a public repository',
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
-      </svg>
-    ),
-  },
-  {
-    id: 'files',
-    label: 'Direct Files Upload',
-    description: 'Upload source files for analysis',
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-        <polyline points="17 8 12 3 7 8" />
-        <line x1="12" y1="3" x2="12" y2="15" />
-      </svg>
-    ),
-  },
-  {
-    id: 'plan',
-    label: 'Plan Analysis',
-    description: 'Analyze architecture and design documents',
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-        <polyline points="14 2 14 8 20 8" />
-        <line x1="16" y1="13" x2="8" y2="13" />
-        <line x1="16" y1="17" x2="8" y2="17" />
-      </svg>
-    ),
-  },
-];
-
-
-export default function InputPanel({ onScan, disabled, ready }) {
-  const [view, setView] = useState('cards');   // 'cards' | 'transitioning' | 'panel'
+export default function InputPanel({ onScan, disabled }) {
   const [inputMode, setInputMode] = useState('github');
-  const [titleShown, setTitleShown] = useState(false);
-  const [shownCards, setShownCards] = useState([]);
-  const [selectedCard, setSelectedCard] = useState(null);
 
   const [url, setUrl] = useState('');
   const [deepRead, setDeepRead] = useState(null);
   const [fileError, setFileError] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [planText, setPlanText] = useState('');
-  const [planName, setPlanName] = useState('');
-  const [planFile, setPlanFile] = useState(null);
 
   const fileInputRef = useRef(null);
-  const planFileRef = useRef(null);
 
   useEffect(() => {
     let alive = true;
@@ -89,33 +41,14 @@ export default function InputPanel({ onScan, disabled, ready }) {
 
   const deepOn = !!deepRead?.enabled;
   const deepText = deepOn
-    ? `Scan + Deep Read sends only the top ${deepRead.maxFindings || 10} flagged snippets (capped) to Claude on our server to confirm or reject each flag and write the assessment. ${deepRead.perIpPerDay} per day.`
-    : 'Deep read uses Claude on the server to double check the top flags. It is off on this deploy; the static scan is complete without it.';
-
-  useEffect(() => {
-    if (!ready) return;
-    const t0 = setTimeout(() => setTitleShown(true), 50);
-    const cardTimers = SOURCE_CARDS.map((card, i) =>
-      setTimeout(() => setShownCards((prev) => [...prev, card.id]), 150 + i * 120)
-    );
-    return () => { clearTimeout(t0); cardTimers.forEach(clearTimeout); };
-  }, [ready]);
-
-  const handleCardClick = (id) => {
-    if (selectedCard) return;
-    setSelectedCard(id);
-    setInputMode(id);
-    setView('transitioning');
-    setTimeout(() => setView('panel'), 300);
-  };
+    ? `scan + deep read sends only the top ${deepRead.maxFindings || 10} flagged snippets (capped) to Claude on our server to confirm or reject each flag and write the assessment. ${deepRead.perIpPerDay} per day.`
+    : '';
 
   const buildConfig = (withDeepRead) => {
     if (inputMode === 'github') {
       return { sourceType: 'github', url: url.trim(), deepRead: withDeepRead };
-    } else if (inputMode === 'files') {
-      return { sourceType: 'files', files: uploadedFiles, uploadName: uploadedFiles.length === 1 ? uploadedFiles[0].name : `${uploadedFiles.length} files`, deepRead: withDeepRead };
     }
-    return { sourceType: 'plan', planName: planName || 'plan.md', planText };
+    return { sourceType: 'files', files: uploadedFiles, uploadName: uploadedFiles.length === 1 ? uploadedFiles[0].name : `${uploadedFiles.length} files`, deepRead: withDeepRead };
   };
 
   const canScan = () => {
@@ -149,7 +82,7 @@ export default function InputPanel({ onScan, disabled, ready }) {
           if (!added.length) setFileError(`${file.name} has no .js, .ts or .py files`);
           setUploadedFiles((prev) => [...prev, ...added]);
         } catch {
-          setFileError(`Could not read ${file.name}`);
+          setFileError(`could not read ${file.name}`);
         }
         continue;
       }
@@ -159,19 +92,6 @@ export default function InputPanel({ onScan, disabled, ready }) {
       };
       reader.readAsText(file);
     }
-  };
-
-  const handlePlanUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setPlanText(reader.result);
-      setPlanFile(null);
-      setPlanName(file.name);
-    };
-    reader.readAsText(file);
-    e.target.value = '';
   };
 
   const removeFile = (index) => {
@@ -190,57 +110,6 @@ export default function InputPanel({ onScan, disabled, ready }) {
 
   const labelClass =
     'block text-[13px] font-medium uppercase tracking-[0.08em] text-[rgba(26,26,26,0.4)] mb-2';
-
-  if (view === 'cards' || view === 'transitioning') {
-    return (
-      <div className={`py-8 md:py-14 ${view === 'transitioning' ? 'cards-exiting' : ''}`}>
-        <h2
-          className={`audit-title text-center text-2xl md:text-[1.75rem] font-light tracking-tight text-[#1A1A1A] mb-10 ${
-            titleShown ? 'is-shown' : ''
-          }`}
-        >
-          What would you like to audit?
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {SOURCE_CARDS.map((card) => {
-            const isSelected = view === 'transitioning' && selectedCard === card.id;
-            const isOther = view === 'transitioning' && selectedCard !== card.id;
-
-            return (
-              <button
-                key={card.id}
-                type="button"
-                onClick={() => handleCardClick(card.id)}
-                disabled={view === 'transitioning'}
-                className={`group text-left border bg-white p-7 cursor-pointer
-                  transition-all duration-500
-                  ${shownCards.includes(card.id) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}
-                  ${!selectedCard ? 'border-[rgba(0,0,0,0.08)] hover:border-[rgba(0,0,0,0.25)] hover:shadow-sm' : ''}
-                  ${isSelected ? 'border-[rgba(0,0,0,0.3)] !duration-150' : ''}
-                  ${isOther ? '!opacity-50 !duration-150' : ''}
-                `}
-                style={{
-                  transform: isSelected ? 'scale(1.03)' : isOther ? 'scale(0.97)' : undefined,
-                  transition: view === 'transitioning' ? 'transform 0.15s ease, opacity 0.15s ease' : undefined,
-                }}
-              >
-                <div className="h-7 flex items-center text-[rgba(26,26,26,0.35)] group-hover:text-[#1A1A1A] transition-colors duration-200 mb-4">
-                  {card.icon}
-                </div>
-                <h3 className="text-[15px] font-medium text-[#1A1A1A] mb-1.5">
-                  {card.label}
-                </h3>
-                <p className="text-[13px] text-[rgba(26,26,26,0.45)] leading-relaxed">
-                  {card.description}
-                </p>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="panel-grow-enter bg-white border border-[rgba(0,0,0,0.06)]">
@@ -263,7 +132,7 @@ export default function InputPanel({ onScan, disabled, ready }) {
           <>
             <div>
               <label className={labelClass}>
-                GitHub Repository URL <span className="text-[#DC2626]">*</span>
+                github repo url <span className="text-[#DC2626]">*</span>
               </label>
               <input
                 type="text"
@@ -276,8 +145,8 @@ export default function InputPanel({ onScan, disabled, ready }) {
             </div>
             <div className="mt-5">
               <label className={labelClass}>
-                Example Repos{' '}
-                <span className="text-[rgba(26,26,26,0.3)] normal-case tracking-normal">(one click)</span>
+                try one{' '}
+                
               </label>
               <div className="flex gap-2 flex-wrap">
                 {EXAMPLES.map((ex) => (
@@ -293,14 +162,14 @@ export default function InputPanel({ onScan, disabled, ready }) {
         {inputMode === 'files' && (
           <>
             <div>
-              <label className={labelClass}>Source Files <span className="text-[#DC2626]">*</span></label>
+              <label className={labelClass}>source files <span className="text-[#DC2626]">*</span></label>
               <div className="flex gap-2 mb-3">
                 <button type="button" onClick={() => fileInputRef.current?.click()} disabled={disabled} className="border border-[rgba(0,0,0,0.1)] text-[13px] px-4 py-2 hover:bg-[#FAFAF8] transition-colors disabled:opacity-50">
-                  Choose Files
+                  choose files
                 </button>
                 <input ref={fileInputRef} type="file" multiple accept=".js,.jsx,.ts,.tsx,.py,.mjs,.cjs,.zip" onChange={handleFileUpload} className="hidden" />
                 <span className="text-xs text-[rgba(26,26,26,0.4)] self-center">
-                  {uploadedFiles.length > 0 ? `${uploadedFiles.length} file${uploadedFiles.length !== 1 ? 's' : ''} added` : 'No files selected'}
+                  {uploadedFiles.length > 0 ? `${uploadedFiles.length} file${uploadedFiles.length !== 1 ? 's' : ''} added` : 'no files selected'}
                 </span>
                 {fileError && <span className="text-xs text-[#DC2626] self-center">{fileError}</span>}
               </div>
@@ -322,65 +191,22 @@ export default function InputPanel({ onScan, disabled, ready }) {
         )}
 
 
-        {inputMode === 'plan' && (
-          <>
-            <div>
-              <label className={labelClass}>Architecture / Design Plan <span className="text-[#DC2626]">*</span></label>
-              <input ref={planFileRef} type="file" accept=".md,.txt,.markdown" onChange={handlePlanUpload} className="hidden" />
-              {planFile || (planName && planName !== 'plan.md') ? (
-                <div className="border-2 border-dashed border-[rgba(0,0,0,0.1)] p-6 text-center">
-                  <div className="text-sm text-[#1A1A1A] font-medium">{planName}</div>
-                  <div className="text-xs text-[rgba(26,26,26,0.4)] mt-1">{`${planText.length} characters`}</div>
-                  <button type="button" onClick={() => { setPlanText(''); setPlanFile(null); setPlanName(''); }} className="text-xs text-[#DC2626] hover:text-[#1A1A1A] mt-2 underline">Remove and start over</button>
-                </div>
-              ) : (
-                <div
-                  className="border-2 border-dashed border-[rgba(0,0,0,0.1)] hover:border-[rgba(0,0,0,0.25)] transition-colors cursor-pointer"
-                  onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-[#1A1A1A]', 'bg-[#FAFAF8]'); }}
-                  onDragLeave={(e) => { e.currentTarget.classList.remove('border-[#1A1A1A]', 'bg-[#FAFAF8]'); }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.classList.remove('border-[#1A1A1A]', 'bg-[#FAFAF8]');
-                    const file = e.dataTransfer.files[0];
-                    if (file) { const dt = new DataTransfer(); dt.items.add(file); planFileRef.current.files = dt.files; planFileRef.current.dispatchEvent(new Event('change', { bubbles: true })); }
-                  }}
-                  onClick={() => planFileRef.current?.click()}
-                >
-                  <div className="p-4 text-center pointer-events-none">
-                    <div className="text-[rgba(26,26,26,0.3)] text-2xl mb-1">+</div>
-                    <div className="text-xs text-[rgba(26,26,26,0.4)]">Drop a file here or click to upload</div>
-                    <div className="text-[10px] text-[rgba(26,26,26,0.3)] mt-1">.txt, .md</div>
-                  </div>
-                </div>
-              )}
-              <textarea
-                value={planFile ? '' : planText}
-                onChange={(e) => { setPlanText(e.target.value); setPlanFile(null); setPlanName(planName || ''); }}
-                placeholder="Or paste your plan text here..."
-                disabled={disabled || !!planFile}
-                rows={6}
-                className={`${inputClass} resize-y font-mono text-xs mt-3 ${planFile ? 'opacity-40' : ''}`}
-              />
-            </div>
-          </>
-        )}
-
-        <div className="mt-6 flex items-center justify-between">
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
           <p className="text-xs text-[rgba(26,26,26,0.4)]">
-            {inputMode === 'github' ? 'Public repos only. Fetched, analyzed in-memory and not stored.' :
-             inputMode === 'files' ? 'Files are analyzed in-memory and not stored.' :
-             'Plan analysis needs a server-side Claude pass and is not available on this deploy yet.'}
-            <DeepReadTooltip text={inputMode === 'plan' ? 'The code scan is static and free. Reading a design doc needs a model, so this tab stays off until a server-side plan route is added.' : deepText} />
+            {inputMode === 'github' ? 'public repos only. fetched, analyzed in memory, not stored.' : 'files are analyzed in memory, not stored.'}
+            {deepOn && <DeepReadTooltip text={deepText} />}
           </p>
           <div className="flex gap-2">
-            <button type="button" disabled={disabled || inputMode === 'plan'} onClick={runDemo} className="text-[13px] font-medium text-[rgba(26,26,26,0.5)] hover:text-[#1A1A1A] px-4 py-2.5 transition-colors disabled:text-[rgba(26,26,26,0.2)]">
-              Demo {inputMode === 'plan' ? 'Analysis' : 'Scan'}
+            <button type="button" disabled={disabled} onClick={runDemo} className="text-[13px] font-medium text-[rgba(26,26,26,0.5)] hover:text-[#1A1A1A] px-4 py-2.5 transition-colors disabled:text-[rgba(26,26,26,0.2)]">
+              demo scan
             </button>
-            <button type="button" disabled={disabled || !deepOn || !canScan()} onClick={() => onScan(buildConfig(true))} className="border border-[#1A1A1A] text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white text-[13px] font-medium px-5 py-2.5 transition-colors disabled:border-[rgba(0,0,0,0.1)] disabled:text-[rgba(26,26,26,0.3)] disabled:hover:bg-transparent disabled:hover:text-[rgba(26,26,26,0.3)]">
-              {disabled ? 'Scanning...' : inputMode === 'plan' ? 'Analyze + Deep Read' : 'Scan + Deep Read'}
-            </button>
+            {deepOn && (
+              <button type="button" disabled={disabled || !canScan()} onClick={() => onScan(buildConfig(true))} className="border border-[#1A1A1A] text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white text-[13px] font-medium px-5 py-2.5 transition-colors disabled:border-[rgba(0,0,0,0.1)] disabled:text-[rgba(26,26,26,0.3)] disabled:hover:bg-transparent disabled:hover:text-[rgba(26,26,26,0.3)]">
+                {disabled ? 'scanning...' : 'scan + deep read'}
+              </button>
+            )}
             <button type="button" disabled={disabled || !canScan()} onClick={() => onScan(buildConfig(false))} className="bg-[#1A1A1A] hover:bg-[#333333] text-white text-[13px] font-medium px-5 py-2.5 transition-colors disabled:bg-[rgba(26,26,26,0.15)] disabled:text-[rgba(26,26,26,0.3)]">
-              {disabled ? 'Scanning...' : inputMode === 'plan' ? 'Analyze' : 'Scan'}
+              {disabled ? 'scanning...' : 'scan'}
             </button>
           </div>
         </div>

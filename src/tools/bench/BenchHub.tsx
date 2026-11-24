@@ -142,7 +142,6 @@ export default function BenchHub() {
     <div className="bx">
       <style>{BENCH_CSS}</style>
       <div className="bx-intro">
-        <p className="bx-lede">public benchmarks joined to what each model costs per token. pick the job, see who is good at it, then find the cheapest one that clears your bar.</p>
         <div className="bx-hero-stats">
           <div><span className="bx-big">{pricedCount}</span><span className="bx-label">models priced</span></div>
           <div><span className="bx-big">{scoredCount}</span><span className="bx-label">with scores</span></div>
@@ -156,40 +155,34 @@ export default function BenchHub() {
       </div>
 
       <section className="bx-section bx-section-first" aria-labelledby="bx-money">
-        <span className="bx-label">price against quality</span>
-        <h2 id="bx-money" className="bx-h2">what you get for the money</h2>
+        <h2 id="bx-money" className="bx-h2">price against quality</h2>
         <MoneyChart selected={open} onOpen={onOpen} />
       </section>
 
       <section className="bx-section" aria-labelledby="bx-lb">
-        <span className="bx-label">leaderboards</span>
-        <h2 id="bx-lb" className="bx-h2">who is best at what</h2>
+        <h2 id="bx-lb" className="bx-h2">leaderboards</h2>
         <Leaderboard onOpen={onOpen} selected={open} />
       </section>
 
       <section className="bx-section" aria-labelledby="bx-cost">
-        <span className="bx-label">cost breakdown</span>
-        <h2 id="bx-cost" className="bx-h2">what it costs to run every month</h2>
+        <h2 id="bx-cost" className="bx-h2">monthly cost</h2>
         <Calculator onOpen={onOpen} selected={open} />
       </section>
 
       {speechCount > 0 && (
         <section className="bx-section" aria-labelledby="bx-speech">
-          <span className="bx-label">voice</span>
-          <h2 id="bx-speech" className="bx-h2">speech to text and text to speech</h2>
-          <p className="bx-section-lede">sold by the minute or character, not the token, so no price column here. just the public numbers.</p>
+            <h2 id="bx-speech" className="bx-h2">voice</h2>
           <Speech />
         </section>
       )}
 
       <section className="bx-section" id="bx-sources" aria-labelledby="bx-src">
-        <span className="bx-label">sources and method</span>
-        <h2 id="bx-src" className="bx-h2">where every number comes from</h2>
+        <h2 id="bx-src" className="bx-h2">sources and method</h2>
         <Sources />
       </section>
 
       <footer className="bx-foot">
-        <p>numbers belong to their sources and are shown with credit. epoch ai data is CC BY 4.0. prices change, check the provider before you commit.</p>
+        <p>numbers belong to their sources. epoch ai data is cc by 4.0. prices change.</p>
       </footer>
       <ModelPanel id={open} onClose={onClose} />
     </div>
