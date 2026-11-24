@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Strategy } from './pathfinder';
 import { Arrow, TitleInput, Thumb, useSummary } from './ui';
+import { openRow } from './lab/openRow';
 
 export const EXAMPLES: [string, string][] = [
   ['Batman', 'Bank of England'],
@@ -23,8 +24,6 @@ export function randomPair(): [string, string] {
   while (b === a) b = POOL[Math.floor(Math.random() * POOL.length)];
   return [a, b];
 }
-
-export const LAB_HREF = '#leaderboard';
 
 function ExampleCard({ pair, onPick }: { pair: [string, string]; onPick: () => void }) {
   const a = useSummary(pair[0]);
@@ -55,10 +54,6 @@ export default function Start({ initial, strategies, error, onGo }: {
 
   return (
     <div className="clk-view">
-      <div className="lab-sec-head lab-play-head">
-        <h2 className="lab-label lab-sec-label">play</h2>
-        <p className="lab-sec-lede">pick two articles and a strategy. watch it search live, then try to beat it yourself.</p>
-      </div>
       <form className="clk-form lab-play-form" onSubmit={(e) => { e.preventDefault(); go(); }}>
         <div className="clk-pair">
           <TitleInput label="from" value={from} onChange={setFrom} placeholder="any article" autoFocus={!initial.from} />
@@ -69,12 +64,12 @@ export default function Start({ initial, strategies, error, onGo }: {
           {strategies.map((st) => (
             <button key={st.id} type="button" role="radio" aria-checked={mode === st.id} className={mode === st.id ? 'clk-strat clk-strat-on' : 'clk-strat'} onClick={() => setMode(st.id)}>
               <span className="clk-strat-name">{st.name}</span>
-              {st.blurb && <span className="clk-strat-blurb">{st.blurb}</span>}
             </button>
           ))}
         </div>
+        <p className="clk-strat-note" aria-live="polite">{strategies.find((st) => st.id === mode)?.blurb}</p>
         <div className="clk-form-row">
-          <a className="clk-quiet" href={LAB_HREF}>how the strategies compare</a>
+          <button type="button" className="clk-quiet" onClick={() => openRow('leaderboard')}>how the searches compare</button>
           <span className="clk-grow" />
           <button type="button" className="st-btn" onClick={() => { const [a, b] = randomPair(); setFrom(a); setTo(b); }}>surprise me</button>
           <button type="submit" className="st-btn st-btn-primary" disabled={!ready}>go</button>
@@ -82,8 +77,8 @@ export default function Start({ initial, strategies, error, onGo }: {
         {error && <p className="clk-error" role="alert">{error}</p>}
       </form>
 
-      <section className="clk-section">
-        <div className="clk-label">or try a real pair</div>
+      <section className="clk-section clk-section-tight">
+        <div className="clk-label">or try one</div>
         <div className="clk-examples">
           {EXAMPLES.map((p) => (
             <ExampleCard key={p.join('>')} pair={p} onPick={() => { setFrom(p[0]); setTo(p[1]); onGo(p[0], p[1], mode); }} />

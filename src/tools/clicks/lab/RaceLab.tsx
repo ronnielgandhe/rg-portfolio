@@ -204,7 +204,6 @@ export default function RaceLab() {
               <button key={p} type="button" role="radio" aria-checked={pace === p} className={pace === p ? 'lab-seg-on' : ''} onClick={() => setPace(p)}>{p}</button>
             ))}
           </div>
-          <span className="lab-note">both lanes share one polite connection to wikipedia, four requests at a time.</span>
           <span className="lab-grow" />
           <button type="submit" className={`lab-btn${live ? '' : ' lab-btn-primary'}`} disabled={!live && (!from.trim() || !to.trim())}>{live ? 'stop' : a ? 'race again' : 'race them'}</button>
         </div>

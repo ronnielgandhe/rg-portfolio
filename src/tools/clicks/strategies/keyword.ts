@@ -103,7 +103,7 @@ export const keyword: Strategy = {
 
 export const god: Strategy = {
   id: 'god',
-  name: 'god mode',
+  name: 'wide keyword beam',
   blurb: 'the same scorer with a wider beam: keeps 20 links per page, 200 page budget.',
   explain: 'exactly the keyword scorer, just greedier with memory: it keeps the best 20 links from every page instead of 8 and will open up to 200 pages before giving up. wider beam means fewer dead ends, but it still only sees titles and still stops at the first path it finds.',
   shape: 'fan',

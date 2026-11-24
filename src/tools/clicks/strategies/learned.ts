@@ -50,9 +50,9 @@ export const learned: Strategy = {
 
 export const guided: Strategy = {
   id: 'guided',
-  name: 'my model, both ends',
-  blurb: 'the god model: search from both ends at once, my model picks which page each side opens.',
-  explain: 'my god model. it searches forward from the start and backward from the target ("what links here") at the same time, and the moment the two sides touch, that is the path. my model decides the order: the forward side opens the page it predicts is closest to the target, the backward side the page it predicts is closest to the start, and a cost per click keeps paths short. the model here is my distance predictor, trained on 1.2 million shortest-path examples and then fine-tuned on real player clicks. 200 page budget, counting both sides.',
+  name: 'hopper',
+  blurb: 'hopper: search from both ends at once, my model picks which page each side opens.',
+  explain: 'hopper. it searches forward from the start and backward from the target ("what links here") at the same time, and the moment the two sides touch, that is the path. my model decides the order: the forward side opens the page it predicts is closest to the target, the backward side the page it predicts is closest to the start, and a cost per click keeps paths short. the model here is my distance predictor, trained on 1.2 million shortest-path examples and then fine-tuned on real player clicks. 200 page budget, counting both sides.',
   shape: 'meet-guided',
   budget: 200,
   run: guidedRun(TUNED.guided.id, TUNED.guided.depthCost),

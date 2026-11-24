@@ -9,11 +9,7 @@ import Result from './Result';
 import Play from './Play';
 import { CLICKS_CSS } from './styles';
 import ClicksHero from '../../components/portfolio/heroes/ClicksHero';
-import RaceLab from './lab/RaceLab';
-import ModelStory from './lab/ModelStory';
-import Diagrams from './lab/Diagrams';
-import { Llms, Numbers, Section } from './lab/sections';
-import { ALL, BENCH, LLM, MODEL_NAME } from './lab/data.ts';
+import Rows, { Breakdown, ROWS_CSS } from './lab/Rows';
 import { LAB_CSS, LAB_CSS_2 } from './lab/styles';
 
 const toPlay = (smooth = false) => {
@@ -49,6 +45,7 @@ function reducer(s: RaceState | null, a: Action): RaceState | null {
 export default function ClicksPage() {
   const [phase, setPhase] = useState<Phase>('start');
   const [strategies, setStrategies] = useState<Strategy[]>(BUILTIN_STRATEGIES);
+  const [loaded, setLoaded] = useState(false);
   const [form, setForm] = useState<Form>({ from: '', to: '', strategy: 'guided' });
   const [race, dispatch] = useReducer(reducer, null);
   const [speed, setSpeed] = useState<Speed>('quick');
@@ -94,6 +91,7 @@ export default function ClicksPage() {
     loadStrategies().then((list) => {
       if (!live) return;
       setStrategies(list);
+      setLoaded(true);
       const s = pickStrategy(list, p.strategy);
       if (p.from && p.to) go(p.from, p.to, s);
       else setForm({ ...p, strategy: s.id });
@@ -104,23 +102,16 @@ export default function ClicksPage() {
   const stop = () => { ctlRef.current?.abort(); writeParams(null); setPhase('start'); };
   const fresh = () => { ctlRef.current?.abort(); writeParams(null); setForm({ from: '', to: '', strategy: form.strategy }); setPhase('start'); toPlay(); };
   const flagship = findStrategy(strategies, 'guided');
-  const [diff, setDiff] = useState(ALL);
 
-  const pre = BENCH?.preliminary ? 'preliminary' : null;
   return (
     <PageShell activePage="projects" crumb="how many clicks" back={{ href: '/projects', label: 'projects' }} wide>
       <style>{CLICKS_CSS}</style>
       <style>{LAB_CSS + LAB_CSS_2}</style>
-      <ClicksHero
-        actions={[
-          { label: 'play', href: '#play', primary: true },
-          { label: `how ${MODEL_NAME} works`, href: '#model' },
-          { label: 'leaderboard', href: '#leaderboard' },
-        ]}
-      />
+      <ClicksHero />
+      <style>{ROWS_CSS}</style>
       <div className="site-col clk lab">
         <section id="play" className="lab-sec lab-sec-first" aria-label="the game">
-          {phase === 'start' && (
+          {phase === 'start' && loaded && (
             <Start key={`${form.from}>${form.to}>${strategies.length}`} initial={form} strategies={strategies} error={startError} onGo={(a, b, id) => go(a, b, pickStrategy(strategies, id))} />
           )}
           {phase === 'race' && race && <Race race={race} speed={speed} onSpeed={setSpeed} onStop={stop} />}
@@ -136,23 +127,10 @@ export default function ClicksPage() {
             <Play start={race.start} target={race.target} botPath={race.path} botTotal={race.explored} onGiveUp={() => { setPhase('result'); toPlay(); }} onNew={fresh} />
           )}
         </section>
-        <Section id="race" label="race two side by side" lede="same pair, two strategies, both searching live wikipedia. filled squares are pages opened, hollow ones are queued up next.">
-          <RaceLab />
-        </Section>
-        <Section id="model" label={`the model: ${MODEL_NAME}`} tag={pre}>
-          <ModelStory />
-        </Section>
-        <Section id="leaderboard" label="leaderboard" tag={pre} lede="a race is one pair. this is every strategy on the same held-out races with a known shortest path, so you can see who is good and who got lucky.">
-          <Numbers diff={diff} setDiff={setDiff} />
-        </Section>
-        <Section id="llms" label="llms play it too" tag={LLM?.preliminary || (LLM && BENCH?.preliminary) ? 'preliminary' : null} lede="the same game, handed to large language models: the page title and its links as text, pick one, repeat. how often they get there, and what each win costs.">
-          <Llms diff={diff} setDiff={setDiff} />
-        </Section>
-        <Section id="how" label="how each search works" lede="the same little graph, every strategy through it. a is the start, b is the target.">
-          <Diagrams />
-        </Section>
+        <Breakdown />
+        <Rows />
         <footer className="clk-foot lab-foot">
-          live races, articles, summaries and images come from wikipedia, text under cc by-sa 4.0. the benchmark runs on wikispeedia by robert west and jure leskovec (stanford snap). no backend: every search and the model run in your browser.
+          articles, summaries and images come from wikipedia, text under cc by-sa 4.0. benchmark data is wikispeedia by robert west and jure leskovec (stanford snap).
         </footer>
       </div>
     </PageShell>

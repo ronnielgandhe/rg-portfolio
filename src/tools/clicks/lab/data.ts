@@ -58,11 +58,7 @@ export const SHOWN_IDS = new Set(STRATEGIES.map((s) => s.id));
 export const nameOf = (id: string, fallback: string) => strategyById(id)?.name ?? fallback;
 export const shownStrategies = (b: Benchmark) => b.strategies.filter((s) => SHOWN_IDS.has(s.id)).map((s) => ({ ...s, name: nameOf(s.id, s.name) }));
 export { MODEL_NAME };
-export const REPO = 'https://github.com/ronnielgandhe/rg-portfolio';
-export const CODE = {
-  strategies: `${REPO}/tree/main/src/tools/clicks/strategies`,
-  page: `${REPO}/tree/main/src/tools/clicks`,
-};
+export const CODE = { page: 'https://github.com/ronnielgandhe/how-many-clicks' };
 
 export interface LlmStats {
   n: number;

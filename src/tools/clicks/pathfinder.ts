@@ -307,7 +307,7 @@ export const BUILTIN_STRATEGIES: Strategy[] = [
   },
   {
     id: 'beam-god',
-    name: 'god mode',
+    name: 'wide keyword beam',
     blurb: 'the same search with a wider beam: best 20 links per page, up to 200 pages',
     run: (start, target, onStep, opts) => findPath(start, target, 'god', onStep, opts),
   },

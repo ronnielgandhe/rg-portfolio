@@ -2,9 +2,9 @@
 
 how many clicks is the wikipedia game. two articles, say pizza and albert einstein, and you get from one to the other only by clicking links. a bot does it live on the page, then you try to beat it.
 
-the first bot i shipped reads the titles of the links on a page, scores them by shared words with the target plus a hand-written list of about 23 related-word groups and about 40 hub pages, and keeps going with the best ones. "god mode" is the same thing with a wider beam: 20 links per page instead of 8, 200 pages instead of 100. it never reads an article, never looks backward from the target, and it stops at the first path it trips over.
+the first bot i shipped reads the titles of the links on a page, scores them by shared words with the target plus a hand-written list of about 23 related-word groups and about 40 hub pages, and keeps going with the best ones. "the wide keyword beam" is the same thing with a wider beam: 20 links per page instead of 8, 200 pages instead of 100. it never reads an article, never looks backward from the target, and it stops at the first path it trips over.
 
-so the question was simple. how good is god mode actually, measured on a real benchmark? and can i train my own models that beat it?
+so the question was simple. how good is the wide keyword beam actually, measured on a real benchmark? and can i train my own models that beat it?
 
 ## the strategies
 
@@ -12,7 +12,7 @@ the hand-written baselines, all running the exact same typescript in your browse
 
 - **random walk**: clicks a random unseen link. the floor.
 - **keyword**: the original bot, unchanged (it is literally the game's pathfinder).
-- **god mode**: the original bot, wider beam.
+- **the wide keyword beam**: the original bot, wider beam.
 - **hub-first**: climb to the biggest hub you can see (united states, world war ii, england), then walk down with the keyword scorer.
 - **semantic**: score links by meaning with a tiny embedding of titles, no word lists.
 - **bidirectional**: search forward from the start and backward from the target ("what links here") until the two sides touch.
@@ -20,7 +20,7 @@ the hand-written baselines, all running the exact same typescript in your browse
 and mine:
 
 - **my model**: one search, steered by a model i trained on real player clicks.
-- **my model, both ends**: the god model. both-ends search where my model decides which page each side opens next.
+- **my model, both ends**: hopper. both-ends search where my model decides which page each side opens next.
 
 {{chart:leaderboard}}
 
@@ -30,7 +30,7 @@ i did not want to hammer wikipedia with thousands of test races, and i wanted gr
 
 i split the 4,604 articles 70 / 15 / 15 into train, validation and test **by article**, not by pair, so every test is on articles a model never saw. the 450 test races (150 easy, 150 medium, 150 hard; easy means the true shortest path is 2 clicks, medium 3, hard 4 or more) use a start and a target from the held-out test articles. about half of each bucket are pairs real people played, 226 pairs from 467 human games, so humans get a line on the chart. every knob, including which model ships, got picked on 120 separate validation races. the test races were never used to tune anything.
 
-the harness runs the same strategy code as the page, it just swaps the wikipedia fetcher for one that reads the graph from memory. keyword and god mode are the game's own pathfinder with its fetch pointed at the graph, not a copy.
+the harness runs the same strategy code as the page, it just swaps the wikipedia fetcher for one that reads the graph from memory. keyword and the wide keyword beam are the game's own pathfinder with its fetch pointed at the graph, not a copy.
 
 ## the models
 
@@ -80,9 +80,9 @@ the ablations (base size, validation) say where it comes from. hand features alo
 
 then the races, where it actually counts:
 
-- **my model** (playing alone, with the imitation model) solved 82.2% of the 450 test races. god mode solved 66.4%. its paths were 0.75 clicks over optimal against god mode's 1.15, and it opened 54.0 pages on average against god mode's 85.6 (median 11 against 34). on hard races: 62.7% against 35.3%.
+- **my model** (playing alone, with the imitation model) solved 82.2% of the 450 test races. the wide keyword beam solved 66.4%. its paths were 0.75 clicks over optimal against the wide keyword beam's 1.15, and it opened 54.0 pages on average against the wide keyword beam's 85.6 (median 11 against 34). on hard races: 62.7% against 35.3%.
 - the funny part: the imitation model has the worst next-click accuracy of the family and is the best solo player. copying people teaches it to head for safe, well-linked pages instead of the theoretically perfect link, and that keeps a greedy search out of dead ends. the pure distance models solo at 72.2%, with shorter paths (0.16 to 0.18 over) but more pages (81 to 85).
-- **my model, both ends** solved all 450, found the true shortest path 96.2% of the time, ended 0.04 clicks over optimal on average, and opened 4.6 pages. god mode: 66.4%, 25.6% shortest, 85.6 pages. on hard races it opened 6.6 pages; god mode opened 147.3.
+- **my model, both ends** solved all 450, found the true shortest path 96.2% of the time, ended 0.04 clicks over optimal on average, and opened 4.6 pages. the wide keyword beam: 66.4%, 25.6% shortest, 85.6 pages. on hard races it opened 6.6 pages; the wide keyword beam opened 147.3.
 
 {{chart:tradeoff}}
 
@@ -92,7 +92,7 @@ then the races, where it actually counts:
 - **both-ends search does most of the work, not my model.** plain bidirectional, no model at all, also solved 450 of 450, hit the shortest path 93.8% of the time and opened 5.4 pages. my model on top takes that to 96.2% shortest and 4.6 pages: about 14% fewer pages, and 20% fewer on hard races (6.6 against 8.2). real, but the headline idea is "search from both ends".
 - **which model guides both ends barely matters.** tiny, base and base + human clicks all land between 4.59 and 4.63 pages and 94 to 96% shortest. i shipped base + human clicks because it won the validation races by a hair; on the test races base did about as well (4.59 pages, 95.1% shortest).
 - **the solo model still wanders on hard races.** 99 pages on average there, and 37% of hard races not solved.
-- **semantic was a half win.** it solves more than god mode (77.3%) but takes the longest paths of anything with a brain (2.67 clicks over optimal). related is not the same as close.
+- **semantic was a half win.** it solves more than the wide keyword beam (77.3%) but takes the longest paths of anything with a brain (2.67 clicks over optimal). related is not the same as close.
 - **hub-first barely helps** (65.3% against keyword's 63.8%), and **random walk** solves 61.8% here because a 4,604-article world flatters wandering. its paths are 49 clicks long.
 - **the live check got cut short.** wikipedia's api rate-limited this network after a handful of calls. my model, both ends finished pizza to albert einstein in 3 clicks with 5 pages and mount everest to jazz in 2 clicks with 3 pages before it stopped, which is too little to call a ranking on today's wikipedia.
 
@@ -106,7 +106,7 @@ on the 450 test races (true shortest path averages 3.04 clicks):
 - bidirectional: 100% solved, 0.06 over, 5.4 pages
 - my model: 82.2% solved, 0.75 over, 54.0 pages
 - semantic: 77.3% solved, 2.67 over, 76.4 pages
-- god mode: 66.4% solved, 1.15 over, 85.6 pages
+- the wide keyword beam: 66.4% solved, 1.15 over, 85.6 pages
 - hub-first: 65.3% solved, 0.75 over, 48.4 pages
 - keyword: 63.8% solved, 1.07 over, 49.1 pages
 - random walk: 61.8% solved, 46.9 over, 107.6 pages

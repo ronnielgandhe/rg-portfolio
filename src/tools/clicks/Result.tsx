@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { RaceState } from './raceState';
 import { Arrow, OutIcon, Thumb, fmtSeconds, useSummary } from './ui';
-import { LAB_HREF } from './Start';
+import { openRow } from './lab/openRow';
 
 function PathCard({ title, label }: { title: string; label: string }) {
   const s = useSummary(title);
@@ -65,24 +65,22 @@ export default function Result({ race, onPlay, onNew, retry }: { race: RaceState
         </p>
       </div>
 
-      <p className="clk-strategy-line"><span className="clk-label">strategy</span> {race.strategy.name}{race.strategy.blurb ? `: ${race.strategy.blurb}` : ''}</p>
-
       {race.outcome !== 'error' && (
         <div className="clk-big">
           <div className="clk-big-cell">
             <span className="clk-big-num">{found ? race.path!.length - 1 : '×'}</span>
-            <span className="clk-label">prime clicks</span>
-            <span className="clk-big-sub">length of the path it found</span>
+            <span className="clk-label">clicks</span>
+            
           </div>
           <div className="clk-big-cell">
             <span className="clk-big-num">{race.explored}</span>
-            <span className="clk-label">total clicks</span>
-            <span className="clk-big-sub">every page it opened</span>
+            <span className="clk-label">pages opened</span>
+            
           </div>
           <div className="clk-big-cell clk-big-minor">
             <span className="clk-big-num">{fmtSeconds(elapsed)}</span>
             <span className="clk-label">time</span>
-            <span className="clk-big-sub">{race.strategy.name}</span>
+            
           </div>
         </div>
       )}
@@ -100,7 +98,7 @@ export default function Result({ race, onPlay, onNew, retry }: { race: RaceState
         <button type="button" className="st-btn" onClick={onNew}>new pair</button>
         {race.outcome !== 'error' && <button type="button" className="st-btn" onClick={copy}>{copied ? 'link copied' : 'copy link'}</button>}
         <span className="clk-grow" />
-        <a className="clk-quiet clk-actions-quiet" href={LAB_HREF}>how the strategies compare</a>
+        <button type="button" className="clk-quiet clk-actions-quiet" onClick={() => openRow('leaderboard')}>how the searches compare</button>
       </div>
     </div>
   );

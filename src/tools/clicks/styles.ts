@@ -68,8 +68,10 @@ img.clk-thumb.clk-thumb-on { opacity: 1; }
 .clk-seg button:hover { color: var(--ink); }
 .clk-seg .clk-seg-on { background: var(--ink); color: var(--bg); }
 .clk-seg .clk-seg-on:hover { color: var(--bg); }
-.clk-strats { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
-.clk-strat { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid var(--line); text-align: left; transition: border-color 0.2s, background 0.2s; }
+.clk-strats { display: flex; flex-wrap: wrap; gap: 8px; }
+.clk-strat-note { margin: -4px 0 0; min-height: 20px; max-width: 640px; font-size: 13px; line-height: 20px; color: var(--faint); }
+.clk-section-tight { margin-top: 40px; }
+.clk-strat { display: flex; flex-direction: column; gap: 4px; padding: 10px 16px; border: 1px solid var(--line); text-align: left; transition: border-color 0.2s, background 0.2s; }
 .clk-strat:hover { border-color: var(--line-strong); }
 .clk-strat-on, .clk-strat-on:hover { border-color: var(--ink); }
 .clk-strat-name { display: flex; align-items: center; gap: 8px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); }
@@ -77,7 +79,7 @@ img.clk-thumb.clk-thumb-on { opacity: 1; }
 .clk-strat-on .clk-strat-name::before { background: var(--ink); border-color: var(--ink); }
 .clk-strat-blurb { padding-left: 15px; }
 .clk-strat-blurb { display: block; font-size: 12px; line-height: 18px; color: var(--faint); }
-.clk-quiet { font-size: 13px; line-height: 18px; color: var(--text); text-decoration: underline; text-decoration-color: var(--line-strong); text-decoration-thickness: 1px; text-underline-offset: 3px; transition: color 0.2s, text-decoration-color 0.2s; }
+.clk-quiet { cursor: pointer; font-size: 13px; line-height: 18px; color: var(--text); text-decoration: underline; text-decoration-color: var(--line-strong); text-decoration-thickness: 1px; text-underline-offset: 3px; transition: color 0.2s, text-decoration-color 0.2s; }
 .clk-quiet:hover { color: var(--ink); text-decoration-color: var(--ink); }
 .clk-examples { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
 .clk-example { display: flex; flex-direction: column; gap: 18px; padding: 20px; border: 1px solid var(--rule); text-align: left; transition: border-color 0.2s, background 0.2s; }
@@ -253,11 +255,7 @@ img.clk-thumb.clk-thumb-on { opacity: 1; }
   .clk-form { padding: 18px; margin-top: 28px; }
   .clk-pair { grid-template-columns: 1fr; gap: 14px; }
   .clk-pair-arrow { display: none; }
-  .clk-strats { grid-template-columns: 1fr 1fr; grid-auto-flow: row dense; }
-  .clk-strat { padding: 12px; }
-  .clk-strat .clk-strat-blurb { display: none; }
-  .clk-strat-on { grid-column: 1 / -1; }
-  .clk-strat-on .clk-strat-blurb { display: block; }
+  .clk-strat { padding: 9px 12px; }
   .clk-form-row .clk-note { order: 1; width: 100%; }
   .clk-form-row .clk-grow { display: none; }
   .clk-form-row .st-btn { flex: 1; }
