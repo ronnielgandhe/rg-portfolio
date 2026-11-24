@@ -19,16 +19,28 @@ const useIso = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 function bootFn(k: string): Opening {
   try {
-    const w = window;
+    const w = window as Window & { __rghw?: Record<string, boolean> };
     const g = (w.__rgh = w.__rgh || {});
+    const play = (): Opening => {
+      const r = w.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const o: Opening = { m: r ? 'still' : 'full', t: performance.now() };
+      g[k] = o;
+      const root = document.documentElement;
+      root.removeAttribute('data-rgh-' + k);
+      void root.offsetWidth;
+      root.setAttribute('data-rgh-' + k, o.m);
+      w.dispatchEvent(new CustomEvent('rgh', { detail: k }));
+      return o;
+    };
     if (g[k]) return g[k];
-    const r = w.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let q = false;
-    try { q = !!sessionStorage.getItem('rg-hero:' + k); sessionStorage.setItem('rg-hero:' + k, '1'); } catch { q = false; }
-    const o: Opening = { m: r ? 'still' : q ? 'quick' : 'full', t: performance.now() };
-    g[k] = o;
-    document.documentElement.setAttribute('data-rgh-' + k, o.m);
-    return o;
+    const first = play();
+    const wired = (w.__rghw = w.__rghw || {});
+    if (!wired[k]) {
+      wired[k] = true;
+      if ((document as Document & { prerendering?: boolean }).prerendering) document.addEventListener('prerenderingchange', () => play(), { once: true });
+      w.addEventListener('pageshow', (e) => { if (e.persisted) play(); });
+    }
+    return first;
   } catch {
     return { m: 'still', t: 0 };
   }
@@ -42,7 +54,12 @@ export function BootScript({ id }: { id: string }) {
 
 export function useOpening(id: string) {
   const [o, setO] = useState<Opening | null>(null);
-  useIso(() => setO(boot(id)), [id]);
+  useIso(() => {
+    setO(boot(id));
+    const again = (e: Event) => { if ((e as CustomEvent).detail === id && window.__rgh?.[id]) setO(window.__rgh[id]); };
+    window.addEventListener('rgh', again);
+    return () => window.removeEventListener('rgh', again);
+  }, [id]);
   return o;
 }
 
