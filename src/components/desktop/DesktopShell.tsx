@@ -6382,7 +6382,7 @@ function MobileProjects({ onCardClick }: { onCardClick: (detail: DetailContent) 
       coverImage: '/linkdensolver.png',
       gradient: 'linear-gradient(135deg, #0a66c2 0%, #084d92 50%, #052e57 100%)',
       tech: ['JavaScript', 'Manifest V3', 'CDP'],
-      repoUrl: 'https://github.com/ronnielgandhe/game-solver-suite',
+      repoUrl: 'https://github.com/ronnielgandhe/linkedin-games-solver',
       pageUrl: '/game-solver-suite',
     },
     {
@@ -6391,7 +6391,7 @@ function MobileProjects({ onCardClick }: { onCardClick: (detail: DetailContent) 
       coverImage: '/howmanyclicks-cover.png',
       gradient: 'linear-gradient(135deg, #1a1a1a 0%, #2a1a1a 50%, #1a1a2e 100%)',
       tech: ['React', 'JavaScript', 'Wikipedia API'],
-      repoUrl: 'https://github.com/ronnielgandhe/howmanyclicks',
+      repoUrl: 'https://github.com/ronnielgandhe/how-many-clicks',
       pageUrl: '/how-many-clicks',
     },
   ];
