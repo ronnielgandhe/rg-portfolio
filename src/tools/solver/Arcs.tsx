@@ -160,6 +160,7 @@ function Lens({ top, bottom, still, onPick, active }: { top: ArcTrack; bottom: A
         <div
           key={`${k}-${i}`}
           className="sa-slot"
+          aria-hidden={i >= (k === 0 ? top : bottom).games.length ? true : undefined}
           ref={(el) => { cardRefs.current[k][i] = el; }}
         >
           <div
@@ -193,7 +194,7 @@ function Marquees({ top, bottom, still, onPick, active }: { top: ArcTrack; botto
           <div className="sa-row">
             <div className={`sa-track ${k === 0 ? 'sa-right' : 'sa-left'}`}>
               {[...t.games, ...t.games].map((g, i) => (
-                <button key={i} className="sa-card sa-card-flat" data-on={g.id === active ? '' : undefined} onClick={() => onPick(g.id)} tabIndex={i < t.games.length ? 0 : -1}><Card g={g} /></button>
+                <button key={i} className="sa-card sa-card-flat" aria-hidden={i >= t.games.length ? true : undefined} data-on={g.id === active ? '' : undefined} onClick={() => onPick(g.id)} tabIndex={i < t.games.length ? 0 : -1}><Card g={g} /></button>
               ))}
             </div>
           </div>

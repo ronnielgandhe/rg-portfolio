@@ -26,16 +26,12 @@ const EVENTS: Ev[] = (() => {
 const SOLVED = EVENTS[EVENTS.length - 1].t + 120;
 
 const F = on(ID, 'full');
-const Q = on(ID, 'quick');
 const pc = (t: number) => `${((t / DUR) * 100).toFixed(2)}%`;
 
 export default function SolverHero({
   title = 'game solver suite',
-  lede = 'one chrome extension that solves the linkedin and nyt daily games in real time. seven puzzles solved by real algorithms, one pure core shared by the extension and this page, and a read layer that repairs itself when the sites change. no ai, no server, just vanilla js.',
-  actions = [
-    { label: 'get it on github', href: 'https://github.com/ronnielgandhe/game-solver-suite', primary: true, external: true },
-    { label: 'how to install', href: '#install' },
-  ],
+  lede = 'built because it\'s cool: it solves the daily puzzles faster than you can read them.',
+  actions = [],
   className,
 }: {
   title?: string;
@@ -104,10 +100,6 @@ ${bad && undo ? `${F} .svh-bad{animation:svhBad ${undo.t - bad.t + 160}ms ease $
 ${tiles.map((t, i) => `${F} .svh-tile[data-i="${i}"]{animation:svhBorder 260ms ease both,svhSolve 520ms ease ${SOLVED + t.r * 50 + t.c * 25}ms both}`).join('')}
 ${F} .svh-crown{animation:svhCrown 480ms ${SPRING} ${SOLVED + 260}ms both}
 ${F} .svh-tile[data-i="${crown}"]{animation:svhBorder 260ms ease both,svhGold 300ms ease ${SOLVED + 200}ms both}
-${Q} .svh-tile{animation:svhSolve 300ms ease both}
-${Q} .svh-crown{animation:svhCrown 300ms ${SPRING} both}
-${Q} .svh-tile[data-i="${crown}"]{animation:svhGold 300ms ease both}
-${Q} .svh-tile[data-i="${last}"] .svh-l{animation:svhPut 300ms ${SPRING} both}
 @media (max-width:820px){.svh{grid-template-columns:minmax(0,1fr);align-items:start}}
 @media (max-width:560px){.svh{--s:46px;--g:4px}.svh-lede{font-size:16px;line-height:26px}}
 @media (prefers-reduced-motion:reduce){.svh *,.svh{animation:none!important}}
@@ -150,7 +142,7 @@ ${Q} .svh-tile[data-i="${last}"] .svh-l{animation:svhPut 300ms ${SPRING} both}
       </h1>
       <div className="svh-side">
         <p className="svh-lede">{lede}</p>
-        <div className="svh-acts"><Actions p="svh" actions={actions} /></div>
+        {actions.length > 0 && <div className="svh-acts"><Actions p="svh" actions={actions} /></div>}
       </div>
     </div>
   );

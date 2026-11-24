@@ -26,10 +26,8 @@ type Boards = {
   strands: { theme: string; board: string[][]; words: string[] };
   wordle: { answer: string };
 };
-type Run = { game: Game; events: Ev[]; ms: number | null; nodes: number; backs: number; other: number | null; ok: boolean };
+type Run = { game: Game; events: Ev[]; ms: number | null; ok: boolean };
 
-const SPEEDS: [string, number][] = [['1x', 6], ['4x', 24], ['16x', 96], ['max', 900]];
-const NO_BEFORE: Game[] = ['patches', 'wordle'];
 const MAX_EVENTS = 60000;
 
 function fresh(game: Game, b: Boards): Boards {
@@ -80,20 +78,10 @@ function measure(fn: () => void) {
   return (performance.now() - t0) / reps;
 }
 
-function countNodes(game: Game, mode: Mode, b: Boards) {
-  let n = 0;
-  solveOnce(game, mode, b, (e) => { if (e.t === 'place') n++; });
-  return n;
-}
-
-function runReal(game: Game, mode: Mode, b: Boards): Run {
+function runReal(game: Game, b: Boards): Run {
   const events: Ev[] = [];
-  const ok = solveOnce(game, mode, b, (e) => { if (events.length < MAX_EVENTS) events.push(e); });
-  const ms = measure(() => solveOnce(game, mode, b));
-  let nodes = 0, backs = 0;
-  for (const e of events) { if (e.t === 'place') nodes++; else if (e.t === 'undo') backs++; }
-  const other = NO_BEFORE.includes(game) ? null : countNodes(game, mode === 'now' ? 'before' : 'now', b);
-  return { game, events, ms, nodes, backs, other, ok };
+  const ok = solveOnce(game, 'now', b, (e) => { if (events.length < MAX_EVENTS) events.push(e); });
+  return { game, events, ms: measure(() => solveOnce(game, 'now', b)), ok };
 }
 
 type View = {
@@ -141,52 +129,41 @@ function useTicker(target: number | null, key: number) {
 
 const fmtMs = (ms: number | null) => (ms === null ? '' : ms < 0.1 ? ms.toFixed(3) : ms < 10 ? ms.toFixed(2) : ms.toFixed(1));
 
-export default function Demo({ game, onGame }: { game: Game; onGame: (g: Game) => void }) {
+export default function Demo({ game }: { game: Game }) {
   const boardsRef = useRef<Boards | null>(null);
   if (!boardsRef.current) boardsRef.current = initialBoards();
   const [boards, setBoards] = useState<Boards>(boardsRef.current);
-  const [mode, setMode] = useState<Mode>('now');
   const [run, setRun] = useState<Run | null>(null);
   const [idx, setIdx] = useState(0);
+  const [watch, setWatch] = useState(false);
   const [playing, setPlaying] = useState(false);
-  const [speed, setSpeed] = useState(1);
   const [flash, setFlash] = useState(0);
   const [snap, setSnap] = useState(true);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const started = useRef(false);
+  const watchRef = useRef(false);
+  watchRef.current = watch;
   const cache = useRef<{ events: Ev[] | null; applied: number; view: View | null; game: Game; boards: Boards | null }>({ events: null, applied: 0, view: null, game, boards: null });
-  const effMode: Mode = NO_BEFORE.includes(game) ? 'now' : mode;
 
-  const solveReal = useCallback((g: Game, m: Mode, newBoard: boolean) => {
+  const solve = useCallback((g: Game) => {
     setPlaying(false);
-    const b = newBoard ? fresh(g, boardsRef.current!) : boardsRef.current!;
+    const b = fresh(g, boardsRef.current!);
     boardsRef.current = b;
-    const r = runReal(g, NO_BEFORE.includes(g) ? 'now' : m, b);
+    const r = runReal(g, b);
     setBoards(b);
     setRun(r);
-    setSnap(true);
-    setIdx(r.events.length);
     setFlash((f) => f + 1);
+    if (watchRef.current && r.events.length) { setSnap(false); setIdx(0); setPlaying(true); }
+    else { setSnap(true); setIdx(r.events.length); }
   }, []);
-
-  useEffect(() => {
-    const el = rootRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting && !started.current) {
-        started.current = true;
-        window.setTimeout(() => solveReal(game, mode, false), Math.max(450, 1900 - performance.now()));
-      }
-    }, { threshold: 0.35 });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [game, mode, solveReal]);
 
   const first = useRef(true);
   useEffect(() => {
     if (first.current) { first.current = false; return; }
-    solveReal(game, mode, game === 'strands' || game === 'wordle');
-  }, [game, solveReal]);
+    setPlaying(false);
+    setRun(null);
+    setIdx(0);
+    setSnap(true);
+    if (game === 'strands' || game === 'wordle') { boardsRef.current = fresh(game, boardsRef.current!); setBoards(boardsRef.current); }
+  }, [game]);
 
   const live = run && run.game === game ? run : null;
   const total = live ? live.events.length : 0;
@@ -195,8 +172,9 @@ export default function Demo({ game, onGame }: { game: Game; onGame: (g: Game) =
     let raf = 0;
     let last = performance.now();
     let acc = 0;
+    const rate = Math.max(8, total / 4);
     const tick = (now: number) => {
-      acc = Math.min(acc + ((now - last) / 1000) * SPEEDS[speed][1], 60);
+      acc = Math.min(acc + ((now - last) / 1000) * rate, 600);
       last = now;
       const n = Math.floor(acc);
       if (n > 0) {
@@ -211,16 +189,7 @@ export default function Demo({ game, onGame }: { game: Game; onGame: (g: Game) =
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [playing, speed, total]);
-
-  const watch = () => {
-    if (!live) return;
-    if (playing) { setPlaying(false); return; }
-    setSnap(false);
-    if (idx >= total) setIdx(0);
-    setPlaying(true);
-  };
-  const pickMode = (m: Mode) => { setMode(m); solveReal(game, m, false); };
+  }, [playing, total]);
 
   const c = cache.current;
   const events = live ? live.events : [];
@@ -230,34 +199,13 @@ export default function Demo({ game, onGame }: { game: Game; onGame: (g: Game) =
   for (; c.applied < idx && c.applied < events.length; c.applied++) apply(c.view!, events[c.applied], game);
   const view = c.view!;
 
-  let nodes = 0, backs = 0;
-  if (live && idx >= total) { nodes = live.nodes; backs = live.backs; }
-  else for (let i = 0; i < Math.min(idx, total); i++) { if (events[i].t === 'place') nodes++; else if (events[i].t === 'undo') backs++; }
   const at = Math.min(idx, total);
   const last = at > 0 && events[at - 1].t !== 'start' ? events[at - 1] : null;
-  const done = !!live && idx >= total;
   const shown = useTicker(live ? live.ms : null, flash);
-  const isWordle = game === 'wordle';
-  const isStrands = game === 'strands';
-
-  const vs = !live ? '' : NO_BEFORE.includes(game)
-    ? (isWordle ? 'before: read the answer the page ships' : 'before: read from react state, no solver')
-    : `before ${(effMode === 'before' ? live.nodes : live.other ?? 0).toLocaleString()} nodes · now ${(effMode === 'now' ? live.nodes : live.other ?? 0).toLocaleString()}`;
-
-  let status = 'ready';
-  if (live && done) {
-    if (isWordle) status = `solved "${boards.wordle.answer}" in ${live.nodes} guesses.`;
-    else if (isStrands) status = live.ok ? `all ${boards.strands.words.length} words placed, theme: ${boards.strands.theme}.` : `greedy placed ${view.placed.length} of ${boards.strands.words.length}. the rest had no free path left.`;
-    else status = live.ok ? `solved. ${live.nodes.toLocaleString()} placements, ${live.backs.toLocaleString()} undone.` : 'gave up within the time limit.';
-  } else if (last) {
-    if (isWordle) status = `guess ${last.r + 1}: ${last.word}`;
-    else if (isStrands) status = `${last.t === 'place' ? 'trace' : 'lift'} ${last.word}`;
-    else if (game === 'patches' && last.rect) status = `${last.t === 'place' ? 'place' : 'lift'} a ${last.rect.h}x${last.rect.w} rectangle`;
-    else status = `${last.t === 'place' ? 'try' : 'undo'} row ${last.r + 1}, column ${last.c + 1}`;
-  }
+  const name = GAMES.find((g) => g.id === game)!.label;
 
   return (
-    <div className={`sd sd-g-${game}`} ref={rootRef}>
+    <div className={`sd sd-g-${game}`}>
       <div className="sd-board">
         <div className={`sd-board-in${snap ? ' sd-snap' : ''}`} key={`${game}-${flash}`}>
           {game === 'queens' && <QueensBoard regions={boards.queens} q={view.q} last={last} />}
@@ -268,50 +216,19 @@ export default function Demo({ game, onGame }: { game: Game; onGame: (g: Game) =
           {game === 'strands' && <StrandsBoard board={boards.strands.board} placed={view.placed} />}
           {game === 'wordle' && <WordleBoard answer={boards.wordle.answer} guesses={view.guesses} />}
         </div>
-        <div className="sd-progress"><span style={{ transform: `scaleX(${total ? idx / total : 0})` }} /></div>
       </div>
 
       <div className="sd-side">
-        <div className="sd-tabs" role="tablist">
-          {GAMES.map((t) => (
-            <button key={t.id} role="tab" aria-selected={t.id === game} className={t.id === game ? 'sd-tab sd-tab-on' : 'sd-tab'} onClick={() => onGame(t.id)}>{t.label}</button>
-          ))}
+        <div className="sd-name">{name}</div>
+        <p className="sd-line">{LINES[game].now}</p>
+        <div className="sd-time" aria-live="polite">
+          <span className="sd-k">solved in</span>
+          <span className="sd-time-v">{shown === null ? '\u2013' : fmtMs(shown)}<small>ms</small></span>
         </div>
-        <div className="sd-mode">
-          <div className="sd-seg" role="tablist" aria-label="algorithm">
-            {(['now', 'before'] as Mode[]).map((m) => (
-              <button key={m} role="tab" aria-selected={effMode === m} disabled={NO_BEFORE.includes(game) && m === 'before'} className={effMode === m ? 'sd-seg-on' : ''} onClick={() => pickMode(m)}>{m}</button>
-            ))}
-          </div>
-          <span className="sd-vs">{vs}</span>
-        </div>
-        <p className="sd-line">{LINES[game][effMode]}</p>
-
-        <button className="sd-time" onClick={() => solveReal(game, effMode, true)} aria-label="solve a new board now">
-          <span className="sd-k">solved live in</span>
-          <span className="sd-time-v">{fmtMs(shown)}<small>ms</small></span>
-          <span className="sd-time-note">{isWordle ? 'one full game, measured on this click' : 'measured on this click, averaged over repeat runs of this board'}</span>
-        </button>
-
-        <div className="sd-stats">
-          <div><div className="sd-k">{isWordle ? 'guesses' : isStrands ? 'words placed' : 'nodes explored'}</div><div className="sd-v">{nodes.toLocaleString()}</div></div>
-          <div><div className="sd-k">{isWordle ? 'answer' : 'backtracks'}</div><div className="sd-v">{isWordle ? (done ? boards.wordle.answer : '·····') : backs.toLocaleString()}</div></div>
-        </div>
-        <div className="sd-status">{status}</div>
-
         <div className="sd-controls">
-          <button className="sd-btn sd-btn-primary" onClick={() => solveReal(game, effMode, true)}>solve a new one</button>
-          <button className="sd-btn" onClick={watch} disabled={!live}>{playing ? 'pause' : idx < total && !snap ? 'resume' : 'watch it think'}</button>
+          <button className="sd-btn sd-btn-primary" onClick={() => solve(game)}>{live ? 'solve another' : 'solve'}</button>
+          <button className="sd-btn" aria-pressed={watch} onClick={() => setWatch((w) => !w)}>{watch ? 'watching it think' : 'watch it think'}</button>
         </div>
-        <div className="sd-speed">
-          <span className="sd-k">replay speed</span>
-          <div className="sd-seg">
-            {SPEEDS.map(([label], i) => (
-              <button key={label} className={i === speed ? 'sd-seg-on' : ''} onClick={() => setSpeed(i)}>{label}</button>
-            ))}
-          </div>
-        </div>
-        <p className="sd-note">this is the extension's own <code>core/{game === 'wordle' ? 'wordle' : game}.js</code>, byte for byte, running in your browser on a freshly generated board. before is the code the extension shipped with.</p>
       </div>
       <style>{DEMO_CSS}</style>
     </div>
@@ -509,39 +426,19 @@ const DEMO_CSS = `
   .sd-tg, .sd-ty, .sd-tx { color: #fff; border-color: transparent; animation: sdFlip 0.3s ease both; }
   .sd-tg { background: var(--wg); } .sd-ty { background: var(--wy); } .sd-tx { background: var(--wx); }
   .sd-side { padding: 32px 32px 28px; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-  .sd-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--rule); border-left: 1px solid var(--rule); }
-  .sd-tab { height: 36px; font-size: 13px; color: var(--text); border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); transition: color 0.2s, background 0.2s; white-space: nowrap; }
-  .sd-tab:hover { color: var(--ink); background: var(--hover); }
-  .sd-tab.sd-tab-on { color: var(--bg); background: var(--ink); }
-  .sd-mode { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-  .sd-vs { font-size: 12.5px; color: var(--half); font-variant-numeric: tabular-nums; }
-  .sd-line { margin: 0; font-size: 15px; line-height: 24px; color: var(--text); min-height: 72px; }
-  .sd-time { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 4px 16px; text-align: left; padding: 14px 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--rule); cursor: pointer; }
-  .sd-time:hover .sd-time-v { opacity: 0.75; }
-  .sd-time-v { grid-row: span 2; font-size: 44px; line-height: 1; font-weight: 300; letter-spacing: -0.03em; color: var(--ink); font-variant-numeric: tabular-nums; transition: opacity 0.2s; }
+  .sd-line { margin: 0; font-size: 15px; line-height: 24px; color: var(--text); min-height: 96px; }
+  .sd-name { font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--half); }
+  .sd-time { display: flex; align-items: baseline; justify-content: space-between; padding: 14px 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--rule); }
+  .sd-time-v { font-size: 44px; line-height: 1; font-weight: 300; letter-spacing: -0.03em; color: var(--ink); font-variant-numeric: tabular-nums; transition: opacity 0.2s; }
   .sd-time-v small { font-size: 14px; margin-left: 4px; color: var(--half); letter-spacing: 0; }
-  .sd-time-note { font-size: 12px; line-height: 17px; color: var(--half); }
-  .sd-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-bottom: 1px solid var(--rule); }
-  .sd-stats > div { padding: 0 0 12px 14px; border-left: 1px solid var(--rule); }
-  .sd-stats > div:first-child { padding-left: 0; border-left: 0; }
   .sd-k { font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--half); }
-  .sd-v { margin-top: 6px; font-size: 26px; line-height: 1; font-weight: 300; letter-spacing: -0.02em; color: var(--ink); font-variant-numeric: tabular-nums; }
-  .sd-status { font-size: 13px; line-height: 20px; color: var(--half); font-variant-numeric: tabular-nums; min-height: 20px; }
   .sd-controls { display: flex; gap: 8px; flex-wrap: wrap; }
   .sd-btn { height: 38px; padding: 0 18px; border: 1px solid var(--rule); font-size: 13px; font-weight: 500; color: var(--ink); transition: background 0.2s, opacity 0.2s; }
   .sd-btn:hover { background: var(--hover); }
+  .sd-btn[aria-pressed='true'] { background: var(--hover); }
   .sd-btn:disabled { opacity: 0.4; cursor: default; }
   .sd-btn-primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
   .sd-btn-primary:hover { opacity: 0.86; background: var(--ink); }
-  .sd-speed { display: flex; align-items: center; gap: 14px; }
-  .sd-seg { display: flex; border: 1px solid var(--rule); }
-  .sd-seg button { height: 30px; padding: 0 12px; font-size: 12px; color: var(--text); border-right: 1px solid var(--rule); transition: color 0.2s, background 0.2s; font-variant-numeric: tabular-nums; }
-  .sd-seg button:last-child { border-right: 0; }
-  .sd-seg button:hover { color: var(--ink); }
-  .sd-seg .sd-seg-on { color: var(--ink); background: var(--hover); }
-  .sd-seg button:disabled { opacity: 0.35; cursor: default; }
-  .sd-note { margin: auto 0 0; font-size: 12px; line-height: 19px; color: var(--half); }
-  .sd-note code { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11.5px; color: var(--ink); }
   @keyframes sdPop { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
   @keyframes sdIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   @keyframes sdSettle { 0% { transform: scale(0.985); filter: brightness(1.08); } 45% { transform: scale(1.012); } 100% { transform: none; filter: none; } }
@@ -553,8 +450,7 @@ const DEMO_CSS = `
     .sd-side { padding: 24px 20px; }
   }
   @media (max-width: 480px) {
-    .sd-tab { font-size: 12px; }
-    .sd-time-v { font-size: 36px; }
+      .sd-time-v { font-size: 36px; }
     .sd-cell { font-size: 16px; }
   }
   @media (prefers-reduced-motion: reduce) { .sd-pop, .sd-board-in, .sd-rect, .sd-tile, .sd-sline { animation: none; } }
